@@ -1,6 +1,7 @@
 import { Router, type Request, type Response } from 'express'
-import { contentRepo } from '@mydex/database'
+import { contentRepo, userRepo } from '@mydex/database'
 import { ApiError, asyncHandler } from '../middleware/error'
+import { authMiddleware } from '../middleware/auth'
 
 const router: Router = Router()
 
@@ -194,6 +195,65 @@ router.get(
         count: contents.length,
         page: pageNum,
         pageSize: pageSizeNum,
+      },
+    })
+  })
+)
+
+/**
+ * GET /api/contents/recommended
+ * 需要 Privy JWT 认证，推荐给当前登录用户的内容列表
+ * 查询参数与 /api/contents/processed 相同
+ */
+router.get(
+  '/recommended',
+  authMiddleware,
+  asyncHandler(async (req: Request, res: Response) => {
+    const {
+      category,
+      risk_level,
+      content_type,
+      source,
+      language,
+      sort = 'published_at_desc',
+      page = '1',
+      pageSize = '20',
+    } = req.query
+
+    const pageNum = parseInt(page as string)
+    const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
+
+    if (pageNum < 1 || pageSizeNum < 1) {
+      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+    }
+
+    const offset = (pageNum - 1) * pageSizeNum
+
+    // 查询用户画像
+    const userProfile = await userRepo.findById(req.userId!)
+    console.log(`[recommended] userId: ${req.userId}, profile:`, userProfile)
+    // TODO: 根据 userProfile 实现个性化推荐逻辑
+    // 例如：userProfile.risk_appetite 高 → 优先 risk_level: high
+    //       userProfile.decision_speed 快 → 优先 category: tradable
+
+    const contents = await contentRepo.findProcessed({
+      category: category as any,
+      risk_level: risk_level as any,
+      content_type: content_type as any,
+      source: source as string,
+      language: language as string,
+      limit: pageSizeNum,
+      offset,
+    }, sort as any)
+
+    res.json({
+      success: true,
+      data: contents,
+      meta: {
+        count: contents.length,
+        page: pageNum,
+        pageSize: pageSizeNum,
+        userId: req.userId,
       },
     })
   })

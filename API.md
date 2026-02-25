@@ -45,9 +45,11 @@
 
 ---
 
-## 内容相关接口
+## Processed Content（ai_processed_content）
 
-### 1. 获取推荐内容列表
+> AI 处理后的内容，包含摘要、分类、风险等级、推荐代币等字段。
+
+### 1. 获取内容列表
 
 **接口地址**: `GET /api/contents/processed`
 
@@ -110,11 +112,11 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
       "overall_sentiment": "bullish"
     }
   ],
-  "meta": { "count": 3, "page": 1, "pageSize": 20 }
+  "meta": { "count": 20, "page": 1, "pageSize": 20 }
 }
 ```
 
-> `meta.count` 为本次返回的数据条数（非数据库总条数）。
+> `meta.count` 为本次实际返回的数据条数。
 
 **字段说明**:
 
@@ -130,7 +132,7 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 | author | string \| null | 作者 |
 | language | string \| null | 语言代码 |
 | images | string[] \| null | 图片 URL 列表 |
-| social_metrics | object \| null | 社交数据（点赞、转发等） |
+| social_metrics | SocialMetrics \| null | 社交数据，仅 content_type=social 时存在 |
 | volatility | string | 波动性 0-1（PostgreSQL NUMERIC 返回字符串） |
 | summary | string | 省流版摘要 |
 | evidence_points | string[] | 判断依据 |
@@ -164,7 +166,7 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 | chain | string \| null | 区块链代号：eth/sol/bsc/polygon/avax/base/op/arb/ftm/movr/glm/aurora/metis/cro |
 | addr | string \| null | 代币地址（EVM: 0x 开头，SOL: base58 编码） |
 
-**SocialMetrics 字段说明**（`content_type=social` 时存在）:
+**SocialMetrics 字段说明**:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
@@ -179,7 +181,51 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 
 ---
 
-### 2. 获取单条处理后内容
+### 2. 获取个性化推荐内容（新闻推荐流、需要JWT token）
+
+**接口地址**: `GET /api/contents/recommended`
+
+**说明**: 需要 Privy JWT 认证。服务端通过 Token 解析出用户 ID，查询该用户在 `ai_user_profiles` 中的画像后返回内容列表。用户画像（`risk_appetite`、`decision_speed` 等）将用于后续个性化推荐逻辑（当前为预留 TODO）。
+
+**认证**:
+```http
+Authorization: Bearer <privy_jwt_token>
+```
+
+**请求参数**: 与「获取内容列表」完全相同（category/risk_level/content_type/source/language/sort/page/pageSize）
+
+**请求示例**:
+```http
+GET /api/contents/recommended?page=1&pageSize=20&category=tradable
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [...],
+  "meta": {
+    "count": 20,
+    "page": 1,
+    "pageSize": 20,
+    "userId": "did:privy:xxx"
+  }
+}
+```
+
+> `data` 字段结构与「1. 获取内容列表」完全相同。
+> `meta.userId` 为从 Token 解析出的 Privy 用户 ID（`sub` 字段）。
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 401 | 未携带 Token，或 Token 无效/已过期 |
+
+---
+
+### 3. 获取单条内容
 
 **接口地址**: `GET /api/contents/processed/:id`
 
@@ -192,19 +238,85 @@ GET /api/contents/processed/news_001
 ```json
 {
   "success": true,
-  "data": {
-    "id": "news_001",
-    "title": "...",
-    ...
-  }
+  "data": { "id": "news_001", "title": "...", ... }
 }
 ```
 
-**字段说明**: 与「获取推荐内容列表」接口相同。
+**字段说明**: 与「1. 获取内容列表」相同。
 
 ---
 
-### 3. 获取单条原始内容
+### 4. 按分类获取内容
+
+**接口地址**: `GET /api/contents/category/:category`
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| category | string | 是 | educational/tradable/macro |
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| page | number | 否 | 页码，从 1 开始，默认 1 |
+| pageSize | number | 否 | 每页数量，默认 20，最大 100 |
+
+**请求示例**:
+```http
+GET /api/contents/category/tradable?page=1&pageSize=20
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [...],
+  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+}
+```
+
+---
+
+### 5. 按风险等级获取内容
+
+**接口地址**: `GET /api/contents/risk/:riskLevel`
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| riskLevel | string | 是 | low/medium/high |
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| page | number | 否 | 页码，从 1 开始，默认 1 |
+| pageSize | number | 否 | 每页数量，默认 20，最大 100 |
+
+**请求示例**:
+```http
+GET /api/contents/risk/medium?page=1&pageSize=20
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": [...],
+  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+}
+```
+
+---
+
+## Raw Content（ai_raw_content）
+
+> 原始内容，不含 AI 处理结果（无 summary、category、tags 等）。
+
+### 1. 获取单条原始内容
 
 **接口地址**: `GET /api/contents/raw/:id`
 
@@ -233,83 +345,27 @@ GET /api/contents/raw/news_001
 }
 ```
 
-**字段说明**: 仅包含原始内容字段，不含 AI 处理结果（无 summary、category、tags 等）。
+**字段说明**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | string | 内容 ID |
+| title | string | 标题 |
+| content_type | string | 内容类型：news/edu/social |
+| content | string | 完整正文 |
+| source | string | 数据来源 |
+| publishedAt | string | 发布时间（ISO 8601） |
+| url | string \| null | 原文链接 |
+| author | string \| null | 作者 |
+| language | string \| null | 语言代码 |
+| images | string[] \| null | 图片 URL 列表 |
+| social_metrics | SocialMetrics \| null | 社交数据（结构同上） |
 
 ---
 
-### 4. 按分类获取内容
+## User Profiles（ai_user_profiles）
 
-**接口地址**: `GET /api/contents/category/:category`
-
-**路径参数**:
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| category | string | 是 | 分类：educational/tradable/macro |
-
-**请求参数**:
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| page | number | 否 | 页码，从 1 开始，默认 1 |
-| pageSize | number | 否 | 每页数量，默认 20，最大 100 |
-
-**请求示例**:
-```http
-GET /api/contents/category/tradable?page=1&pageSize=20
-```
-
-**响应示例**:
-```json
-{
-  "success": true,
-  "data": [...],
-  "meta": { "count": 2, "page": 1, "pageSize": 20 }
-}
-```
-
-**字段说明**: 与「获取推荐内容列表」接口相同。
-
----
-
-### 5. 按风险等级获取内容
-
-**接口地址**: `GET /api/contents/risk/:riskLevel`
-
-**路径参数**:
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| riskLevel | string | 是 | 风险等级：low/medium/high |
-
-**请求参数**:
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| page | number | 否 | 页码，从 1 开始，默认 1 |
-| pageSize | number | 否 | 每页数量，默认 20，最大 100 |
-
-**请求示例**:
-```http
-GET /api/contents/risk/medium?page=1&pageSize=20
-```
-
-**响应示例**:
-```json
-{
-  "success": true,
-  "data": [...],
-  "meta": { "count": 2, "page": 1, "pageSize": 20 }
-}
-```
-
-**字段说明**: 与「获取推荐内容列表」接口相同。
-
----
-
-## 用户相关接口
-
-### 6. 创建用户
+### 1. 创建用户
 
 **接口地址**: `POST /api/users`
 
@@ -356,7 +412,7 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 }
 ```
 
-> 注意：`risk_appetite` 等维度字段由 PostgreSQL NUMERIC 类型返回，格式为字符串（如 `"5.0"`）。
+> 维度字段由 PostgreSQL NUMERIC 类型返回，格式为字符串（如 `"5.0"`）。
 
 **字段说明**:
 
@@ -374,7 +430,7 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 
 ---
 
-### 7. 获取用户信息
+### 2. 获取用户信息
 
 **接口地址**: `GET /api/users/:userId`
 
@@ -401,11 +457,11 @@ GET /api/users/did:privy:123
 }
 ```
 
-**字段说明**: 与「创建用户」接口相同。
+**字段说明**: 与「创建用户」相同。
 
 ---
 
-### 8. 更新用户维度
+### 3. 更新用户维度
 
 **接口地址**: `PATCH /api/users/:userId/traits`
 
@@ -436,7 +492,7 @@ GET /api/users/did:privy:123
 
 ---
 
-### 9. 交易次数 +1
+### 4. 交易次数 +1
 
 **接口地址**: `PATCH /api/users/:userId/trade-count`
 
@@ -455,7 +511,7 @@ PATCH /api/users/did:privy:123/trade-count
 
 ---
 
-### 10. 删除用户
+### 5. 删除用户
 
 **接口地址**: `DELETE /api/users/:userId`
 
@@ -474,11 +530,11 @@ DELETE /api/users/did:privy:123
 
 ---
 
-## 聊天相关接口
+## Chat（ai_chat）
 
-> 注意：聊天记录中的 `user_id` 为**数字类型**（对应 `ai_chat` 表的整数主键），与用户档案中的 `user_id`（字符串，如 `did:privy:xxx`）是不同的字段。
+> 注意：`user_id` 为**数字类型**（整数），与 User Profiles 中的 `user_id`（字符串）是不同的字段。
 
-### 11. 创建聊天记录
+### 1. 创建聊天记录
 
 **接口地址**: `POST /api/chats`
 
@@ -531,7 +587,7 @@ DELETE /api/users/did:privy:123
 
 ---
 
-### 12. 获取单条聊天记录
+### 2. 获取单条聊天记录
 
 **接口地址**: `GET /api/chats/:id`
 
@@ -556,11 +612,11 @@ GET /api/chats/106
 }
 ```
 
-**字段说明**: 与「创建聊天记录」接口相同。
+**字段说明**: 与「创建聊天记录」相同。
 
 ---
 
-### 13. 获取用户聊天记录
+### 3. 获取用户聊天记录
 
 **接口地址**: `GET /api/chats/user/:userId`
 
@@ -590,11 +646,9 @@ GET /api/chats/user/35
 
 > `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
 
-**字段说明**: 与「创建聊天记录」接口相同。
-
 ---
 
-### 14. 获取会话聊天记录
+### 4. 获取会话聊天记录
 
 **接口地址**: `GET /api/chats/session/:sessionId`
 
@@ -624,11 +678,9 @@ GET /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 
 > `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
 
-**字段说明**: 与「创建聊天记录」接口相同。
-
 ---
 
-### 15. 获取用户会话列表
+### 5. 获取用户会话列表
 
 **接口地址**: `GET /api/chats/user/:userId/sessions`
 
@@ -654,7 +706,7 @@ GET /api/chats/user/35/sessions
 }
 ```
 
-> `message_count` 由 PostgreSQL `COUNT(*)` 返回，格式为字符串（如 `"5"`）。列表按 `last_message_at DESC` 排序。
+> `message_count` 由 PostgreSQL `COUNT(*)` 返回，格式为字符串。列表按 `last_message_at DESC` 排序。
 
 **字段说明**:
 
@@ -668,7 +720,7 @@ GET /api/chats/user/35/sessions
 
 ---
 
-### 16. 更新聊天记录
+### 6. 更新聊天记录
 
 **接口地址**: `PATCH /api/chats/:id`
 
@@ -702,11 +754,11 @@ GET /api/chats/user/35/sessions
 }
 ```
 
-**字段说明**: 与「创建聊天记录」接口相同，返回完整记录。
+**字段说明**: 与「创建聊天记录」相同，返回完整记录。
 
 ---
 
-### 17. 删除聊天记录
+### 7. 删除聊天记录
 
 **接口地址**: `DELETE /api/chats/:id`
 
@@ -725,7 +777,7 @@ DELETE /api/chats/106
 
 ---
 
-### 18. 删除会话
+### 8. 删除会话
 
 **接口地址**: `DELETE /api/chats/session/:sessionId`
 
@@ -751,6 +803,7 @@ DELETE /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 | 200 | 请求成功 |
 | 201 | 创建成功 |
 | 400 | 请求参数错误 |
+| 401 | 未认证或 Token 无效 |
 | 404 | 资源不存在 |
 | 409 | 资源冲突（如用户已存在） |
 | 500 | 服务器内部错误 |
