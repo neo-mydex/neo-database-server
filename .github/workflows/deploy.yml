@@ -1,0 +1,34 @@
+name: 部署到 RunPod
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: SSH 进入 RunPod 并更新部署
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.RUNPOD_HOST }}
+          port: ${{ secrets.RUNPOD_PORT }}
+          username: ${{ secrets.RUNPOD_USER }}
+          key: ${{ secrets.RUNPOD_SSH_KEY }}
+          script: |
+            export NVM_DIR="/workspace/.nvm"
+            source "$NVM_DIR/nvm.sh"
+
+            cd /workspace/node/neo-database-server
+
+            git pull origin main
+
+            pnpm install --frozen-lockfile
+
+            pnpm build
+
+            pm2 restart neo-database-server
+
+            pm2 status
