@@ -1,0 +1,375 @@
+[
+  {
+    "id": "news_001",
+    "title": "美联储宣布维持利率不变，加密市场短暂上涨",
+    "content_type": "news",
+    "content": "美联储周三宣布维持联邦基金利率在5.25%-5.50%区间不变，符合市场预期。声明发布后比特币短暂突破6.8万美元，随后回落至6.75万美元附近。分析师认为，若通胀数据持续回落，年内降息概率仍然存在。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-06T19:00:00.000Z",
+    "url": "https://example.com/fed-rate-decision",
+    "author": "Reuters",
+    "language": "zh-CN",
+    "images": ["https://example.com/images/fed_building.jpg"],
+    "social_metrics": null,
+    "volatility": 0.72,
+    "summary": "美联储维持利率不变，比特币短暂突破 6.8 万美元后回落。若通胀持续改善，年内降息仍有可能，市场情绪整体偏谨慎乐观。",
+    "evidence_points": [
+      "利率维持在 5.25%-5.50%，符合市场预期，避免了超预期紧缩的恐慌",
+      "BTC 价格在消息发布后快速拉升，说明市场已提前消化利好",
+      "分析师提到年内降息概率仍存，为中期行情提供支撑"
+    ],
+    "suggested_questions": [
+      { "label": "降息对加密市场有什么影响？", "action": "chat", "chat": { "message": "降息对加密市场有什么影响？" } },
+      { "label": "现在适合买入 BTC 吗？", "action": "chat", "chat": { "message": "现在适合买入比特币吗？" } },
+      { "label": "查看 BTC 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "BTC" } } },
+      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "macro",
+    "risk_level": "medium",
+    "tags": ["宏观", "美联储", "利率", "BTC", "利多"],
+    "suggested_tokens": [
+      { "symbol": "BTC", "name": "Bitcoin", "relevance_score": 0.95, "sentiment": "bullish", "confidence": 0.78 },
+      { "symbol": "ETH", "name": "Ethereum", "relevance_score": 0.72, "sentiment": "bullish", "confidence": 0.65, "chain": "eth", "addr": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" }
+    ],
+    "overall_sentiment": "bullish"
+  },
+  {
+    "id": "news_002",
+    "title": "Solana 生态 DEX 交易量单日突破 50 亿美元",
+    "content_type": "news",
+    "content": "据链上数据显示，Solana 生态去中心化交易所昨日总交易量突破 50 亿美元，创历史新高。其中 Jupiter 贡献约 60% 的交易量。分析师认为此轮增长主要来自 meme 币热潮带动的散户涌入。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-08T10:30:00.000Z",
+    "url": "https://example.com/solana-dex-volume",
+    "author": "CoinDesk",
+    "language": "zh-CN",
+    "images": ["https://example.com/images/solana_logo.jpg", "https://example.com/images/jupiter_dex.jpg"],
+    "social_metrics": null,
+    "volatility": 0.58,
+    "summary": "Solana 生态 DEX 单日交易量突破 50 亿美元历史新高，Jupiter 贡献六成。此轮增长主要由 meme 币热潮驱动，散户活跃度显著上升。",
+    "evidence_points": [
+      "链上数据可直接验证，数据可信度高",
+      "Jupiter 占比 60%，说明生态集中度较高，头部效应明显",
+      "meme 币驱动意味着交易量可持续性存疑，需关注热度衰退风险"
+    ],
+    "suggested_questions": [
+      { "label": "SOL 现在能买吗？", "action": "chat", "chat": { "message": "Solana 现在值得投资吗？" } },
+      { "label": "什么是 DEX？", "action": "chat", "chat": { "message": "去中心化交易所和中心化交易所有什么区别？" } },
+      { "label": "查看 SOL 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "SOL" } } },
+      { "label": "查看 JUP 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "JUP" } } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "tradable",
+    "risk_level": "medium",
+    "tags": ["Solana", "DEX", "链上数据", "JUP", "可交易"],
+    "suggested_tokens": [
+      { "symbol": "SOL", "name": "Solana", "relevance_score": 0.92, "sentiment": "bullish", "confidence": 0.80, "chain": "sol", "addr": "So11111111111111111111111111111111111111112" },
+      { "symbol": "JUP", "name": "Jupiter", "relevance_score": 0.88, "sentiment": "bullish", "confidence": 0.75, "chain": "sol", "addr": "JUPyiwrYvFkUPcwHwasWuayEaGFC7h9qpkeWwNvhXRGD" }
+    ],
+    "overall_sentiment": "bullish"
+  },
+  {
+    "id": "edu_001",
+    "title": "什么是流动性池？LP Token 怎么赚钱？",
+    "content_type": "edu",
+    "content": "流动性池是 DeFi 的核心机制之一。用户将两种代币按比例存入智能合约，成为流动性提供者（LP），从而获得交易手续费分成。存入后你会收到 LP Token，代表你在池子里的份额。取出时按当前池子比例换回代币，若价格发生变化会产生无常损失。",
+    "source": "local",
+    "publishedAt": "2025-11-07T08:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": ["https://example.com/images/liquidity_pool_diagram.jpg"],
+    "social_metrics": null,
+    "volatility": 0.05,
+    "summary": "流动性池让用户把代币存入智能合约赚取手续费，但取出时若价格变化会产生无常损失。LP Token 代表你的池子份额。",
+    "evidence_points": [
+      "LP 机制是 Uniswap、Curve 等主流 DEX 的核心运作方式",
+      "无常损失是 LP 参与者最常被忽视的风险点",
+      "手续费收益与无常损失之间的权衡决定了 LP 是否划算"
+    ],
+    "suggested_questions": [
+      { "label": "无常损失怎么计算？", "action": "chat", "chat": { "message": "无常损失是怎么计算的？举个例子" } },
+      { "label": "哪些平台可以提供流动性？", "action": "chat", "chat": { "message": "在哪些平台可以做流动性提供者？" } },
+      { "label": "LP 收益高吗？", "action": "chat", "chat": { "message": "做流动性提供者的年化收益大概是多少？" } },
+      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "educational",
+    "risk_level": "low",
+    "tags": ["AI喵科普", "DeFi", "流动性池", "新手入门", "LP"],
+    "suggested_tokens": null,
+    "overall_sentiment": null
+  },
+  {
+    "id": "edu_002",
+    "title": "Gas Fee 是什么？为什么有时候那么贵？",
+    "content_type": "edu",
+    "content": "Gas Fee 是在区块链上执行交易时支付给矿工或验证者的费用。以太坊的 Gas 价格由网络拥堵程度决定，高峰期可能高达数十美元。Layer 2 方案如 Arbitrum、Optimism 可将手续费降低至不足 1 美分。选择合适的链和时间可以大幅节省成本。",
+    "source": "local",
+    "publishedAt": "2025-11-09T09:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": null,
+    "volatility": 0.03,
+    "summary": "Gas Fee 是区块链交易的手续费，以太坊高峰期可能很贵。使用 Layer 2（如 Arbitrum、Optimism）可大幅降低成本。",
+    "evidence_points": [
+      "Gas 价格由网络拥堵程度决定，不是固定值",
+      "Layer 2 通过批量打包交易降低单笔成本，技术上已成熟",
+      "选对链和时间点可以节省大量手续费"
+    ],
+    "suggested_questions": [
+      { "label": "怎么查当前 Gas 价格？", "action": "chat", "chat": { "message": "怎么查以太坊当前的 Gas 价格？" } },
+      { "label": "Arbitrum 和 Optimism 怎么选？", "action": "chat", "chat": { "message": "Arbitrum 和 Optimism 有什么区别？" } },
+      { "label": "什么是 Layer 2？", "action": "chat", "chat": { "message": "Layer 2 是什么？和以太坊主网有什么关系？" } },
+      { "label": "交易设置", "action": "component", "component": { "type": "settings_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "educational",
+    "risk_level": "low",
+    "tags": ["AI喵科普", "Gas", "Layer2", "以太坊", "新手入门"],
+    "suggested_tokens": null,
+    "overall_sentiment": null
+  },
+  {
+    "id": "social_001",
+    "title": "KOL @CryptoWhale 看多 ETH，目标价 5000 美元",
+    "content_type": "social",
+    "content": "ETH breaking out of 6-month consolidation. On-chain accumulation at all-time highs. Institutions are quietly loading bags. My target: $5000 by Q1. Not financial advice but DYOR.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-08T14:22:00.000Z",
+    "url": "https://twitter.com/cryptowhale/status/example001",
+    "author": "@CryptoWhale",
+    "language": "en-US",
+    "images": null,
+    "social_metrics": {
+      "likes": 8420,
+      "retweets": 2100,
+      "replies": 430,
+      "views": 198000,
+      "shares": null,
+      "author_followers": 520000,
+      "is_kol": true,
+      "verified": true
+    },
+    "volatility": 0.65,
+    "summary": "知名 KOL @CryptoWhale 看多 ETH，目标价 5000 美元，理由是链上积累数据创新高且机构持续买入。需注意这是个人观点，不构成投资建议。",
+    "evidence_points": [
+      "链上积累数据处于历史高位，是较强的看多信号",
+      "机构持续买入是近期市场的重要叙事",
+      "KOL 粉丝 52 万且获得认证，影响力较大，需警惕跟风情绪"
+    ],
+    "suggested_questions": [
+      { "label": "ETH 现在值得买吗？", "action": "chat", "chat": { "message": "以太坊现在值得投资吗？" } },
+      { "label": "查看 ETH 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ETH" } } },
+      { "label": "什么是链上积累数据？", "action": "chat", "chat": { "message": "链上积累数据是什么指标？怎么看？" } },
+      { "label": "我的持仓", "action": "component", "component": { "type": "assets_card" } }
+    ],
+    "detected_language": "en-US",
+    "category": "tradable",
+    "risk_level": "medium",
+    "tags": ["KOL观点", "ETH", "看多", "可交易", "机构动向"],
+    "suggested_tokens": [
+      { "symbol": "ETH", "name": "Ethereum", "relevance_score": 0.98, "sentiment": "bullish", "confidence": 0.70, "chain": "eth", "addr": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" }
+    ],
+    "overall_sentiment": "bullish"
+  },
+  {
+    "id": "social_002",
+    "title": "Telegram 频道：BTC 即将面临关键支撑位考验",
+    "content_type": "social",
+    "content": "比特币当前价格正在测试 65000 美元关键支撑，若跌破将下探 62000。建议持仓者设好止损，等待确认信号再加仓。",
+    "source": "Telegram",
+    "publishedAt": "2025-11-09T06:15:00.000Z",
+    "url": "https://t.me/cryptosignals/example002",
+    "author": "CryptoSignals频道",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": {
+      "likes": 312,
+      "retweets": null,
+      "replies": 45,
+      "views": 15600,
+      "shares": 89,
+      "author_followers": 38000,
+      "is_kol": false,
+      "verified": false
+    },
+    "volatility": 0.78,
+    "summary": "BTC 正在测试 65000 美元关键支撑位，若跌破将下探 62000。建议持仓者设好止损，谨慎操作。",
+    "evidence_points": [
+      "65000 美元是近期多次被验证的关键支撑位",
+      "跌破关键支撑后通常会加速下行，止损设置合理",
+      "来源为 Telegram 频道，非 KOL，可信度需打折扣"
+    ],
+    "suggested_questions": [
+      { "label": "BTC 跌破支撑怎么办？", "action": "chat", "chat": { "message": "BTC 跌破关键支撑位我该怎么操作？" } },
+      { "label": "怎么设置止损？", "action": "chat", "chat": { "message": "如何在 MyDex 设置止损单？" } },
+      { "label": "查看 BTC 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "BTC" } } },
+      { "label": "交易历史", "action": "component", "component": { "type": "history_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "tradable",
+    "risk_level": "high",
+    "tags": ["BTC", "技术分析", "支撑位", "风险提示", "止损"],
+    "suggested_tokens": [
+      { "symbol": "BTC", "name": "Bitcoin", "relevance_score": 0.97, "sentiment": "bearish", "confidence": 0.62 }
+    ],
+    "overall_sentiment": "bearish"
+  },
+  {
+    "id": "social_003",
+    "title": "@SolanaInsider：Jupiter 新功能上线，体验拉满",
+    "content_type": "social",
+    "content": "Just tried Jupiter's new limit order feature on Solana. Execution speed is insane, filled in under 2 seconds. This is what DeFi should feel like. Bullish on $JUP long term.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-07T20:45:00.000Z",
+    "url": "https://twitter.com/solanainsider/status/example003",
+    "author": "@SolanaInsider",
+    "language": "en-US",
+    "images": ["https://example.com/images/jupiter_screenshot.jpg"],
+    "social_metrics": {
+      "likes": 3150,
+      "retweets": 780,
+      "replies": 210,
+      "views": 87000,
+      "shares": null,
+      "author_followers": 95000,
+      "is_kol": true,
+      "verified": false
+    },
+    "volatility": 0.42,
+    "summary": "KOL @SolanaInsider 体验了 Jupiter 新限价单功能，成交速度不到 2 秒，对 JUP 长期看好。",
+    "evidence_points": [
+      "限价单功能是 DEX 的重要产品升级，降低了用户使用门槛",
+      "2 秒成交速度具体可验证，具备说服力",
+      "作者粉丝 9.5 万，具有一定影响力"
+    ],
+    "suggested_questions": [
+      { "label": "Jupiter 怎么用？", "action": "chat", "chat": { "message": "Jupiter 交易所怎么使用？" } },
+      { "label": "查看 JUP 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "JUP" } } },
+      { "label": "限价单和市价单区别？", "action": "chat", "chat": { "message": "限价单和市价单有什么区别？" } },
+      { "label": "查看 SOL 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "SOL" } } }
+    ],
+    "detected_language": "en-US",
+    "category": "tradable",
+    "risk_level": "low",
+    "tags": ["Solana", "Jupiter", "JUP", "产品更新", "看多"],
+    "suggested_tokens": [
+      { "symbol": "JUP", "name": "Jupiter", "relevance_score": 0.94, "sentiment": "bullish", "confidence": 0.72, "chain": "sol", "addr": "JUPyiwrYvFkUPcwHwasWuayEaGFC7h9qpkeWwNvhXRGD" },
+      { "symbol": "SOL", "name": "Solana", "relevance_score": 0.65, "sentiment": "bullish", "confidence": 0.60, "chain": "sol", "addr": "So11111111111111111111111111111111111111112" }
+    ],
+    "overall_sentiment": "bullish"
+  },
+  {
+    "id": "news_003",
+    "title": "香港证监会批准首批以太坊现货 ETF 申请",
+    "content_type": "news",
+    "content": "香港证监会今日正式批准三家资产管理公司提交的以太坊现货 ETF 申请，预计最快下月上市交易。此消息被市场解读为重大利好，ETH 价格在消息公布后一小时内上涨约 4.2%。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-05T05:30:00.000Z",
+    "url": "https://example.com/hk-eth-etf",
+    "author": "Bloomberg",
+    "language": "zh-CN",
+    "images": ["https://example.com/images/hk_skyline.jpg"],
+    "social_metrics": null,
+    "volatility": 0.82,
+    "summary": "香港证监会批准首批以太坊现货 ETF，ETH 价格一小时内涨 4.2%。这是继比特币 ETF 之后的重要里程碑，有望吸引更多机构资金入场。",
+    "evidence_points": [
+      "监管层批准是强力利多信号，直接打开机构合规入场通道",
+      "ETH 价格快速反应 4.2%，市场情绪积极",
+      "香港作为亚洲金融中心，对亚太地区机构资金有示范效应"
+    ],
+    "suggested_questions": [
+      { "label": "ETF 对 ETH 价格影响多大？", "action": "chat", "chat": { "message": "以太坊现货 ETF 获批对价格的影响有多大？" } },
+      { "label": "查看 ETH 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ETH" } } },
+      { "label": "什么是现货 ETF？", "action": "chat", "chat": { "message": "加密货币现货 ETF 是什么？和期货 ETF 有什么区别？" } },
+      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "tradable",
+    "risk_level": "low",
+    "tags": ["ETH", "ETF", "香港", "机构", "重大利好", "可交易"],
+    "suggested_tokens": [
+      { "symbol": "ETH", "name": "Ethereum", "relevance_score": 0.99, "sentiment": "bullish", "confidence": 0.88, "chain": "eth", "addr": "0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2" }
+    ],
+    "overall_sentiment": "bullish"
+  },
+  {
+    "id": "edu_003",
+    "title": "永续合约和现货有什么区别？",
+    "content_type": "edu",
+    "content": "现货交易是直接买卖真实资产，你持有的是真正的代币。永续合约是一种衍生品，你交易的是价格合约而非资产本身，可以做多也可以做空，还可以加杠杆放大收益（同时也放大风险）。永续合约没有到期日，通过资金费率机制让合约价格锚定现货价格。",
+    "source": "local",
+    "publishedAt": "2025-11-10T07:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": null,
+    "volatility": 0.04,
+    "summary": "永续合约是衍生品，可做多做空还能加杠杆，但风险远高于现货。通过资金费率锚定现货价格，没有到期日。",
+    "evidence_points": [
+      "永续合约允许做空，是对冲现货持仓风险的常用工具",
+      "杠杆放大收益的同时等比放大损失，新手需谨慎",
+      "资金费率机制是永续合约价格锚定的核心，理解它有助于判断市场多空情绪"
+    ],
+    "suggested_questions": [
+      { "label": "杠杆怎么用才安全？", "action": "chat", "chat": { "message": "加杠杆交易有哪些风险控制技巧？" } },
+      { "label": "什么是资金费率？", "action": "chat", "chat": { "message": "永续合约的资金费率是什么？怎么影响我的收益？" } },
+      { "label": "现货和合约哪个适合新手？", "action": "chat", "chat": { "message": "我是新手，应该从现货还是合约开始？" } },
+      { "label": "交易设置", "action": "component", "component": { "type": "settings_card" } }
+    ],
+    "detected_language": "zh-CN",
+    "category": "educational",
+    "risk_level": "low",
+    "tags": ["AI喵科普", "永续合约", "杠杆", "新手入门", "风险提示"],
+    "suggested_tokens": null,
+    "overall_sentiment": null
+  },
+  {
+    "id": "social_004",
+    "title": "@DeFiResearch：链上数据显示巨鲸正在悄悄建仓",
+    "content_type": "social",
+    "content": "On-chain alert: 3 wallets holding 50M+ USDC have started accumulating $ARB over the past 48 hours. Total bought: ~$12M worth. Smart money moving quietly before the narrative catches on.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-10T11:05:00.000Z",
+    "url": "https://twitter.com/defiresearch/status/example004",
+    "author": "@DeFiResearch",
+    "language": "en-US",
+    "images": ["https://example.com/images/onchain_chart.jpg"],
+    "social_metrics": {
+      "likes": 5670,
+      "retweets": 1430,
+      "replies": 320,
+      "views": 134000,
+      "shares": null,
+      "author_followers": 210000,
+      "is_kol": true,
+      "verified": true
+    },
+    "volatility": 0.70,
+    "summary": "链上数据显示三个巨鲸钱包在 48 小时内悄悄买入约 1200 万美元的 ARB，疑似提前布局某个叙事。",
+    "evidence_points": [
+      "链上数据可公开验证，可信度较高",
+      "三个持有 5000 万以上 USDC 的钱包同步行动，协同性强",
+      "1200 万美元的买入规模对 ARB 流动性而言属于大额建仓"
+    ],
+    "suggested_questions": [
+      { "label": "ARB 最近有什么利好？", "action": "chat", "chat": { "message": "Arbitrum 最近有什么重要消息或催化剂？" } },
+      { "label": "查看 ARB 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ARB" } } },
+      { "label": "怎么追踪巨鲸动向？", "action": "chat", "chat": { "message": "有什么工具可以追踪链上巨鲸的动向？" } },
+      { "label": "我的持仓", "action": "component", "component": { "type": "assets_card" } }
+    ],
+    "detected_language": "en-US",
+    "category": "tradable",
+    "risk_level": "medium",
+    "tags": ["ARB", "巨鲸动向", "链上数据", "可交易", "建仓信号"],
+    "suggested_tokens": [
+      { "symbol": "ARB", "name": "Arbitrum", "relevance_score": 0.96, "sentiment": "bullish", "confidence": 0.74, "chain": "arb", "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548" }
+    ],
+    "overall_sentiment": "bullish"
+  }
+]

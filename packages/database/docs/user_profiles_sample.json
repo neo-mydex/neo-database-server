@@ -1,0 +1,112 @@
+[
+  {
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
+    "risk_appetite": 2.0,
+    "patience": 8.5,
+    "info_sensitivity": 7.0,
+    "decision_speed": 3.0,
+    "cat_type": "慢热的守护喵",
+    "cat_desc": "你的财富像老树盘根，扎得慢但扎得深。时间是你最好的朋友，耐心是你与生俱来的天赋。",
+    "registered_at": "2025-11-01T08:00:00.000Z",
+    "trade_count": 3
+  },
+  {
+    "user_id": "did:privy:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd",
+    "risk_appetite": 9.0,
+    "patience": 2.0,
+    "info_sensitivity": 3.5,
+    "decision_speed": 9.5,
+    "cat_type": "疯狂的暴击喵",
+    "cat_desc": "你的命格太过极端，要么暴富要么爆仓。这种大起大落的人生刺激但危险，悠着点。",
+    "registered_at": "2025-11-10T15:30:00.000Z",
+    "trade_count": 28
+  },
+  {
+    "user_id": "did:privy:0xfedcbafedcbafedcbafedcbafedcbafedcbafed",
+    "risk_appetite": 5.0,
+    "patience": 5.0,
+    "info_sensitivity": 5.0,
+    "decision_speed": 5.0,
+    "cat_type": "均衡的全能喵",
+    "cat_desc": "你的命格最为均衡，没有明显短板也没有突出长板。这份平衡本身就是一种天赋。",
+    "registered_at": "2025-11-15T10:00:00.000Z",
+    "trade_count": 0
+  },
+  {
+    "user_id": "did:privy:0x1111111111111111111111111111111111111111",
+    "risk_appetite": 1.5,
+    "patience": 9.0,
+    "info_sensitivity": 8.0,
+    "decision_speed": 2.5,
+    "cat_type": "智慧的隐士喵",
+    "cat_desc": "大智若愚，大巧若拙。你的财富藏在别人看不懂的地方，时间会证明你的远见。",
+    "registered_at": "2025-10-15T06:00:00.000Z",
+    "trade_count": 12
+  },
+  {
+    "user_id": "did:privy:0x2222222222222222222222222222222222222222",
+    "risk_appetite": 7.5,
+    "patience": 3.0,
+    "info_sensitivity": 4.5,
+    "decision_speed": 8.0,
+    "cat_type": "敏捷的防守喵",
+    "cat_desc": "防守反击是你的命数，不主动出击却也不会被动挨打。这份智慧会保你平安富足。",
+    "registered_at": "2025-11-12T14:20:00.000Z",
+    "trade_count": 7
+  },
+  {
+    "user_id": "did:privy:0x3333333333333333333333333333333333333333",
+    "risk_appetite": 4.0,
+    "patience": 6.5,
+    "info_sensitivity": 6.0,
+    "decision_speed": 4.5,
+    "cat_type": "成熟的配置喵",
+    "cat_desc": "你的投资已趋于成熟，资产配置是你的强项。这份成熟来之不易，好好珍惜。",
+    "registered_at": "2025-10-28T09:30:00.000Z",
+    "trade_count": 15
+  },
+  {
+    "user_id": "did:privy:0x4444444444444444444444444444444444444444",
+    "risk_appetite": 8.5,
+    "patience": 2.5,
+    "info_sensitivity": 3.0,
+    "decision_speed": 9.0,
+    "cat_type": "冲动的冒险喵",
+    "cat_desc": "你就是市场里最疯狂的那只猫，冲动是你的代名词。若能修炼冷静，还有救。",
+    "registered_at": "2025-11-18T16:45:00.000Z",
+    "trade_count": 42
+  },
+  {
+    "user_id": "did:privy:0x5555555555555555555555555555555555555555",
+    "risk_appetite": 3.5,
+    "patience": 7.0,
+    "info_sensitivity": 7.5,
+    "decision_speed": 4.0,
+    "cat_type": "耐心的基本面喵",
+    "cat_desc": "你与基本面分析有缘，命中注定要靠研究功夫吃饭。扎实的功底会成为你的护城河。",
+    "registered_at": "2025-11-05T11:00:00.000Z",
+    "trade_count": 5
+  },
+  {
+    "user_id": "did:privy:0x6666666666666666666666666666666666666666",
+    "risk_appetite": 6.0,
+    "patience": 5.5,
+    "info_sensitivity": 5.0,
+    "decision_speed": 7.0,
+    "cat_type": "积极的交易喵",
+    "cat_desc": "你的命格积极主动，既不过分冒进也不过度保守。这份积极会为你带来回报。",
+    "registered_at": "2025-11-08T13:15:00.000Z",
+    "trade_count": 19
+  },
+  {
+    "user_id": "did:privy:0x7777777777777777777777777777777777777777",
+    "risk_appetite": 2.0,
+    "patience": 8.5,
+    "info_sensitivity": 9.0,
+    "decision_speed": 3.0,
+    "cat_type": "冷静的大师喵",
+    "cat_desc": "你已悟得交易的真谛，冷静、精准、耐心兼具。命中注定要成为高手，只是时间早晚。",
+    "registered_at": "2025-10-20T10:30:00.000Z",
+    "trade_count": 33
+  }
+]

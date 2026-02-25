@@ -1,0 +1,35 @@
+{
+  "name": "@mydex/database-server",
+  "version": "1.0.0",
+  "description": "MyDex Database API Server - Express REST API for database operations",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js",
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@mydex/database": "workspace:*",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
+    "morgan": "^1.10.1"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/morgan": "^1.9.10",
+    "@types/node": "^25.3.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "mydex",
+    "api",
+    "server",
+    "express",
+    "rest"
+  ],
+  "author": "MyDex",
+  "license": "MIT"
+}

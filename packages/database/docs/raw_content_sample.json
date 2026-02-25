@@ -1,0 +1,181 @@
+[
+  {
+    "id": "news_001",
+    "title": "美联储宣布维持利率不变，加密市场短暂上涨",
+    "content_type": "news",
+    "content": "美联储周三宣布维持联邦基金利率在5.25%-5.50%区间不变，符合市场预期。声明发布后比特币短暂突破6.8万美元，随后回落至6.75万美元附近。分析师认为，若通胀数据持续回落，年内降息概率仍然存在。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-06T19:00:00.000Z",
+    "url": "https://example.com/fed-rate-decision",
+    "author": "Reuters",
+    "language": "zh-CN",
+    "images": [
+      "https://example.com/images/fed_building.jpg"
+    ],
+    "social_metrics": null
+  },
+  {
+    "id": "news_002",
+    "title": "Solana 生态 DEX 交易量单日突破 50 亿美元",
+    "content_type": "news",
+    "content": "据链上数据显示，Solana 生态去中心化交易所昨日总交易量突破 50 亿美元，创历史新高。其中 Jupiter 贡献约 60% 的交易量。分析师认为此轮增长主要来自 meme 币热潮带动的散户涌入。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-08T10:30:00.000Z",
+    "url": "https://example.com/solana-dex-volume",
+    "author": "CoinDesk",
+    "language": "zh-CN",
+    "images": [
+      "https://example.com/images/solana_logo.jpg",
+      "https://example.com/images/jupiter_dex.jpg"
+    ],
+    "social_metrics": null
+  },
+  {
+    "id": "edu_001",
+    "title": "什么是流动性池？LP Token 怎么赚钱？",
+    "content_type": "edu",
+    "content": "流动性池是 DeFi 的核心机制之一。用户将两种代币按比例存入智能合约，成为流动性提供者（LP），从而获得交易手续费分成。存入后你会收到 LP Token，代表你在池子里的份额。取出时按当前池子比例换回代币，若价格发生变化会产生无常损失。",
+    "source": "local",
+    "publishedAt": "2025-11-07T08:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": [
+      "https://example.com/images/liquidity_pool_diagram.jpg"
+    ],
+    "social_metrics": null
+  },
+  {
+    "id": "edu_002",
+    "title": "Gas Fee 是什么？为什么有时候那么贵？",
+    "content_type": "edu",
+    "content": "Gas Fee 是在区块链上执行交易时支付给矿工或验证者的费用。以太坊的 Gas 价格由网络拥堵程度决定，高峰期可能高达数十美元。Layer 2 方案如 Arbitrum、Optimism 可将手续费降低至不足 1 美分。选择合适的链和时间可以大幅节省成本。",
+    "source": "local",
+    "publishedAt": "2025-11-09T09:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": null
+  },
+  {
+    "id": "social_001",
+    "title": "KOL @CryptoWhale 看多 ETH，目标价 5000 美元",
+    "content_type": "social",
+    "content": "ETH breaking out of 6-month consolidation. On-chain accumulation at all-time highs. Institutions are quietly loading bags. My target: $5000 by Q1. Not financial advice but DYOR.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-08T14:22:00.000Z",
+    "url": "https://twitter.com/cryptowhale/status/example001",
+    "author": "@CryptoWhale",
+    "language": "en-US",
+    "images": null,
+    "social_metrics": {
+      "likes": 8420,
+      "retweets": 2100,
+      "replies": 430,
+      "views": 198000,
+      "shares": null,
+      "author_followers": 520000,
+      "is_kol": true,
+      "verified": true
+    }
+  },
+  {
+    "id": "social_002",
+    "title": "Telegram 频道：BTC 即将面临关键支撑位考验",
+    "content_type": "social",
+    "content": "比特币当前价格正在测试 65000 美元关键支撑，若跌破将下探 62000。建议持仓者设好止损，等待确认信号再加仓。",
+    "source": "Telegram",
+    "publishedAt": "2025-11-09T06:15:00.000Z",
+    "url": "https://t.me/cryptosignals/example002",
+    "author": "CryptoSignals频道",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": {
+      "likes": 312,
+      "retweets": null,
+      "replies": 45,
+      "views": 15600,
+      "shares": 89,
+      "author_followers": 38000,
+      "is_kol": false,
+      "verified": false
+    }
+  },
+  {
+    "id": "social_003",
+    "title": "@SolanaInsider：Jupiter 新功能上线，体验拉满",
+    "content_type": "social",
+    "content": "Just tried Jupiter's new limit order feature on Solana. Execution speed is insane, filled in under 2 seconds. This is what DeFi should feel like. Bullish on $JUP long term.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-07T20:45:00.000Z",
+    "url": "https://twitter.com/solanainsider/status/example003",
+    "author": "@SolanaInsider",
+    "language": "en-US",
+    "images": [
+      "https://example.com/images/jupiter_screenshot.jpg"
+    ],
+    "social_metrics": {
+      "likes": 3150,
+      "retweets": 780,
+      "replies": 210,
+      "views": 87000,
+      "shares": null,
+      "author_followers": 95000,
+      "is_kol": true,
+      "verified": false
+    }
+  },
+  {
+    "id": "news_003",
+    "title": "香港证监会批准首批以太坊现货 ETF 申请",
+    "content_type": "news",
+    "content": "香港证监会今日正式批准三家资产管理公司提交的以太坊现货 ETF 申请，预计最快下月上市交易。此消息被市场解读为重大利好，ETH 价格在消息公布后一小时内上涨约 4.2%。",
+    "source": "NewsAPI",
+    "publishedAt": "2025-11-05T05:30:00.000Z",
+    "url": "https://example.com/hk-eth-etf",
+    "author": "Bloomberg",
+    "language": "zh-CN",
+    "images": [
+      "https://example.com/images/hk_skyline.jpg"
+    ],
+    "social_metrics": null
+  },
+  {
+    "id": "edu_003",
+    "title": "永续合约和现货有什么区别？",
+    "content_type": "edu",
+    "content": "现货交易是直接买卖真实资产，你持有的是真正的代币。永续合约是一种衍生品，你交易的是价格合约而非资产本身，可以做多也可以做空，还可以加杠杆放大收益（同时也放大风险）。永续合约没有到期日，通过资金费率机制让合约价格锚定现货价格。",
+    "source": "local",
+    "publishedAt": "2025-11-10T07:00:00.000Z",
+    "url": null,
+    "author": "MyDex Editorial",
+    "language": "zh-CN",
+    "images": null,
+    "social_metrics": null
+  },
+  {
+    "id": "social_004",
+    "title": "@DeFiResearch：链上数据显示巨鲸正在悄悄建仓",
+    "content_type": "social",
+    "content": "On-chain alert: 3 wallets holding 50M+ USDC have started accumulating $ARB over the past 48 hours. Total bought: ~$12M worth. Smart money moving quietly before the narrative catches on.",
+    "source": "Twitter",
+    "publishedAt": "2025-11-10T11:05:00.000Z",
+    "url": "https://twitter.com/defiresearch/status/example004",
+    "author": "@DeFiResearch",
+    "language": "en-US",
+    "images": [
+      "https://example.com/images/onchain_chart.jpg"
+    ],
+    "social_metrics": {
+      "likes": 5670,
+      "retweets": 1430,
+      "replies": 320,
+      "views": 134000,
+      "shares": null,
+      "author_followers": 210000,
+      "is_kol": true,
+      "verified": true
+    }
+  }
+]
