@@ -8,7 +8,7 @@
  */
 export interface AiChat {
   id: number
-  user_id: number
+  user_id: number  // 数据库中是 integer 类型
   session_id: string
   question: string
   answer: string
@@ -20,7 +20,7 @@ export interface AiChat {
  * 创建聊天记录的输入类型
  */
 export interface CreateChatInput {
-  user_id: number
+  user_id: number  // 数据库中是 integer 类型
   session_id: string
   question: string
   answer: string
@@ -40,7 +40,7 @@ export interface UpdateChatInput {
  */
 export interface ChatSession {
   session_id: string
-  user_id: number
+  user_id: number  // 数据库中是 integer 类型
   message_count: number
   last_message_at: Date
   first_question: string

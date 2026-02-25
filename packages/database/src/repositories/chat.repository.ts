@@ -47,7 +47,7 @@ export class ChatRepository {
 
   /**
    * READ - 根据用户 ID 查询所有聊天记录
-   * @param userId 用户 ID
+   * @param userId 用户 ID (数字)
    * @returns 聊天记录列表（按创建时间升序）
    */
   async findByUserId(userId: number): Promise<AiChat[]> {
@@ -73,7 +73,7 @@ export class ChatRepository {
 
   /**
    * READ - 获取用户的所有会话列表
-   * @param userId 用户 ID
+   * @param userId 用户 ID (数字)
    * @returns 会话摘要列表
    */
   async findSessionsByUserId(userId: number): Promise<ChatSession[]> {
@@ -187,7 +187,7 @@ export class ChatRepository {
 
   /**
    * DELETE - 删除用户的所有聊天记录
-   * @param userId 用户 ID
+   * @param userId 用户 ID (数字)
    */
   async deleteByUserId(userId: number): Promise<void> {
     await client.query(
@@ -198,7 +198,7 @@ export class ChatRepository {
 
   /**
    * COUNT - 统计用户的聊天记录总数
-   * @param userId 用户 ID
+   * @param userId 用户 ID (数字)
    * @returns 聊天记录总数
    */
   async countByUserId(userId: number): Promise<number> {

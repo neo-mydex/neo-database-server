@@ -31,7 +31,23 @@
 
 # 接口列表
 
-## 1. 获取推荐内容
+## 健康检查
+
+**接口地址**: `GET /health`
+
+**响应示例**:
+```json
+{
+  "status": "ok",
+  "timestamp": "2025-02-25T00:00:00.000Z"
+}
+```
+
+---
+
+## 内容相关接口
+
+### 1. 获取推荐内容列表
 
 **接口地址**: `GET /api/contents/processed`
 
@@ -63,21 +79,42 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
       "title": "@DeFiResearch：链上数据显示巨鲸正在悄悄建仓",
       "content_type": "social",
       "content": "On-chain alert: 3 wallets holding 50M+ USDC...",
-      "summary": "链上数据显示三个巨鲸钱包在 48 小时内悄悄买入约 1200 万美元的 ARB",
-      "tags": ["可交易", "利多"],
+      "source": "twitter",
+      "publishedAt": "2025-02-25T00:00:00.000Z",
+      "url": null,
+      "author": "@DeFiResearch",
+      "language": "en",
       "images": ["https://example.com/image.jpg"],
+      "social_metrics": null,
+      "volatility": "0.85",
+      "summary": "链上数据显示三个巨鲸钱包在 48 小时内悄悄买入约 1200 万美元的 ARB",
       "evidence_points": ["判断依据1", "判断依据2"],
       "suggested_questions": [
-        { "label": "ARB 现在的价格是多少？", "action": "chat", "chat": { "message": "..." } }
+        { "label": "ARB 现在的价格是多少？", "action": "chat", "chat": { "message": "ARB 现在的价格是多少？" } }
       ],
+      "detected_language": "en-US",
+      "category": "tradable",
+      "risk_level": "medium",
+      "tags": ["可交易", "利多"],
       "suggested_tokens": [
-        { "symbol": "ARB", "name": "Arbitrum", "relevance_score": 0.95, "sentiment": "bullish", "confidence": 0.85, "chain": "arb", "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548" }
-      ]
+        {
+          "symbol": "ARB",
+          "name": "Arbitrum",
+          "relevance_score": 0.95,
+          "sentiment": "bullish",
+          "confidence": 0.85,
+          "chain": "arb",
+          "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548"
+        }
+      ],
+      "overall_sentiment": "bullish"
     }
   ],
-  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+  "meta": { "count": 3, "page": 1, "pageSize": 20 }
 }
 ```
+
+> `meta.count` 为本次返回的数据条数（非数据库总条数）。
 
 **字段说明**:
 
@@ -87,17 +124,18 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 | title | string | 标题 |
 | content_type | string | 内容类型：news/edu/social |
 | content | string | 完整正文 |
-| summary | string | 省流版摘要 |
 | source | string | 数据来源 |
-| publishedAt | string | 发布时间 |
+| publishedAt | string | 发布时间（ISO 8601） |
 | url | string \| null | 原文链接 |
 | author | string \| null | 作者 |
 | language | string \| null | 语言代码 |
 | images | string[] \| null | 图片 URL 列表 |
-| volatility | string | 波动性 0-1（字符串格式） |
+| social_metrics | object \| null | 社交数据（点赞、转发等） |
+| volatility | string | 波动性 0-1（PostgreSQL NUMERIC 返回字符串） |
+| summary | string | 省流版摘要 |
 | evidence_points | string[] | 判断依据 |
 | suggested_questions | SuggestedQuestion[] | 猜你想问 |
-| detected_language | string | 检测到的语言 |
+| detected_language | string | 检测到的语言：zh-CN/en-US/other |
 | category | string | 分类：educational/tradable/macro |
 | risk_level | string | 风险等级：low/medium/high |
 | tags | string[] | 标签列表 |
@@ -110,9 +148,9 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 |------|------|------|
 | label | string | 按钮显示文本 |
 | action | string | 操作类型：chat/component |
-| chat.message | string | 聊天消息（action=chat时） |
-| component.type | string | 组件类型（action=component时） |
-| component.params | object | 组件参数（action=component时） |
+| chat.message | string | 聊天消息（action=chat 时） |
+| component.type | string | 组件类型（action=component 时）：assets_card/trade_card/settings_card/profile_card/history_card |
+| component.params | object | 组件参数（action=component 时） |
 
 **SuggestedToken 字段说明**:
 
@@ -123,18 +161,31 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 | relevance_score | number | 相关度 0-1 |
 | sentiment | string | 情感倾向：bullish/bearish/neutral |
 | confidence | number | 置信度 0-1 |
-| chain | string \| null | 区块链代号：eth/sol/arb/bsc/polygon/base/op 等 |
+| chain | string \| null | 区块链代号：eth/sol/bsc/polygon/avax/base/op/arb/ftm/movr/glm/aurora/metis/cro |
 | addr | string \| null | 代币地址（EVM: 0x 开头，SOL: base58 编码） |
+
+**SocialMetrics 字段说明**（`content_type=social` 时存在）:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| likes | number | 点赞数 |
+| retweets | number \| null | 转发数 |
+| shares | number \| null | 分享数 |
+| replies | number \| null | 回复数 |
+| views | number \| null | 浏览数 |
+| author_followers | number \| null | 作者粉丝数 |
+| is_kol | boolean \| null | 是否为 KOL |
+| verified | boolean \| null | 是否已认证 |
 
 ---
 
-## 2. 获取单条内容详情
+### 2. 获取单条处理后内容
 
 **接口地址**: `GET /api/contents/processed/:id`
 
 **请求示例**:
 ```http
-GET /api/contents/processed/social_004
+GET /api/contents/processed/news_001
 ```
 
 **响应示例**:
@@ -142,25 +193,51 @@ GET /api/contents/processed/social_004
 {
   "success": true,
   "data": {
-    "id": "social_004",
-    "title": "@DeFiResearch：链上数据显示巨鲸正在悄悄建仓",
-    "content_type": "social",
-    "content": "On-chain alert: 3 wallets holding 50M+ USDC...",
-    "summary": "链上数据显示三个巨鲸钱包在 48 小时内悄悄买入约 1200 万美元的 ARB",
-    "tags": ["可交易", "利多"],
-    "images": ["https://example.com/image.jpg"],
-    "evidence_points": ["判断依据1", "判断依据2"],
-    "suggested_questions": [...],
-    "suggested_tokens": [...]
+    "id": "news_001",
+    "title": "...",
+    ...
   }
 }
 ```
 
-**字段说明**: 与「获取推荐内容」接口相同，参考上方字段说明。
+**字段说明**: 与「获取推荐内容列表」接口相同。
 
 ---
 
-## 3. 按分类获取内容
+### 3. 获取单条原始内容
+
+**接口地址**: `GET /api/contents/raw/:id`
+
+**请求示例**:
+```http
+GET /api/contents/raw/news_001
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": {
+    "id": "news_001",
+    "title": "...",
+    "content_type": "news",
+    "content": "...",
+    "source": "coindesk",
+    "publishedAt": "2025-02-25T00:00:00.000Z",
+    "url": "https://example.com/article",
+    "author": null,
+    "language": "en",
+    "images": null,
+    "social_metrics": null
+  }
+}
+```
+
+**字段说明**: 仅包含原始内容字段，不含 AI 处理结果（无 summary、category、tags 等）。
+
+---
+
+### 4. 按分类获取内容
 
 **接口地址**: `GET /api/contents/category/:category`
 
@@ -187,15 +264,15 @@ GET /api/contents/category/tradable?page=1&pageSize=20
 {
   "success": true,
   "data": [...],
-  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+  "meta": { "count": 2, "page": 1, "pageSize": 20 }
 }
 ```
 
-**字段说明**: 与「获取推荐内容」接口相同。
+**字段说明**: 与「获取推荐内容列表」接口相同。
 
 ---
 
-## 4. 按风险等级获取内容
+### 5. 按风险等级获取内容
 
 **接口地址**: `GET /api/contents/risk/:riskLevel`
 
@@ -222,15 +299,17 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 {
   "success": true,
   "data": [...],
-  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+  "meta": { "count": 2, "page": 1, "pageSize": 20 }
 }
 ```
 
-**字段说明**: 与「获取推荐内容」接口相同。
+**字段说明**: 与「获取推荐内容列表」接口相同。
 
 ---
 
-## 5. 创建用户
+## 用户相关接口
+
+### 6. 创建用户
 
 **接口地址**: `POST /api/users`
 
@@ -238,7 +317,7 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| user_id | string | 是 | 用户 ID |
+| user_id | string | 是 | 用户 ID（如 did:privy:xxx） |
 | risk_appetite | number | 是 | 风险偏好 1-10 |
 | patience | number | 是 | 耐心程度 1-10 |
 | info_sensitivity | number | 是 | 信息敏感度 1-10 |
@@ -259,7 +338,7 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 }
 ```
 
-**响应示例**:
+**响应示例** (HTTP 201):
 ```json
 {
   "success": true,
@@ -271,29 +350,31 @@ GET /api/contents/risk/medium?page=1&pageSize=20
     "decision_speed": "5.0",
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
-    "registered_at": "2025-02-24T00:00:00.000Z",
+    "registered_at": "2025-02-25T00:00:00.000Z",
     "trade_count": 0
   }
 }
 ```
+
+> 注意：`risk_appetite` 等维度字段由 PostgreSQL NUMERIC 类型返回，格式为字符串（如 `"5.0"`）。
 
 **字段说明**:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | user_id | string | 用户 ID |
-| risk_appetite | string | 风险偏好（字符串格式） |
+| risk_appetite | string | 风险偏好（字符串格式，如 "5.0"） |
 | patience | string | 耐心程度（字符串格式） |
 | info_sensitivity | string | 信息敏感度（字符串格式） |
 | decision_speed | string | 决策速度（字符串格式） |
 | cat_type | string | 用户分类标签 |
 | cat_desc | string | 用户分类描述 |
-| registered_at | string | 注册时间 |
+| registered_at | string | 注册时间（ISO 8601） |
 | trade_count | number | 交易次数 |
 
 ---
 
-## 6. 获取用户信息
+### 7. 获取用户信息
 
 **接口地址**: `GET /api/users/:userId`
 
@@ -314,7 +395,7 @@ GET /api/users/did:privy:123
     "decision_speed": "5.0",
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
-    "registered_at": "2025-02-24T00:00:00.000Z",
+    "registered_at": "2025-02-25T00:00:00.000Z",
     "trade_count": 0
   }
 }
@@ -324,11 +405,11 @@ GET /api/users/did:privy:123
 
 ---
 
-## 7. 更新用户维度
+### 8. 更新用户维度
 
 **接口地址**: `PATCH /api/users/:userId/traits`
 
-**请求参数**:
+**请求参数**（至少传一个）:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
@@ -355,7 +436,7 @@ GET /api/users/did:privy:123
 
 ---
 
-## 8. 交易次数 +1
+### 9. 交易次数 +1
 
 **接口地址**: `PATCH /api/users/:userId/trade-count`
 
@@ -374,7 +455,30 @@ PATCH /api/users/did:privy:123/trade-count
 
 ---
 
-## 9. 创建聊天记录
+### 10. 删除用户
+
+**接口地址**: `DELETE /api/users/:userId`
+
+**请求示例**:
+```http
+DELETE /api/users/did:privy:123
+```
+
+**响应示例**:
+```json
+{
+  "success": true,
+  "data": { "message": "删除成功" }
+}
+```
+
+---
+
+## 聊天相关接口
+
+> 注意：聊天记录中的 `user_id` 为**数字类型**（对应 `ai_chat` 表的整数主键），与用户档案中的 `user_id`（字符串，如 `did:privy:xxx`）是不同的字段。
+
+### 11. 创建聊天记录
 
 **接口地址**: `POST /api/chats`
 
@@ -382,7 +486,7 @@ PATCH /api/users/did:privy:123/trade-count
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| user_id | number | 是 | 用户 ID |
+| user_id | number | 是 | 用户 ID（整数） |
 | session_id | string | 是 | 会话 ID |
 | question | string | 是 | 问题 |
 | answer | string | 是 | 回答 |
@@ -397,6 +501,45 @@ PATCH /api/users/did:privy:123/trade-count
 }
 ```
 
+**响应示例** (HTTP 201):
+```json
+{
+  "success": true,
+  "data": {
+    "id": 106,
+    "user_id": 35,
+    "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
+    "question": "SOL 最新市场动态",
+    "answer": "Solana 价格当前为 139.76 USDT",
+    "created_at": "2025-02-25T00:00:00.000Z",
+    "updated_at": "2025-02-25T00:00:00.000Z"
+  }
+}
+```
+
+**字段说明**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | number | 聊天记录 ID（自增整数） |
+| user_id | number | 用户 ID（整数） |
+| session_id | string | 会话 ID |
+| question | string | 问题 |
+| answer | string | 回答 |
+| created_at | string | 创建时间（ISO 8601） |
+| updated_at | string | 更新时间（ISO 8601） |
+
+---
+
+### 12. 获取单条聊天记录
+
+**接口地址**: `GET /api/chats/:id`
+
+**请求示例**:
+```http
+GET /api/chats/106
+```
+
 **响应示例**:
 ```json
 {
@@ -407,27 +550,17 @@ PATCH /api/users/did:privy:123/trade-count
     "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
     "question": "SOL 最新市场动态",
     "answer": "Solana 价格当前为 139.76 USDT",
-    "created_at": "2025-12-02T19:12:14.540Z",
-    "updated_at": "2025-12-02T19:12:14.540Z"
+    "created_at": "2025-02-25T00:00:00.000Z",
+    "updated_at": "2025-02-25T00:00:00.000Z"
   }
 }
 ```
 
-**字段说明**:
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | number | 聊天记录 ID |
-| user_id | number | 用户 ID |
-| session_id | string | 会话 ID |
-| question | string | 问题 |
-| answer | string | 回答 |
-| created_at | string | 创建时间 |
-| updated_at | string | 更新时间 |
+**字段说明**: 与「创建聊天记录」接口相同。
 
 ---
 
-## 10. 获取用户聊天记录
+### 13. 获取用户聊天记录
 
 **接口地址**: `GET /api/chats/user/:userId`
 
@@ -447,19 +580,21 @@ GET /api/chats/user/35
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "question": "SOL 最新市场动态",
       "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": "2025-12-02T19:12:14.540Z",
-      "updated_at": "2025-12-02T19:12:14.540Z"
+      "created_at": "2025-02-25T00:00:00.000Z",
+      "updated_at": "2025-02-25T00:00:00.000Z"
     }
   ],
-  "meta": { "count": 258 }
+  "meta": { "count": 5 }
 }
 ```
+
+> `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
 
 **字段说明**: 与「创建聊天记录」接口相同。
 
 ---
 
-## 11. 获取会话聊天记录
+### 14. 获取会话聊天记录
 
 **接口地址**: `GET /api/chats/session/:sessionId`
 
@@ -479,19 +614,21 @@ GET /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "question": "SOL 最新市场动态",
       "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": "2025-12-02T19:12:14.540Z",
-      "updated_at": "2025-12-02T19:12:14.540Z"
+      "created_at": "2025-02-25T00:00:00.000Z",
+      "updated_at": "2025-02-25T00:00:00.000Z"
     }
   ],
   "meta": { "count": 5 }
 }
 ```
 
+> `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
+
 **字段说明**: 与「创建聊天记录」接口相同。
 
 ---
 
-## 12. 获取用户会话列表
+### 15. 获取用户会话列表
 
 **接口地址**: `GET /api/chats/user/:userId/sessions`
 
@@ -508,8 +645,8 @@ GET /api/chats/user/35/sessions
     {
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "user_id": 35,
-      "message_count": 5,
-      "last_message_at": "2025-12-02T19:12:14.540Z",
+      "message_count": "5",
+      "last_message_at": "2025-02-25T00:00:00.000Z",
       "first_question": "SOL 最新市场动态"
     }
   ],
@@ -517,23 +654,25 @@ GET /api/chats/user/35/sessions
 }
 ```
 
+> `message_count` 由 PostgreSQL `COUNT(*)` 返回，格式为字符串（如 `"5"`）。列表按 `last_message_at DESC` 排序。
+
 **字段说明**:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | session_id | string | 会话 ID |
 | user_id | number | 用户 ID |
-| message_count | number | 消息数量 |
-| last_message_at | string | 最后消息时间 |
-| first_question | string | 第一个问题 |
+| message_count | string | 消息数量（字符串格式） |
+| last_message_at | string | 最后消息时间（ISO 8601） |
+| first_question | string | 第一条问题 |
 
 ---
 
-## 13. 更新聊天记录
+### 16. 更新聊天记录
 
 **接口地址**: `PATCH /api/chats/:id`
 
-**请求参数**:
+**请求参数**（至少传一个）:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
@@ -553,18 +692,21 @@ GET /api/chats/user/35/sessions
   "success": true,
   "data": {
     "id": 106,
+    "user_id": 35,
+    "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
     "question": "SOL 最新市场动态",
     "answer": "更新后的回答",
-    "updated_at": "2025-12-02T20:00:00.000Z"
+    "created_at": "2025-02-25T00:00:00.000Z",
+    "updated_at": "2025-02-25T00:00:00.000Z"
   }
 }
 ```
 
-**字段说明**: 与「创建聊天记录」接口相同。
+**字段说明**: 与「创建聊天记录」接口相同，返回完整记录。
 
 ---
 
-## 14. 删除聊天记录
+### 17. 删除聊天记录
 
 **接口地址**: `DELETE /api/chats/:id`
 
@@ -583,7 +725,7 @@ DELETE /api/chats/106
 
 ---
 
-## 15. 删除会话
+### 18. 删除会话
 
 **接口地址**: `DELETE /api/chats/session/:sessionId`
 
@@ -597,25 +739,6 @@ DELETE /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 {
   "success": true,
   "data": { "message": "会话已删除" }
-}
-```
-
----
-
-## 16. 删除用户
-
-**接口地址**: `DELETE /api/users/:userId`
-
-**请求示例**:
-```http
-DELETE /api/users/did:privy:123
-```
-
-**响应示例**:
-```json
-{
-  "success": true,
-  "data": { "message": "删除成功" }
 }
 ```
 

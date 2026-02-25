@@ -102,7 +102,7 @@ router.post(
     }
 
     const chat = await chatRepo.create({
-      user_id: parseInt(user_id),
+      user_id: parseInt(user_id),  // 转换为数字
       session_id,
       question,
       answer,
