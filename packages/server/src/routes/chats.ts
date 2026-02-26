@@ -15,7 +15,7 @@ router.get(
     const chat = await chatRepo.findById(parseInt(id as string))
 
     if (!chat) {
-      throw new ApiError(404, '聊天记录不存在')
+      throw new ApiError(404, 'Chat record not found')
     }
 
     res.json(successResponse(chat))
@@ -75,7 +75,7 @@ router.post(
 
     // 验证必填字段
     if (!user_id || !session_id || !question || !answer) {
-      throw new ApiError(400, '缺少必填字段', {
+      throw new ApiError(400, 'Missing required fields', {
         required: ['user_id', 'session_id', 'question', 'answer'],
       })
     }
@@ -104,7 +104,7 @@ router.patch(
     const chat = await chatRepo.update(parseInt(id as string), { question, answer })
 
     if (!chat) {
-      throw new ApiError(404, '聊天记录不存在')
+      throw new ApiError(404, 'Chat record not found')
     }
 
     res.json(successResponse(chat))
@@ -121,7 +121,7 @@ router.delete(
     const { id } = req.params
     await chatRepo.delete(parseInt(id as string))
 
-    res.json(successResponse({ message: '删除成功' }))
+    res.json(successResponse({ message: 'Deleted successfully' }))
   })
 )
 
@@ -135,7 +135,7 @@ router.delete(
     const { sessionId } = req.params
     await chatRepo.deleteSession(sessionId as string)
 
-    res.json(successResponse({ message: '会话已删除' }))
+    res.json(successResponse({ message: 'Session deleted successfully' }))
   })
 )
 

@@ -15,7 +15,7 @@ router.get(
     const user = await userRepo.findById(userId as string)
 
     if (!user) {
-      throw new ApiError(404, '用户不存在')
+      throw new ApiError(404, 'User not found')
     }
 
     res.json(successResponse(user))
@@ -33,20 +33,20 @@ router.post(
 
     // 验证必填字段
     if (!user_id || !risk_appetite || !patience || !info_sensitivity || !decision_speed || !cat_type || !cat_desc) {
-      throw new ApiError(400, '缺少必填字段', {
+      throw new ApiError(400, 'Missing required fields', {
         required: ['user_id', 'risk_appetite', 'patience', 'info_sensitivity', 'decision_speed', 'cat_type', 'cat_desc'],
       })
     }
 
     // 验证数值范围
     if ([risk_appetite, patience, info_sensitivity, decision_speed].some((v) => v < 1 || v > 10)) {
-      throw new ApiError(400, '维度值必须在 1-10 之间')
+      throw new ApiError(400, 'Trait values must be between 1 and 10')
     }
 
     // 检查用户是否已存在
     const existing = await userRepo.exists(user_id)
     if (existing) {
-      throw new ApiError(409, '用户已存在')
+      throw new ApiError(409, 'User already exists')
     }
 
     const user = await userRepo.create(user_id, {
@@ -76,13 +76,13 @@ router.patch(
     // 验证数值范围
     const values = [risk_appetite, patience, info_sensitivity, decision_speed].filter((v) => v !== undefined)
     if (values.some((v) => v < 1 || v > 10)) {
-      throw new ApiError(400, '维度值必须在 1-10 之间')
+      throw new ApiError(400, 'Trait values must be between 1 and 10')
     }
 
     // 检查用户是否存在
     const exists = await userRepo.exists(userId as string)
     if (!exists) {
-      throw new ApiError(404, '用户不存在')
+      throw new ApiError(404, 'User not found')
     }
 
     await userRepo.updateTraits(userId as string, {
@@ -92,7 +92,7 @@ router.patch(
       decision_speed,
     })
 
-    res.json(successResponse({ message: '更新成功' }))
+    res.json(successResponse({ message: 'Updated successfully' }))
   })
 )
 
@@ -108,12 +108,12 @@ router.patch(
     // 检查用户是否存在
     const exists = await userRepo.exists(userId as string)
     if (!exists) {
-      throw new ApiError(404, '用户不存在')
+      throw new ApiError(404, 'User not found')
     }
 
     await userRepo.incrementTradeCount(userId as string)
 
-    res.json(successResponse({ message: '交易次数已更新' }))
+    res.json(successResponse({ message: 'Trade count updated' }))
   })
 )
 
@@ -129,12 +129,12 @@ router.delete(
     // 检查用户是否存在
     const exists = await userRepo.exists(userId as string)
     if (!exists) {
-      throw new ApiError(404, '用户不存在')
+      throw new ApiError(404, 'User not found')
     }
 
     await userRepo.delete(userId as string)
 
-    res.json(successResponse({ message: '删除成功' }))
+    res.json(successResponse({ message: 'Deleted successfully' }))
   })
 )
 

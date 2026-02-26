@@ -32,7 +32,7 @@ router.get(
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
 
     if (pageNum < 1 || pageSizeNum < 1) {
-      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+      throw new ApiError(400, 'page and pageSize must be greater than 0')
     }
 
     const offset = (pageNum - 1) * pageSizeNum
@@ -59,14 +59,14 @@ router.post(
     const { title, content_type, content, source, publishedAt, url, author, language, images, social_metrics } = req.body
 
     if (!title || !content_type || !content || !source || !publishedAt) {
-      throw new ApiError(400, '缺少必填字段', {
+      throw new ApiError(400, 'Missing required fields', {
         required: ['title', 'content_type', 'content', 'source', 'publishedAt'],
       })
     }
 
     const validContentTypes = ['news', 'edu', 'social']
     if (!validContentTypes.includes(content_type)) {
-      throw new ApiError(400, '无效的 content_type', { valid: validContentTypes })
+      throw new ApiError(400, 'Invalid content_type', { valid: validContentTypes })
     }
 
     const created = await contentRepo.createRaw({
@@ -96,18 +96,18 @@ router.post(
     const inputs = req.body
 
     if (!Array.isArray(inputs) || inputs.length === 0) {
-      throw new ApiError(400, 'body 必须是非空数组')
+      throw new ApiError(400, 'Request body must be a non-empty array')
     }
 
     const validContentTypes = ['news', 'edu', 'social']
     for (const item of inputs) {
       if (!item.title || !item.content_type || !item.content || !item.source || !item.publishedAt) {
-        throw new ApiError(400, '每条记录缺少必填字段', {
+        throw new ApiError(400, 'Each item is missing required fields', {
           required: ['title', 'content_type', 'content', 'source', 'publishedAt'],
         })
       }
       if (!validContentTypes.includes(item.content_type)) {
-        throw new ApiError(400, '无效的 content_type', { valid: validContentTypes })
+        throw new ApiError(400, 'Invalid content_type', { valid: validContentTypes })
       }
     }
 
@@ -141,7 +141,7 @@ router.delete(
 
     const existing = await contentRepo.findRawById(id)
     if (!existing) {
-      throw new ApiError(404, '内容不存在')
+      throw new ApiError(404, 'Content not found')
     }
 
     await contentRepo.deleteRaw(id)
@@ -160,7 +160,7 @@ router.get(
     const content = await contentRepo.findRawById(id as string)
 
     if (!content) {
-      throw new ApiError(404, '内容不存在')
+      throw new ApiError(404, 'Content not found')
     }
 
     res.json(successResponse(content))
@@ -177,7 +177,7 @@ router.post(
     const inputs = req.body
 
     if (!Array.isArray(inputs) || inputs.length === 0) {
-      throw new ApiError(400, 'body 必须是非空数组')
+      throw new ApiError(400, 'Request body must be a non-empty array')
     }
 
     const validContentTypes = ['news', 'edu', 'social']
@@ -191,7 +191,7 @@ router.post(
         item.volatility === undefined || !item.detected_language ||
         !Array.isArray(item.evidence_points) || !Array.isArray(item.suggested_questions) || !Array.isArray(item.tags)
       ) {
-        throw new ApiError(400, '每条记录缺少必填字段', {
+        throw new ApiError(400, 'Each item is missing required fields', {
           required: [
             'title', 'content_type', 'content', 'source', 'publishedAt',
             'volatility', 'summary', 'evidence_points', 'suggested_questions',
@@ -200,13 +200,13 @@ router.post(
         })
       }
       if (!validContentTypes.includes(item.content_type)) {
-        throw new ApiError(400, '无效的 content_type', { valid: validContentTypes })
+        throw new ApiError(400, 'Invalid content_type', { valid: validContentTypes })
       }
       if (!validCategories.includes(item.category)) {
-        throw new ApiError(400, '无效的 category', { valid: validCategories })
+        throw new ApiError(400, 'Invalid category', { valid: validCategories })
       }
       if (!validRiskLevels.includes(item.risk_level)) {
-        throw new ApiError(400, '无效的 risk_level', { valid: validRiskLevels })
+        throw new ApiError(400, 'Invalid risk_level', { valid: validRiskLevels })
       }
     }
 
@@ -250,7 +250,7 @@ router.get(
     const content = await contentRepo.findProcessedById(id as string)
 
     if (!content) {
-      throw new ApiError(404, '内容不存在')
+      throw new ApiError(404, 'Content not found')
     }
 
     res.json(successResponse(content))
@@ -289,7 +289,7 @@ router.get(
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
 
     if (pageNum < 1 || pageSizeNum < 1) {
-      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+      throw new ApiError(400, 'page and pageSize must be greater than 0')
     }
 
     const offset = (pageNum - 1) * pageSizeNum
@@ -324,7 +324,7 @@ router.get(
     // 验证分类参数
     const validCategories = ['educational', 'tradable', 'macro']
     if (!validCategories.includes(category as string)) {
-      throw new ApiError(400, '无效的分类参数', { valid: validCategories })
+      throw new ApiError(400, 'Invalid category parameter', { valid: validCategories })
     }
 
     // 参数验证和转换
@@ -332,7 +332,7 @@ router.get(
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
 
     if (pageNum < 1 || pageSizeNum < 1) {
-      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+      throw new ApiError(400, 'page and pageSize must be greater than 0')
     }
 
     const offset = (pageNum - 1) * pageSizeNum
@@ -363,7 +363,7 @@ router.get(
     // 验证风险等级参数
     const validRiskLevels = ['low', 'medium', 'high']
     if (!validRiskLevels.includes(riskLevel as string)) {
-      throw new ApiError(400, '无效的风险等级参数', { valid: validRiskLevels })
+      throw new ApiError(400, 'Invalid risk level parameter', { valid: validRiskLevels })
     }
 
     // 参数验证和转换
@@ -371,7 +371,7 @@ router.get(
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
 
     if (pageNum < 1 || pageSizeNum < 1) {
-      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+      throw new ApiError(400, 'page and pageSize must be greater than 0')
     }
 
     const offset = (pageNum - 1) * pageSizeNum
@@ -410,7 +410,7 @@ router.get(
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
 
     if (pageNum < 1 || pageSizeNum < 1) {
-      throw new ApiError(400, 'page 和 pageSize 必须大于0')
+      throw new ApiError(400, 'page and pageSize must be greater than 0')
     }
 
     const offset = (pageNum - 1) * pageSizeNum
