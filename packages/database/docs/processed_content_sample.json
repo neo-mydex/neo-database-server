@@ -19,10 +19,10 @@
       "分析师提到年内降息概率仍存，为中期行情提供支撑"
     ],
     "suggested_questions": [
-      { "label": "降息对加密市场有什么影响？", "action": "chat", "chat": { "message": "降息对加密市场有什么影响？" } },
-      { "label": "现在适合买入 BTC 吗？", "action": "chat", "chat": { "message": "现在适合买入比特币吗？" } },
-      { "label": "查看 BTC 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "BTC" } } },
-      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+      { "label": "降息对加密市场有什么影响？", "action": "chat", "payload": "{\"message\":\"降息对加密市场有什么影响？\"}" },
+      { "label": "现在适合买入 BTC 吗？", "action": "chat", "payload": "{\"message\":\"现在适合买入比特币吗？\"}" },
+      { "label": "查看 BTC 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"BTC\"}}" },
+      { "label": "我的资产", "action": "component", "payload": "{\"type\":\"assets_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "macro",
@@ -54,10 +54,10 @@
       "meme 币驱动意味着交易量可持续性存疑，需关注热度衰退风险"
     ],
     "suggested_questions": [
-      { "label": "SOL 现在能买吗？", "action": "chat", "chat": { "message": "Solana 现在值得投资吗？" } },
-      { "label": "什么是 DEX？", "action": "chat", "chat": { "message": "去中心化交易所和中心化交易所有什么区别？" } },
-      { "label": "查看 SOL 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "SOL" } } },
-      { "label": "查看 JUP 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "JUP" } } }
+      { "label": "SOL 现在能买吗？", "action": "chat", "payload": "{\"message\":\"Solana 现在值得投资吗？\"}" },
+      { "label": "什么是 DEX？", "action": "chat", "payload": "{\"message\":\"去中心化交易所和中心化交易所有什么区别？\"}" },
+      { "label": "查看 SOL 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"SOL\"}}" },
+      { "label": "查看 JUP 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"JUP\"}}" }
     ],
     "detected_language": "zh-CN",
     "category": "tradable",
@@ -89,10 +89,10 @@
       "手续费收益与无常损失之间的权衡决定了 LP 是否划算"
     ],
     "suggested_questions": [
-      { "label": "无常损失怎么计算？", "action": "chat", "chat": { "message": "无常损失是怎么计算的？举个例子" } },
-      { "label": "哪些平台可以提供流动性？", "action": "chat", "chat": { "message": "在哪些平台可以做流动性提供者？" } },
-      { "label": "LP 收益高吗？", "action": "chat", "chat": { "message": "做流动性提供者的年化收益大概是多少？" } },
-      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+      { "label": "无常损失怎么计算？", "action": "chat", "payload": "{\"message\":\"无常损失是怎么计算的？举个例子\"}" },
+      { "label": "哪些平台可以提供流动性？", "action": "chat", "payload": "{\"message\":\"在哪些平台可以做流动性提供者？\"}" },
+      { "label": "LP 收益高吗？", "action": "chat", "payload": "{\"message\":\"做流动性提供者的年化收益大概是多少？\"}" },
+      { "label": "我的资产", "action": "component", "payload": "{\"type\":\"assets_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "educational",
@@ -121,10 +121,10 @@
       "选对链和时间点可以节省大量手续费"
     ],
     "suggested_questions": [
-      { "label": "怎么查当前 Gas 价格？", "action": "chat", "chat": { "message": "怎么查以太坊当前的 Gas 价格？" } },
-      { "label": "Arbitrum 和 Optimism 怎么选？", "action": "chat", "chat": { "message": "Arbitrum 和 Optimism 有什么区别？" } },
-      { "label": "什么是 Layer 2？", "action": "chat", "chat": { "message": "Layer 2 是什么？和以太坊主网有什么关系？" } },
-      { "label": "交易设置", "action": "component", "component": { "type": "settings_card" } }
+      { "label": "怎么查当前 Gas 价格？", "action": "chat", "payload": "{\"message\":\"怎么查以太坊当前的 Gas 价格？\"}" },
+      { "label": "Arbitrum 和 Optimism 怎么选？", "action": "chat", "payload": "{\"message\":\"Arbitrum 和 Optimism 有什么区别？\"}" },
+      { "label": "什么是 Layer 2？", "action": "chat", "payload": "{\"message\":\"Layer 2 是什么？和以太坊主网有什么关系？\"}" },
+      { "label": "交易设置", "action": "component", "payload": "{\"type\":\"settings_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "educational",
@@ -162,10 +162,10 @@
       "KOL 粉丝 52 万且获得认证，影响力较大，需警惕跟风情绪"
     ],
     "suggested_questions": [
-      { "label": "ETH 现在值得买吗？", "action": "chat", "chat": { "message": "以太坊现在值得投资吗？" } },
-      { "label": "查看 ETH 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ETH" } } },
-      { "label": "什么是链上积累数据？", "action": "chat", "chat": { "message": "链上积累数据是什么指标？怎么看？" } },
-      { "label": "我的持仓", "action": "component", "component": { "type": "assets_card" } }
+      { "label": "ETH 现在值得买吗？", "action": "chat", "payload": "{\"message\":\"以太坊现在值得投资吗？\"}" },
+      { "label": "查看 ETH 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"ETH\"}}" },
+      { "label": "什么是链上积累数据？", "action": "chat", "payload": "{\"message\":\"链上积累数据是什么指标？怎么看？\"}" },
+      { "label": "我的持仓", "action": "component", "payload": "{\"type\":\"assets_card\"}" }
     ],
     "detected_language": "en-US",
     "category": "tradable",
@@ -205,10 +205,10 @@
       "来源为 Telegram 频道，非 KOL，可信度需打折扣"
     ],
     "suggested_questions": [
-      { "label": "BTC 跌破支撑怎么办？", "action": "chat", "chat": { "message": "BTC 跌破关键支撑位我该怎么操作？" } },
-      { "label": "怎么设置止损？", "action": "chat", "chat": { "message": "如何在 MyDex 设置止损单？" } },
-      { "label": "查看 BTC 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "BTC" } } },
-      { "label": "交易历史", "action": "component", "component": { "type": "history_card" } }
+      { "label": "BTC 跌破支撑怎么办？", "action": "chat", "payload": "{\"message\":\"BTC 跌破关键支撑位我该怎么操作？\"}" },
+      { "label": "怎么设置止损？", "action": "chat", "payload": "{\"message\":\"如何在 MyDex 设置止损单？\"}" },
+      { "label": "查看 BTC 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"BTC\"}}" },
+      { "label": "交易历史", "action": "component", "payload": "{\"type\":\"history_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "tradable",
@@ -248,10 +248,10 @@
       "作者粉丝 9.5 万，具有一定影响力"
     ],
     "suggested_questions": [
-      { "label": "Jupiter 怎么用？", "action": "chat", "chat": { "message": "Jupiter 交易所怎么使用？" } },
-      { "label": "查看 JUP 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "JUP" } } },
-      { "label": "限价单和市价单区别？", "action": "chat", "chat": { "message": "限价单和市价单有什么区别？" } },
-      { "label": "查看 SOL 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "SOL" } } }
+      { "label": "Jupiter 怎么用？", "action": "chat", "payload": "{\"message\":\"Jupiter 交易所怎么使用？\"}" },
+      { "label": "查看 JUP 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"JUP\"}}" },
+      { "label": "限价单和市价单区别？", "action": "chat", "payload": "{\"message\":\"限价单和市价单有什么区别？\"}" },
+      { "label": "查看 SOL 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"SOL\"}}" }
     ],
     "detected_language": "en-US",
     "category": "tradable",
@@ -283,10 +283,10 @@
       "香港作为亚洲金融中心，对亚太地区机构资金有示范效应"
     ],
     "suggested_questions": [
-      { "label": "ETF 对 ETH 价格影响多大？", "action": "chat", "chat": { "message": "以太坊现货 ETF 获批对价格的影响有多大？" } },
-      { "label": "查看 ETH 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ETH" } } },
-      { "label": "什么是现货 ETF？", "action": "chat", "chat": { "message": "加密货币现货 ETF 是什么？和期货 ETF 有什么区别？" } },
-      { "label": "我的资产", "action": "component", "component": { "type": "assets_card" } }
+      { "label": "ETF 对 ETH 价格影响多大？", "action": "chat", "payload": "{\"message\":\"以太坊现货 ETF 获批对价格的影响有多大？\"}" },
+      { "label": "查看 ETH 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"ETH\"}}" },
+      { "label": "什么是现货 ETF？", "action": "chat", "payload": "{\"message\":\"加密货币现货 ETF 是什么？和期货 ETF 有什么区别？\"}" },
+      { "label": "我的资产", "action": "component", "payload": "{\"type\":\"assets_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "tradable",
@@ -317,10 +317,10 @@
       "资金费率机制是永续合约价格锚定的核心，理解它有助于判断市场多空情绪"
     ],
     "suggested_questions": [
-      { "label": "杠杆怎么用才安全？", "action": "chat", "chat": { "message": "加杠杆交易有哪些风险控制技巧？" } },
-      { "label": "什么是资金费率？", "action": "chat", "chat": { "message": "永续合约的资金费率是什么？怎么影响我的收益？" } },
-      { "label": "现货和合约哪个适合新手？", "action": "chat", "chat": { "message": "我是新手，应该从现货还是合约开始？" } },
-      { "label": "交易设置", "action": "component", "component": { "type": "settings_card" } }
+      { "label": "杠杆怎么用才安全？", "action": "chat", "payload": "{\"message\":\"加杠杆交易有哪些风险控制技巧？\"}" },
+      { "label": "什么是资金费率？", "action": "chat", "payload": "{\"message\":\"永续合约的资金费率是什么？怎么影响我的收益？\"}" },
+      { "label": "现货和合约哪个适合新手？", "action": "chat", "payload": "{\"message\":\"我是新手，应该从现货还是合约开始？\"}" },
+      { "label": "交易设置", "action": "component", "payload": "{\"type\":\"settings_card\"}" }
     ],
     "detected_language": "zh-CN",
     "category": "educational",
@@ -358,10 +358,10 @@
       "1200 万美元的买入规模对 ARB 流动性而言属于大额建仓"
     ],
     "suggested_questions": [
-      { "label": "ARB 最近有什么利好？", "action": "chat", "chat": { "message": "Arbitrum 最近有什么重要消息或催化剂？" } },
-      { "label": "查看 ARB 行情", "action": "component", "component": { "type": "trade_card", "params": { "symbol": "ARB" } } },
-      { "label": "怎么追踪巨鲸动向？", "action": "chat", "chat": { "message": "有什么工具可以追踪链上巨鲸的动向？" } },
-      { "label": "我的持仓", "action": "component", "component": { "type": "assets_card" } }
+      { "label": "ARB 最近有什么利好？", "action": "chat", "payload": "{\"message\":\"Arbitrum 最近有什么重要消息或催化剂？\"}" },
+      { "label": "查看 ARB 行情", "action": "component", "payload": "{\"type\":\"trade_card\",\"params\":{\"symbol\":\"ARB\"}}" },
+      { "label": "怎么追踪巨鲸动向？", "action": "chat", "payload": "{\"message\":\"有什么工具可以追踪链上巨鲸的动向？\"}" },
+      { "label": "我的持仓", "action": "component", "payload": "{\"type\":\"assets_card\"}" }
     ],
     "detected_language": "en-US",
     "category": "tradable",

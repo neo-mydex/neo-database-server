@@ -55,17 +55,14 @@ export interface SuggestedToken {
 /**
  * 建议问题/快捷操作
  * 用于"猜你想问"功能
+ * payload 为 JSON 字符串，前端自行解析：
+ *   action=chat:      payload = '{"message":"..."}'
+ *   action=component: payload = '{"type":"trade_card","params":{...}}'
  */
 export interface SuggestedQuestion {
   label: string
   action: 'chat' | 'component'
-  chat?: {
-    message: string
-  }
-  component?: {
-    type: 'assets_card' | 'trade_card' | 'settings_card' | 'profile_card' | 'history_card'
-    params?: Record<string, any>
-  }
+  payload: string
 }
 
 /**

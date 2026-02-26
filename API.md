@@ -157,7 +157,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
       "summary": "链上数据显示三个巨鲸钱包在 48 小时内悄悄买入约 1200 万美元的 ARB",
       "evidence_points": ["判断依据1", "判断依据2"],
       "suggested_questions": [
-        { "label": "ARB 现在的价格是多少？", "action": "chat", "chat": { "message": "ARB 现在的价格是多少？" } }
+        { "label": "ARB 现在的价格是多少？", "action": "chat", "payload": "{\"message\":\"ARB 现在的价格是多少？\"}" }
       ],
       "detected_language": "en-US",
       "category": "tradable",
@@ -215,9 +215,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
 |------|------|------|
 | label | string | 按钮显示文本 |
 | action | string | 操作类型：chat/component |
-| chat.message | string | 聊天消息（action=chat 时） |
-| component.type | string | 组件类型（action=component 时）：assets_card/trade_card/settings_card/profile_card/history_card |
-| component.params | object | 组件参数（action=component 时） |
+| payload | string | JSON 字符串，前端自行 `JSON.parse()` 解析。action=chat 时内容为 `{"message":"..."}`；action=component 时内容为 `{"type":"trade_card","params":{...}}` |
 
 **SuggestedToken 字段说明**:
 
