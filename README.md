@@ -1,88 +1,89 @@
-# MyDex Database Server
+# neo-database-server
 
-MyDex 数据库服务 Monorepo，包含数据库操作层和 API 服务。
+MyDex 数据库服务，提供内容、用户、聊天三张表的 RESTful CRUD 接口。
 
-## 结构
+**生产地址**: `http://216.249.100.66:13658`
+
+---
+
+## 架构
+
+pnpm monorepo，两个包：
 
 ```
-neo-database-server/
-├── packages/
-│   ├── database/         # @mydex/database - 数据库操作模块
-│   └── server/           # @mydex/database-server - API 服务
-├── package.json
-├── pnpm-workspace.yaml
-└── README.md
+packages/
+├── database/   @mydex/database        — 数据访问层（pg 直连，Repository 模式）
+└── server/     @mydex/database-server — Express 5 API 服务
 ```
 
-## 包说明
+数据库：PostgreSQL on AWS RDS，三张表：
 
-### @mydex/database
+| 表 | 用途 |
+|----|------|
+| `ai_raw_content` | 原始内容（news/edu/social） |
+| `ai_processed_content` | AI 处理后内容（摘要、分类、推荐代币等） |
+| `ai_user_profiles` | 用户画像（风险偏好、决策速度等） |
+| `ai_chat` | 聊天记录 |
 
-数据库操作层，提供：
-- 数据库连接管理
-- Repository (CRUD 操作)
-- 类型定义 (TypeScript)
-- 数据库迁移 (migrate)
-- 假数据 (seed)
-- 验证工具
+---
 
-**可被其他项目独立引用！**
-
-### @mydex/database-server
-
-Express API 服务，提供：
-- RESTful API 接口
-- 用户管理 API
-- 内容管理 API
-- 聊天记录 API
-- 依赖 `@mydex/database`
-
-## 安装
+## 快速开始
 
 ```bash
 pnpm install
+pnpm dev          # 启动开发服务器，监听 :3000
 ```
 
-## 使用
+> **注意**：修改 `packages/database/` 下的代码后，需要先 `pnpm build` 重新编译，再重启 dev server，改动才会生效（database 包以编译产物 `dist/` 被 server 引用）。
 
-### 开发
+---
+
+## 常用命令
 
 ```bash
-# 启动开发服务器
-pnpm dev
+pnpm dev          # 启动开发服务器（tsx watch）
+pnpm build        # 编译所有包（tsc）
+pnpm start        # 生产模式启动
 
-# 访问 http://localhost:3000
+pnpm migrate      # 执行 SQL 迁移（packages/database/db/migrations/）
+pnpm seed         # 导入种子数据
+
+# 单包操作
+pnpm --filter @mydex/database build
+pnpm --filter @mydex/database-server dev
 ```
 
-### 数据库操作
+---
+
+## 测试
 
 ```bash
-# 运行迁移
-pnpm migrate
-
-# 导入假数据
-pnpm seed
+cd test && pnpm test
 ```
 
-### 构建
+测试脚本会依次调用所有接口并打印结果，需要本地 dev server 处于运行状态。
 
-```bash
-# 构建所有包
-pnpm build
-```
+---
 
 ## API 文档
 
-详见 [API.md](./API.md)
+详见 **[API.md](./API.md)**，包含所有接口的请求参数、响应格式和错误码说明。
 
-## 开发
+---
 
-```bash
-# 只安装 database 模块
-cd packages/database
-pnpm install
+## 部署
 
-# 只安装 server 模块
-cd packages/server
-pnpm install
-```
+详见 **[README_RUNPOD.md](./README_RUNPOD.md)**，包含 RunPod 服务信息、SSH 连接、pm2 进程管理和自动部署说明。
+
+push 到 `main` 分支后 GitHub Actions 会自动部署。
+
+---
+
+## 关键设计
+
+**错误处理分三层**（`packages/server/src/middleware/error.ts`）：
+- 业务校验错误（`ApiError`）：主动抛出，`message` 为英文描述，部分附带 `details`
+- PostgreSQL 错误：按 pg error code 映射为友好 message，HTTP 400
+- JS 运行时错误：统一返回 `Internal server error`，不暴露细节
+
+**开发工作流**：修改代码 → `cd test && pnpm test` 验证 → 更新 `API.md` → commit & push
