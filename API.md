@@ -32,15 +32,64 @@
 ```
 
 ### 错误响应
+
+参数校验失败（带 `details` 字段说明具体原因）：
 ```json
 {
-  "code": 404,
-  "message": "错误原因描述",
+  "code": 400,
+  "message": "Missing required fields",
+  "details": {
+    "required": ["title", "content_type", "content", "source", "publishedAt"]
+  },
   "data": null
 }
 ```
 
-`code` 与 HTTP 状态码一致：`200` 成功，`400` 参数错误，`401` 未授权，`404` 不存在，`500` 服务器错误。
+枚举值非法：
+```json
+{
+  "code": 400,
+  "message": "Invalid content_type",
+  "details": {
+    "valid": ["news", "edu", "social"]
+  },
+  "data": null
+}
+```
+
+数据库枚举/语法错误（pg 错误透传）：
+```json
+{
+  "code": 400,
+  "message": "Invalid input syntax: invalid input value for enum detected_language: \"zh\"",
+  "data": null
+}
+```
+
+资源不存在：
+```json
+{
+  "code": 404,
+  "message": "Content not found",
+  "data": null
+}
+```
+
+服务器内部错误：
+```json
+{
+  "code": 500,
+  "message": "Internal server error",
+  "data": null
+}
+```
+
+`code` 与 HTTP 状态码一致：`200` 成功，`400` 参数错误，`401` 未授权，`404` 不存在，`409` 冲突，`500` 服务器错误。
+
+**错误分类说明**：
+- **业务校验错误**（400/404/409）：`message` 为英文描述，部分附带 `details` 字段说明合法值或必填字段列表
+- **数据库错误**（400）：`message` 透传 pg 错误信息，常见如枚举值不合法、字段超长、唯一键冲突等
+- **服务器错误**（500）：`message` 固定为 `Internal server error`，不暴露内部细节
 
 ---
 
