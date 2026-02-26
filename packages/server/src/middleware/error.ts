@@ -35,7 +35,7 @@ export function errorHandler(
 
   return res.status(500).json({
     code: 500,
-    message: 'Internal server error',
+    message: err.message || 'Internal server error',
     data: null,
   })
 }

@@ -89,7 +89,8 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [
     {
       "id": "social_004",
@@ -218,7 +219,8 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [...],
   "meta": {
     "count": 20,
@@ -252,7 +254,8 @@ GET /ai-api/contents/processed/news_001
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "id": "news_001", "title": "...", ... }
 }
 ```
@@ -286,7 +289,8 @@ GET /ai-api/contents/category/tradable?page=1&pageSize=20
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [...],
   "meta": { "count": 20, "page": 1, "pageSize": 20 }
 }
@@ -319,7 +323,8 @@ GET /ai-api/contents/risk/medium?page=1&pageSize=20
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [...],
   "meta": { "count": 20, "page": 1, "pageSize": 20 }
 }
@@ -598,7 +603,8 @@ DELETE /ai-api/contents/raw/news_001
 **响应示例** (HTTP 201):
 ```json
 {
-  "success": true,
+  "code": 201,
+  "message": "success",
   "data": {
     "user_id": "did:privy:123",
     "risk_appetite": "5.0",
@@ -643,7 +649,8 @@ GET /ai-api/users/did:privy:123
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": {
     "user_id": "did:privy:123",
     "risk_appetite": "5.0",
@@ -686,7 +693,8 @@ GET /ai-api/users/did:privy:123
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "message": "更新成功" }
 }
 ```
@@ -705,7 +713,8 @@ PATCH /ai-api/users/did:privy:123/trade-count
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "message": "交易次数已更新" }
 }
 ```
@@ -724,7 +733,8 @@ DELETE /ai-api/users/did:privy:123
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "message": "删除成功" }
 }
 ```
@@ -761,7 +771,8 @@ DELETE /ai-api/users/did:privy:123
 **响应示例** (HTTP 201):
 ```json
 {
-  "success": true,
+  "code": 201,
+  "message": "success",
   "data": {
     "id": 106,
     "user_id": 35,
@@ -800,7 +811,8 @@ GET /ai-api/chats/106
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": {
     "id": 106,
     "user_id": 35,
@@ -829,7 +841,8 @@ GET /ai-api/chats/user/35
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [
     {
       "id": 106,
@@ -861,7 +874,8 @@ GET /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [
     {
       "id": 106,
@@ -893,7 +907,8 @@ GET /ai-api/chats/user/35/sessions
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": [
     {
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
@@ -942,7 +957,8 @@ GET /ai-api/chats/user/35/sessions
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": {
     "id": 106,
     "user_id": 35,
@@ -971,7 +987,8 @@ DELETE /ai-api/chats/106
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "message": "删除成功" }
 }
 ```
@@ -990,7 +1007,8 @@ DELETE /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": { "message": "会话已删除" }
 }
 ```
