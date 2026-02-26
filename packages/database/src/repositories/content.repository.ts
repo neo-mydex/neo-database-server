@@ -342,16 +342,6 @@ export class ContentRepository {
    * @returns RawContent 对象
    */
   private mapRawContent(row: any): RawContent {
-    // 安全的 JSON 解析函数
-    const safeParse = (value: any): any => {
-      if (!value) return undefined
-      try {
-        return JSON.parse(value)
-      } catch {
-        return undefined
-      }
-    }
-
     return {
       id: row.id,
       title: row.title,
@@ -362,8 +352,8 @@ export class ContentRepository {
       url: row.url,
       author: row.author,
       language: row.language,
-      images: safeParse(row.images),
-      social_metrics: safeParse(row.social_metrics),
+      images: row.images ?? null,
+      social_metrics: row.social_metrics ?? null,
     }
   }
 
@@ -375,27 +365,17 @@ export class ContentRepository {
   private mapProcessedContent(row: any): ProcessedContent {
     const base = this.mapRawContent(row)
 
-    // 安全的 JSON 解析函数
-    const safeParse = (value: any): any => {
-      if (!value) return undefined
-      try {
-        return JSON.parse(value)
-      } catch {
-        return undefined
-      }
-    }
-
     return {
       ...base,
       volatility: row.volatility,
       summary: row.summary,
-      evidence_points: safeParse(row.evidence_points) || [],
-      suggested_questions: safeParse(row.suggested_questions) || [],
+      evidence_points: row.evidence_points || [],
+      suggested_questions: row.suggested_questions || [],
       detected_language: row.detected_language,
       category: row.category,
       risk_level: row.risk_level,
-      tags: safeParse(row.tags) || [],
-      suggested_tokens: safeParse(row.suggested_tokens),
+      tags: row.tags || [],
+      suggested_tokens: row.suggested_tokens ?? null,
       overall_sentiment: row.overall_sentiment,
     }
   }
