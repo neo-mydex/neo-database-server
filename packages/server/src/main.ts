@@ -14,7 +14,7 @@ import { errorHandler, notFoundHandler } from './middleware/error'
 
 // ========== 配置 ==========
 const PORT = process.env.PORT || 3000
-const API_PREFIX = '/api'
+const API_PREFIX = '/ai-api'
 
 // ========== 创建 Express 应用 ==========
 const app = express()
@@ -63,9 +63,9 @@ async function start() {
 ║           🏥 健康: http://localhost:${PORT}/health            ║
 ║                                                               ║
 ║           📚 API 文档:                                        ║
-║              - 用户: /api/users                              ║
-║              - 内容: /api/contents                           ║
-║              - 聊天: /api/chats                              ║
+║              - 用户: /ai-api/users                           ║
+║              - 内容: /ai-api/contents                        ║
+║              - 聊天: /ai-api/chats                           ║
 ║                                                               ║
 ╚═══════════════════════════════════════════════════════════════╝
       `)

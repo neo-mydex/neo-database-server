@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { userRepo } from '@mydex/database'
-import { ApiError, asyncHandler } from '../middleware/error'
+import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 
 const router: Router = Router()
 
@@ -18,10 +18,7 @@ router.get(
       throw new ApiError(404, '用户不存在')
     }
 
-    res.json({
-      success: true,
-      data: user,
-    })
+    res.json(successResponse(user))
   })
 )
 
@@ -62,10 +59,7 @@ router.post(
       cat_desc,
     })
 
-    res.status(201).json({
-      success: true,
-      data: user,
-    })
+    res.status(201).json(successResponse(user))
   })
 )
 
@@ -98,10 +92,7 @@ router.patch(
       decision_speed,
     })
 
-    res.json({
-      success: true,
-      data: { message: '更新成功' },
-    })
+    res.json(successResponse({ message: '更新成功' }))
   })
 )
 
@@ -122,10 +113,7 @@ router.patch(
 
     await userRepo.incrementTradeCount(userId as string)
 
-    res.json({
-      success: true,
-      data: { message: '交易次数已更新' },
-    })
+    res.json(successResponse({ message: '交易次数已更新' }))
   })
 )
 
@@ -146,10 +134,7 @@ router.delete(
 
     await userRepo.delete(userId as string)
 
-    res.json({
-      success: true,
-      data: { message: '删除成功' },
-    })
+    res.json(successResponse({ message: '删除成功' }))
   })
 )
 

@@ -11,14 +11,30 @@
 ### 成功响应
 ```json
 {
+  "code": 200,
   "success": true,
   "data": { ... }
+}
+```
+
+列表接口还会包含 `meta` 字段：
+```json
+{
+  "code": 200,
+  "success": true,
+  "data": [ ... ],
+  "meta": {
+    "count": 3,
+    "page": 1,
+    "pageSize": 20
+  }
 }
 ```
 
 ### 错误响应
 ```json
 {
+  "code": 404,
   "success": false,
   "error": {
     "message": "错误信息",
@@ -26,6 +42,8 @@
   }
 }
 ```
+
+`code` 与 HTTP 状态码一致：`200` 成功，`400` 参数错误，`401` 未授权，`404` 不存在，`500` 服务器错误。
 
 ---
 
@@ -51,7 +69,7 @@
 
 ### 1. 获取内容列表
 
-**接口地址**: `GET /api/contents/processed`
+**接口地址**: `GET /ai-api/contents/processed`
 
 **请求参数**:
 
@@ -68,7 +86,7 @@
 
 **请求示例**:
 ```http
-GET /api/contents/processed?page=1&pageSize=20&category=tradable
+GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
 ```
 
 **响应示例**:
@@ -183,7 +201,7 @@ GET /api/contents/processed?page=1&pageSize=20&category=tradable
 
 ### 2. 获取个性化推荐内容（新闻推荐流、需要JWT token）
 
-**接口地址**: `GET /api/contents/recommended`
+**接口地址**: `GET /ai-api/contents/recommended`
 
 **说明**: 需要 Privy JWT 认证。服务端通过 Token 解析出用户 ID，查询该用户在 `ai_user_profiles` 中的画像后返回内容列表。用户画像（`risk_appetite`、`decision_speed` 等）将用于后续个性化推荐逻辑（当前为预留 TODO）。
 
@@ -196,7 +214,7 @@ Authorization: Bearer <privy_jwt_token>
 
 **请求示例**:
 ```http
-GET /api/contents/recommended?page=1&pageSize=20&category=tradable
+GET /ai-api/contents/recommended?page=1&pageSize=20&category=tradable
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 ```
 
@@ -227,11 +245,11 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 
 ### 3. 获取单条内容
 
-**接口地址**: `GET /api/contents/processed/:id`
+**接口地址**: `GET /ai-api/contents/processed/:id`
 
 **请求示例**:
 ```http
-GET /api/contents/processed/news_001
+GET /ai-api/contents/processed/news_001
 ```
 
 **响应示例**:
@@ -248,7 +266,7 @@ GET /api/contents/processed/news_001
 
 ### 4. 按分类获取内容
 
-**接口地址**: `GET /api/contents/category/:category`
+**接口地址**: `GET /ai-api/contents/category/:category`
 
 **路径参数**:
 
@@ -265,7 +283,7 @@ GET /api/contents/processed/news_001
 
 **请求示例**:
 ```http
-GET /api/contents/category/tradable?page=1&pageSize=20
+GET /ai-api/contents/category/tradable?page=1&pageSize=20
 ```
 
 **响应示例**:
@@ -281,7 +299,7 @@ GET /api/contents/category/tradable?page=1&pageSize=20
 
 ### 5. 按风险等级获取内容
 
-**接口地址**: `GET /api/contents/risk/:riskLevel`
+**接口地址**: `GET /ai-api/contents/risk/:riskLevel`
 
 **路径参数**:
 
@@ -298,7 +316,7 @@ GET /api/contents/category/tradable?page=1&pageSize=20
 
 **请求示例**:
 ```http
-GET /api/contents/risk/medium?page=1&pageSize=20
+GET /ai-api/contents/risk/medium?page=1&pageSize=20
 ```
 
 **响应示例**:
@@ -318,11 +336,11 @@ GET /api/contents/risk/medium?page=1&pageSize=20
 
 ### 1. 获取单条原始内容
 
-**接口地址**: `GET /api/contents/raw/:id`
+**接口地址**: `GET /ai-api/contents/raw/:id`
 
 **请求示例**:
 ```http
-GET /api/contents/raw/news_001
+GET /ai-api/contents/raw/news_001
 ```
 
 **响应示例**:
@@ -367,7 +385,7 @@ GET /api/contents/raw/news_001
 
 ### 1. 创建用户
 
-**接口地址**: `POST /api/users`
+**接口地址**: `POST /ai-api/users`
 
 **请求参数**:
 
@@ -432,11 +450,11 @@ GET /api/contents/raw/news_001
 
 ### 2. 获取用户信息
 
-**接口地址**: `GET /api/users/:userId`
+**接口地址**: `GET /ai-api/users/:userId`
 
 **请求示例**:
 ```http
-GET /api/users/did:privy:123
+GET /ai-api/users/did:privy:123
 ```
 
 **响应示例**:
@@ -463,7 +481,7 @@ GET /api/users/did:privy:123
 
 ### 3. 更新用户维度
 
-**接口地址**: `PATCH /api/users/:userId/traits`
+**接口地址**: `PATCH /ai-api/users/:userId/traits`
 
 **请求参数**（至少传一个）:
 
@@ -494,11 +512,11 @@ GET /api/users/did:privy:123
 
 ### 4. 交易次数 +1
 
-**接口地址**: `PATCH /api/users/:userId/trade-count`
+**接口地址**: `PATCH /ai-api/users/:userId/trade-count`
 
 **请求示例**:
 ```http
-PATCH /api/users/did:privy:123/trade-count
+PATCH /ai-api/users/did:privy:123/trade-count
 ```
 
 **响应示例**:
@@ -513,11 +531,11 @@ PATCH /api/users/did:privy:123/trade-count
 
 ### 5. 删除用户
 
-**接口地址**: `DELETE /api/users/:userId`
+**接口地址**: `DELETE /ai-api/users/:userId`
 
 **请求示例**:
 ```http
-DELETE /api/users/did:privy:123
+DELETE /ai-api/users/did:privy:123
 ```
 
 **响应示例**:
@@ -536,7 +554,7 @@ DELETE /api/users/did:privy:123
 
 ### 1. 创建聊天记录
 
-**接口地址**: `POST /api/chats`
+**接口地址**: `POST /ai-api/chats`
 
 **请求参数**:
 
@@ -589,11 +607,11 @@ DELETE /api/users/did:privy:123
 
 ### 2. 获取单条聊天记录
 
-**接口地址**: `GET /api/chats/:id`
+**接口地址**: `GET /ai-api/chats/:id`
 
 **请求示例**:
 ```http
-GET /api/chats/106
+GET /ai-api/chats/106
 ```
 
 **响应示例**:
@@ -618,11 +636,11 @@ GET /api/chats/106
 
 ### 3. 获取用户聊天记录
 
-**接口地址**: `GET /api/chats/user/:userId`
+**接口地址**: `GET /ai-api/chats/user/:userId`
 
 **请求示例**:
 ```http
-GET /api/chats/user/35
+GET /ai-api/chats/user/35
 ```
 
 **响应示例**:
@@ -650,11 +668,11 @@ GET /api/chats/user/35
 
 ### 4. 获取会话聊天记录
 
-**接口地址**: `GET /api/chats/session/:sessionId`
+**接口地址**: `GET /ai-api/chats/session/:sessionId`
 
 **请求示例**:
 ```http
-GET /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
+GET /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 ```
 
 **响应示例**:
@@ -682,11 +700,11 @@ GET /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 
 ### 5. 获取用户会话列表
 
-**接口地址**: `GET /api/chats/user/:userId/sessions`
+**接口地址**: `GET /ai-api/chats/user/:userId/sessions`
 
 **请求示例**:
 ```http
-GET /api/chats/user/35/sessions
+GET /ai-api/chats/user/35/sessions
 ```
 
 **响应示例**:
@@ -722,7 +740,7 @@ GET /api/chats/user/35/sessions
 
 ### 6. 更新聊天记录
 
-**接口地址**: `PATCH /api/chats/:id`
+**接口地址**: `PATCH /ai-api/chats/:id`
 
 **请求参数**（至少传一个）:
 
@@ -760,11 +778,11 @@ GET /api/chats/user/35/sessions
 
 ### 7. 删除聊天记录
 
-**接口地址**: `DELETE /api/chats/:id`
+**接口地址**: `DELETE /ai-api/chats/:id`
 
 **请求示例**:
 ```http
-DELETE /api/chats/106
+DELETE /ai-api/chats/106
 ```
 
 **响应示例**:
@@ -779,11 +797,11 @@ DELETE /api/chats/106
 
 ### 8. 删除会话
 
-**接口地址**: `DELETE /api/chats/session/:sessionId`
+**接口地址**: `DELETE /ai-api/chats/session/:sessionId`
 
 **请求示例**:
 ```http
-DELETE /api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
+DELETE /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
 ```
 
 **响应示例**:

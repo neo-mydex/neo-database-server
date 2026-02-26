@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { chatRepo } from '@mydex/database'
-import { ApiError, asyncHandler } from '../middleware/error'
+import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 
 const router: Router = Router()
 
@@ -18,10 +18,7 @@ router.get(
       throw new ApiError(404, '聊天记录不存在')
     }
 
-    res.json({
-      success: true,
-      data: chat,
-    })
+    res.json(successResponse(chat))
   })
 )
 
@@ -35,13 +32,7 @@ router.get(
     const { userId } = req.params
     const chats = await chatRepo.findByUserId(parseInt(userId as string))
 
-    res.json({
-      success: true,
-      data: chats,
-      meta: {
-        count: chats.length,
-      },
-    })
+    res.json(successResponse(chats, { count: chats.length }))
   })
 )
 
@@ -55,13 +46,7 @@ router.get(
     const { sessionId } = req.params
     const chats = await chatRepo.findBySessionId(sessionId as string)
 
-    res.json({
-      success: true,
-      data: chats,
-      meta: {
-        count: chats.length,
-      },
-    })
+    res.json(successResponse(chats, { count: chats.length }))
   })
 )
 
@@ -75,13 +60,7 @@ router.get(
     const { userId } = req.params
     const sessions = await chatRepo.findSessionsByUserId(parseInt(userId as string))
 
-    res.json({
-      success: true,
-      data: sessions,
-      meta: {
-        count: sessions.length,
-      },
-    })
+    res.json(successResponse(sessions, { count: sessions.length }))
   })
 )
 
@@ -108,10 +87,7 @@ router.post(
       answer,
     })
 
-    res.status(201).json({
-      success: true,
-      data: chat,
-    })
+    res.status(201).json(successResponse(chat))
   })
 )
 
@@ -131,10 +107,7 @@ router.patch(
       throw new ApiError(404, '聊天记录不存在')
     }
 
-    res.json({
-      success: true,
-      data: chat,
-    })
+    res.json(successResponse(chat))
   })
 )
 
@@ -148,10 +121,7 @@ router.delete(
     const { id } = req.params
     await chatRepo.delete(parseInt(id as string))
 
-    res.json({
-      success: true,
-      data: { message: '删除成功' },
-    })
+    res.json(successResponse({ message: '删除成功' }))
   })
 )
 
@@ -165,10 +135,7 @@ router.delete(
     const { sessionId } = req.params
     await chatRepo.deleteSession(sessionId as string)
 
-    res.json({
-      success: true,
-      data: { message: '会话已删除' },
-    })
+    res.json(successResponse({ message: '会话已删除' }))
   })
 )
 

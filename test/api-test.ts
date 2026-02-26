@@ -3,7 +3,7 @@
  * 测试所有数据库服务器端点
  */
 
-const BASE_URL = 'http://localhost:3000'
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 
 // 工具函数：延迟
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
@@ -40,7 +40,7 @@ async function testHealth() {
 
 async function testGetProcessedContents() {
   printSection('获取处理后内容列表')
-  const result = await request('/api/contents/processed?page=1&pageSize=3')
+  const result = await request('/ai-api/contents/processed?page=1&pageSize=3')
   console.log(`Status: ${result.status}`)
   console.log(`Count: ${result.data.meta?.count}`)
   console.log('First item:')
@@ -61,7 +61,7 @@ async function testGetProcessedContents() {
 
 async function testGetContentById() {
   printSection('获取单条内容详情')
-  const result = await request('/api/contents/processed/news_001')
+  const result = await request('/ai-api/contents/processed/news_001')
   console.log(`Status: ${result.status}`)
   if (result.ok) {
     console.log(`Title: ${result.data.data.title}`)
@@ -72,7 +72,7 @@ async function testGetContentById() {
 
 async function testGetByCategory() {
   printSection('按分类获取内容')
-  const result = await request('/api/contents/category/tradable?page=1&pageSize=2')
+  const result = await request('/ai-api/contents/category/tradable?page=1&pageSize=2')
   console.log(`Status: ${result.status}`)
   console.log(`Count: ${result.data.meta?.count}`)
   result.data.data.forEach((item: any, i: number) => {
@@ -82,7 +82,7 @@ async function testGetByCategory() {
 
 async function testGetByRiskLevel() {
   printSection('按风险等级获取内容')
-  const result = await request('/api/contents/risk/medium?page=1&pageSize=2')
+  const result = await request('/ai-api/contents/risk/medium?page=1&pageSize=2')
   console.log(`Status: ${result.status}`)
   console.log(`Count: ${result.data.meta?.count}`)
   result.data.data.forEach((item: any, i: number) => {
@@ -93,7 +93,7 @@ async function testGetByRiskLevel() {
 async function testCreateUser() {
   printSection('创建用户')
   const testUserId = 'test_user_' + Date.now()
-  const result = await request('/api/users', {
+  const result = await request('/ai-api/users', {
     method: 'POST',
     body: JSON.stringify({
       user_id: testUserId,
@@ -112,7 +112,7 @@ async function testCreateUser() {
 
 async function testGetUser(userId: string) {
   printSection('获取用户信息')
-  const result = await request(`/api/users/${userId}`)
+  const result = await request(`/ai-api/users/${userId}`)
   console.log(`Status: ${result.status}`)
   if (result.ok) {
     console.log(`User ID: ${result.data.data.user_id}`)
@@ -123,7 +123,7 @@ async function testGetUser(userId: string) {
 
 async function testUpdateUserTraits(userId: string) {
   printSection('更新用户维度')
-  const result = await request(`/api/users/${userId}/traits`, {
+  const result = await request(`/ai-api/users/${userId}/traits`, {
     method: 'PATCH',
     body: JSON.stringify({
       risk_appetite: 9,
@@ -138,7 +138,7 @@ async function testCreateChat() {
   printSection('创建聊天记录')
   // 使用数字类型的 user_id，与数据库表结构一致
   const testUserId = Math.floor(Math.random() * 1000000)
-  const result = await request('/api/chats', {
+  const result = await request('/ai-api/chats', {
     method: 'POST',
     body: JSON.stringify({
       user_id: testUserId,  // 数字类型
@@ -160,7 +160,7 @@ async function testCreateChat() {
 
 async function testGetUserChats(userId: number) {
   printSection('获取用户聊天记录')
-  const result = await request(`/api/chats/user/${userId}`)
+  const result = await request(`/ai-api/chats/user/${userId}`)
   console.log(`Status: ${result.status}`)
   if (result.ok) {
     console.log(`Count: ${result.data.meta?.count}`)

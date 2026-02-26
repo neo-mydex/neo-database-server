@@ -1,6 +1,6 @@
 import { Router, type Request, type Response } from 'express'
 import { contentRepo, userRepo } from '@mydex/database'
-import { ApiError, asyncHandler } from '../middleware/error'
+import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 import { authMiddleware } from '../middleware/auth'
 
 const router: Router = Router()
@@ -19,10 +19,7 @@ router.get(
       throw new ApiError(404, '内容不存在')
     }
 
-    res.json({
-      success: true,
-      data: content,
-    })
+    res.json(successResponse(content))
   })
 )
 
@@ -40,10 +37,7 @@ router.get(
       throw new ApiError(404, '内容不存在')
     }
 
-    res.json({
-      success: true,
-      data: content,
-    })
+    res.json(successResponse(content))
   })
 )
 
@@ -94,15 +88,7 @@ router.get(
       offset,
     }, sort as any)
 
-    res.json({
-      success: true,
-      data: contents,
-      meta: {
-        count: contents.length,
-        page: pageNum,
-        pageSize: pageSizeNum,
-      },
-    })
+    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
@@ -141,15 +127,7 @@ router.get(
       offset
     )
 
-    res.json({
-      success: true,
-      data: contents,
-      meta: {
-        count: contents.length,
-        page: pageNum,
-        pageSize: pageSizeNum,
-      },
-    })
+    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
@@ -188,15 +166,7 @@ router.get(
       offset
     )
 
-    res.json({
-      success: true,
-      data: contents,
-      meta: {
-        count: contents.length,
-        page: pageNum,
-        pageSize: pageSizeNum,
-      },
-    })
+    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
@@ -246,16 +216,7 @@ router.get(
       offset,
     }, sort as any)
 
-    res.json({
-      success: true,
-      data: contents,
-      meta: {
-        count: contents.length,
-        page: pageNum,
-        pageSize: pageSizeNum,
-        userId: req.userId,
-      },
-    })
+    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum, userId: req.userId }))
   })
 )
 
