@@ -37,9 +37,29 @@ echo '[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"' >> ~/.bashrc
 
 ---
 
-## 日常操作
+## 自动部署（GitHub Actions）
+
+**每次 push 到 main 分支，RunPod 上的服务会自动更新**，无需手动操作。
+
+```
+git push origin main
+  → GitHub Actions 触发
+  → SSH 进入 RunPod
+  → git pull + pnpm install + pnpm build + pm2 restart
+```
+
+可以在 GitHub 仓库 → **Actions** 标签页查看每次部署的执行结果。
+
+> workflow 文件：`.github/workflows/deploy.yml`
+> 所需 GitHub Secrets：`RUNPOD_HOST`、`RUNPOD_PORT`、`RUNPOD_USER`、`RUNPOD_SSH_KEY`
+
+---
+
+## 手动操作（备用）
 
 ### 更新代码并重启服务
+
+SSH 进入后执行：
 
 ```bash
 export NVM_DIR="/workspace/.nvm" && source "$NVM_DIR/nvm.sh"
