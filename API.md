@@ -2,7 +2,7 @@
 
 ## 基础信息
 
-- **Base URL**: `http://localhost:3000`
+- **Base URL**: `http://216.249.100.66:13658` （临时的，后续可能会变）
 - **数据格式**: `application/json`
 - **字符编码**: `UTF-8`
 
