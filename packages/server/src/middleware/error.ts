@@ -25,26 +25,18 @@ export function errorHandler(
 ) {
   console.error('❌ API Error:', err)
 
-  // 如果是自定义 API 错误
   if (err instanceof ApiError) {
     return res.status(err.statusCode).json({
       code: err.statusCode,
-      success: false,
-      error: {
-        message: err.message,
-        details: err.details,
-      },
+      message: err.message,
+      data: null,
     })
   }
 
-  // 处理其他错误
   return res.status(500).json({
     code: 500,
-    success: false,
-    error: {
-      message: '服务器内部错误',
-      details: process.env.NODE_ENV === 'development' ? err.message : undefined,
-    },
+    message: 'Internal server error',
+    data: null,
   })
 }
 
@@ -53,11 +45,9 @@ export function errorHandler(
  */
 export function notFoundHandler(req: Request, res: Response) {
   res.status(404).json({
-    success: false,
-    error: {
-      message: '接口不存在',
-      path: req.path,
-    },
+    code: 404,
+    message: 'Not found',
+    data: null,
   })
 }
 
@@ -65,7 +55,7 @@ export function notFoundHandler(req: Request, res: Response) {
  * 统一成功响应包装
  */
 export function successResponse<T>(data: T, meta?: Record<string, any>) {
-  return { code: 200, success: true, data, ...(meta ? { meta } : {}) }
+  return { code: 200, message: 'success', data, ...(meta ? { meta } : {}) }
 }
 
 /**

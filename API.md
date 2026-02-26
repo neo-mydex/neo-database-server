@@ -12,7 +12,7 @@
 ```json
 {
   "code": 200,
-  "success": true,
+  "message": "success",
   "data": { ... }
 }
 ```
@@ -21,7 +21,7 @@
 ```json
 {
   "code": 200,
-  "success": true,
+  "message": "success",
   "data": [ ... ],
   "meta": {
     "count": 3,
@@ -35,11 +35,8 @@
 ```json
 {
   "code": 404,
-  "success": false,
-  "error": {
-    "message": "错误信息",
-    "details": { ... }
-  }
+  "message": "错误原因描述",
+  "data": null
 }
 ```
 
