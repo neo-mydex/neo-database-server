@@ -90,6 +90,26 @@ export class ContentRepository {
   }
 
   /**
+   * CREATE BATCH - 批量创建原始内容（事务）
+   * @param inputs 原始内容创建输入数组
+   * @returns 创建的原始内容数组
+   */
+  async createRawBatch(inputs: CreateRawContentInput[]): Promise<RawContent[]> {
+    await client.query('BEGIN')
+    try {
+      const results: RawContent[] = []
+      for (const input of inputs) {
+        results.push(await this.createRaw(input))
+      }
+      await client.query('COMMIT')
+      return results
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    }
+  }
+
+  /**
    * DELETE - 删除原始内容
    * @param id 内容 ID
    */
@@ -221,6 +241,26 @@ export class ContentRepository {
     offset: number = 0
   ): Promise<ProcessedContent[]> {
     return this.findProcessed({ risk_level: riskLevel, limit, offset })
+  }
+
+  /**
+   * CREATE BATCH - 批量创建处理后内容（事务）
+   * @param inputs 处理后内容创建输入数组
+   * @returns 创建的处理后内容数组
+   */
+  async createProcessedBatch(inputs: CreateProcessedContentInput[]): Promise<ProcessedContent[]> {
+    await client.query('BEGIN')
+    try {
+      const results: ProcessedContent[] = []
+      for (const input of inputs) {
+        results.push(await this.createProcessed(input))
+      }
+      await client.query('COMMIT')
+      return results
+    } catch (err) {
+      await client.query('ROLLBACK')
+      throw err
+    }
   }
 
   /**

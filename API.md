@@ -325,13 +325,119 @@ GET /ai-api/contents/risk/medium?page=1&pageSize=20
 }
 ```
 
+### 6. 批量创建
+
+**接口地址**: `POST /ai-api/contents/processed/batch`
+
+**说明**: 全部成功才提交，任一条失败则整体回滚，不写入任何数据。
+
+**请求 Body**: 数组，每条字段与单条处理后内容相同。
+
+**必填字段**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| title | string | 标题 |
+| content_type | string | news/edu/social |
+| content | string | 正文 |
+| source | string | 来源 |
+| publishedAt | string | 发布时间（ISO 8601） |
+| volatility | number | 波动性 0-1 |
+| summary | string | 摘要 |
+| evidence_points | string[] | 判断依据 |
+| suggested_questions | array | 猜你想问 |
+| detected_language | string | zh-CN/en-US/other |
+| category | string | educational/tradable/macro |
+| risk_level | string | low/medium/high |
+| tags | string[] | 标签列表 |
+
+**可选字段**: url、author、language、images、social_metrics、suggested_tokens、overall_sentiment
+
+**请求示例**:
+```json
+[
+  {
+    "title": "标题A",
+    "content_type": "news",
+    "content": "正文A",
+    "source": "coindesk",
+    "publishedAt": "2026-01-01T00:00:00Z",
+    "volatility": 0.85,
+    "summary": "摘要A",
+    "evidence_points": ["依据1"],
+    "suggested_questions": [],
+    "detected_language": "zh-CN",
+    "category": "tradable",
+    "risk_level": "medium",
+    "tags": ["BTC"]
+  }
+]
+```
+
+**响应示例** (HTTP 201):
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [ { "id": "content_xxx", "title": "标题A", ... } ],
+  "meta": { "count": 1 }
+}
+```
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 400 | body 不是数组、数组为空、某条记录缺少必填字段或枚举值无效 |
+
 ---
 
 ## Raw Content（ai_raw_content）
 
 > 原始内容，不含 AI 处理结果（无 summary、category、tags 等）。
 
-### 1. 获取单条原始内容
+**RawContent 字段说明**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | string | 内容 ID |
+| title | string | 标题 |
+| content_type | string | 内容类型：news/edu/social |
+| content | string | 完整正文 |
+| source | string | 数据来源 |
+| publishedAt | string | 发布时间（ISO 8601） |
+| url | string \| null | 原文链接 |
+| author | string \| null | 作者 |
+| language | string \| null | 语言代码 |
+| images | string[] \| null | 图片 URL 列表 |
+| social_metrics | SocialMetrics \| null | 社交数据（结构同上） |
+
+### 1. 获取列表
+
+**接口地址**: `GET /ai-api/contents/raw`
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| content_type | string | 否 | 筛选：news/edu/social |
+| source | string | 否 | 来源筛选 |
+| language | string | 否 | 语言筛选 |
+| sort | string | 否 | 排序：published_at_desc（默认）/published_at_asc |
+| page | number | 否 | 页码，默认 1 |
+| pageSize | number | 否 | 每页数量，默认 20，最大 100 |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [ { "id": "news_001", "title": "...", ... } ],
+  "meta": { "count": 20, "page": 1, "pageSize": 20 }
+}
+```
+
+### 2. 获取单条
 
 **接口地址**: `GET /ai-api/contents/raw/:id`
 
@@ -343,7 +449,8 @@ GET /ai-api/contents/raw/news_001
 **响应示例**:
 ```json
 {
-  "success": true,
+  "code": 200,
+  "message": "success",
   "data": {
     "id": "news_001",
     "title": "...",
@@ -360,21 +467,100 @@ GET /ai-api/contents/raw/news_001
 }
 ```
 
-**字段说明**:
+### 3. 创建
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | string | 内容 ID |
-| title | string | 标题 |
-| content_type | string | 内容类型：news/edu/social |
-| content | string | 完整正文 |
-| source | string | 数据来源 |
-| publishedAt | string | 发布时间（ISO 8601） |
-| url | string \| null | 原文链接 |
-| author | string \| null | 作者 |
-| language | string \| null | 语言代码 |
-| images | string[] \| null | 图片 URL 列表 |
-| social_metrics | SocialMetrics \| null | 社交数据（结构同上） |
+**接口地址**: `POST /ai-api/contents/raw`
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| title | string | 是 | 标题 |
+| content_type | string | 是 | news/edu/social |
+| content | string | 是 | 正文 |
+| source | string | 是 | 来源 |
+| publishedAt | string | 是 | 发布时间（ISO 8601） |
+| url | string | 否 | 原文链接 |
+| author | string | 否 | 作者 |
+| language | string | 否 | 语言代码 |
+| images | string[] | 否 | 图片 URL 列表 |
+| social_metrics | SocialMetrics | 否 | 社交数据 |
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "id": "content_xxx", "title": "...", ... }
+}
+```
+
+### 4. 批量创建
+
+**接口地址**: `POST /ai-api/contents/raw/batch`
+
+**说明**: 全部成功才提交，任一条失败则整体回滚，不写入任何数据。
+
+**请求 Body**: 数组，每条字段与「3. 创建」相同。
+
+**请求示例**:
+```json
+[
+  {
+    "title": "标题A",
+    "content_type": "news",
+    "content": "正文A",
+    "source": "coindesk",
+    "publishedAt": "2026-01-01T00:00:00Z"
+  },
+  {
+    "title": "标题B",
+    "content_type": "edu",
+    "content": "正文B",
+    "source": "medium",
+    "publishedAt": "2026-01-01T00:00:00Z"
+  }
+]
+```
+
+**响应示例** (HTTP 201):
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    { "id": "content_xxx1", "title": "标题A", ... },
+    { "id": "content_xxx2", "title": "标题B", ... }
+  ],
+  "meta": { "count": 2 }
+}
+```
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 400 | body 不是数组、数组为空、某条记录缺少必填字段或 content_type 无效 |
+
+---
+
+### 5. 删除
+
+**接口地址**: `DELETE /ai-api/contents/raw/:id`
+
+**请求示例**:
+```http
+DELETE /ai-api/contents/raw/news_001
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "message": "Deleted successfully" }
+}
+```
 
 ---
 
