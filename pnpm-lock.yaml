@@ -70,6 +70,25 @@ importers:
         specifier: ^5.9.3
         version: 5.9.3
 
+  test:
+    dependencies:
+      jsonwebtoken:
+        specifier: ^9.0.3
+        version: 9.0.3
+      jwks-rsa:
+        specifier: ^3.2.2
+        version: 3.2.2
+    devDependencies:
+      '@types/jsonwebtoken':
+        specifier: ^9.0.10
+        version: 9.0.10
+      tsx:
+        specifier: ^4.21.0
+        version: 4.21.0
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
 packages:
 
   '@esbuild/aix-ppc64@0.27.3':
