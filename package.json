@@ -9,6 +9,7 @@
     "start": "pnpm --filter @mydex/database-server start",
     "migrate": "pnpm --filter @mydex/database migrate",
     "seed": "pnpm --filter @mydex/database seed",
+    "seed:translations": "pnpm --filter @mydex/database seed:translations",
     "test": "pnpm -r test"
   },
   "keywords": [

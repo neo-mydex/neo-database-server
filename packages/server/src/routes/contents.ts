@@ -1,7 +1,25 @@
 import { Router, type Request, type Response } from 'express'
 import { contentRepo, userRepo } from '@mydex/database'
+import type { SupportedLang } from '@mydex/database'
 import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 import { authMiddleware } from '../middleware/auth'
+
+const VALID_LANGS: SupportedLang[] = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR']
+
+function parseLang(lang: unknown): SupportedLang {
+  if (!lang || !VALID_LANGS.includes(lang as SupportedLang)) return 'zh-CN'
+  return lang as SupportedLang
+}
+
+function assertTranslationLang(lang: unknown): SupportedLang {
+  if (!lang || lang === 'zh-CN') {
+    throw new ApiError(400, 'lang is required and must not be zh-CN', { valid: ['en-US', 'ja-JP', 'ko-KR'] })
+  }
+  if (!VALID_LANGS.includes(lang as SupportedLang)) {
+    throw new ApiError(400, 'Invalid lang parameter', { valid: VALID_LANGS })
+  }
+  return lang as SupportedLang
+}
 
 const router: Router = Router()
 
@@ -240,14 +258,58 @@ router.post(
 )
 
 /**
+ * POST /processed/:id/translations
+ * 写入或更新指定内容的翻译（供 AI 翻译脚本调用）
+ * Body: { lang, title, summary, evidence_points, tags, suggested_questions }
+ */
+router.post(
+  '/processed/:id/translations',
+  asyncHandler(async (req: Request, res: Response) => {
+    const { id } = req.params
+    const { lang, title, summary, evidence_points, tags, suggested_questions } = req.body
+
+    // 不允许写入 zh-CN（原文在主表）
+    if (!lang || lang === 'zh-CN') {
+      throw new ApiError(400, 'lang is required and must not be zh-CN', { valid: ['en-US', 'ja-JP', 'ko-KR'] })
+    }
+    assertTranslationLang(lang)
+
+    if (!title || !summary) {
+      throw new ApiError(400, 'Missing required fields', { required: ['lang', 'title', 'summary'] })
+    }
+
+    // 验证对应内容存在
+    const existing = await contentRepo.findProcessedById(id)
+    if (!existing) {
+      throw new ApiError(404, 'Content not found')
+    }
+
+    await contentRepo.upsertTranslation({
+      content_id: id,
+      lang,
+      title,
+      summary,
+      evidence_points: Array.isArray(evidence_points) ? evidence_points : [],
+      tags: Array.isArray(tags) ? tags : [],
+      suggested_questions: Array.isArray(suggested_questions) ? suggested_questions : [],
+    })
+
+    res.status(201).json(successResponse({ message: 'Translation saved' }))
+  })
+)
+
+/**
  * GET /api/contents/processed/:id
  * 获取处理后内容
+ * 查询参数：
+ * - lang: zh-CN（默认）| en-US | ja-JP | ko-KR
  */
 router.get(
   '/processed/:id',
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params
-    const content = await contentRepo.findProcessedById(id as string)
+    const lang = parseLang(req.query.lang)
+    const content = await contentRepo.findProcessedById(id as string, lang)
 
     if (!content) {
       throw new ApiError(404, 'Content not found')
@@ -269,6 +331,7 @@ router.get(
  * - sort: published_at_desc | published_at_asc | volatility_desc | volatility_asc
  * - page: 页码（从1开始，默认1）
  * - pageSize: 每页数量（默认20，最大100）
+ * - lang: zh-CN（默认）| en-US | ja-JP | ko-KR
  */
 router.get(
   '/processed',
@@ -283,6 +346,8 @@ router.get(
       page = '1',
       pageSize = '20',
     } = req.query
+
+    const lang = parseLang(req.query.lang)
 
     // 参数验证
     const pageNum = parseInt(page as string)
@@ -302,6 +367,7 @@ router.get(
       language: language as string,
       limit: pageSizeNum,
       offset,
+      lang,
     }, sort as any)
 
     res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
@@ -314,12 +380,14 @@ router.get(
  * 查询参数：
  * - page: 页码（从1开始，默认1）
  * - pageSize: 每页数量（默认20，最大100）
+ * - lang: zh-CN（默认）| en-US | ja-JP | ko-KR
  */
 router.get(
   '/category/:category',
   asyncHandler(async (req: Request, res: Response) => {
     const { category } = req.params
     const { page = '1', pageSize = '20' } = req.query
+    const lang = parseLang(req.query.lang)
 
     // 验证分类参数
     const validCategories = ['educational', 'tradable', 'macro']
@@ -340,7 +408,8 @@ router.get(
     const contents = await contentRepo.getProcessedByCategory(
       category as any,
       pageSizeNum,
-      offset
+      offset,
+      lang
     )
 
     res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
@@ -353,12 +422,14 @@ router.get(
  * 查询参数：
  * - page: 页码（从1开始，默认1）
  * - pageSize: 每页数量（默认20，最大100）
+ * - lang: zh-CN（默认）| en-US | ja-JP | ko-KR
  */
 router.get(
   '/risk/:riskLevel',
   asyncHandler(async (req: Request, res: Response) => {
     const { riskLevel } = req.params
     const { page = '1', pageSize = '20' } = req.query
+    const lang = parseLang(req.query.lang)
 
     // 验证风险等级参数
     const validRiskLevels = ['low', 'medium', 'high']
@@ -379,7 +450,8 @@ router.get(
     const contents = await contentRepo.getProcessedByRiskLevel(
       riskLevel as any,
       pageSizeNum,
-      offset
+      offset,
+      lang
     )
 
     res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
@@ -389,7 +461,8 @@ router.get(
 /**
  * GET /api/contents/recommended
  * 需要 Privy JWT 认证，推荐给当前登录用户的内容列表
- * 查询参数与 /api/contents/processed 相同
+ * 查询参数与 /api/contents/processed 相同，额外支持：
+ * - lang: zh-CN（默认）| en-US | ja-JP | ko-KR
  */
 router.get(
   '/recommended',
@@ -405,6 +478,8 @@ router.get(
       page = '1',
       pageSize = '20',
     } = req.query
+
+    const lang = parseLang(req.query.lang)
 
     const pageNum = parseInt(page as string)
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
@@ -430,6 +505,7 @@ router.get(
       language: language as string,
       limit: pageSizeNum,
       offset,
+      lang,
     }, sort as any)
 
     res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum, userId: req.userId }))

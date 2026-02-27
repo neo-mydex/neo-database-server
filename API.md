@@ -121,6 +121,7 @@
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
+| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
 | category | string | 否 | 分类筛选：educational/tradable/macro |
 | risk_level | string | 否 | 风险等级筛选：low/medium/high |
 | content_type | string | 否 | 内容类型筛选：news/edu/social |
@@ -132,7 +133,7 @@
 
 **请求示例**:
 ```http
-GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
+GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 ```
 
 **响应示例**:
@@ -255,11 +256,11 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
-**请求参数**: 与「获取内容列表」完全相同（category/risk_level/content_type/source/language/sort/page/pageSize）
+**请求参数**: 与「获取内容列表」完全相同（lang 可选，其他参数：category/risk_level/content_type/source/language/sort/page/pageSize）
 
 **请求示例**:
 ```http
-GET /ai-api/contents/recommended?page=1&pageSize=20&category=tradable
+GET /ai-api/contents/recommended?lang=en-US&page=1&pageSize=20&category=tradable
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
@@ -293,9 +294,15 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 **接口地址**: `GET /ai-api/contents/processed/:id`
 
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
+
 **请求示例**:
 ```http
-GET /ai-api/contents/processed/news_001
+GET /ai-api/contents/processed/news_001?lang=en-US
 ```
 
 **响应示例**:
@@ -325,12 +332,13 @@ GET /ai-api/contents/processed/news_001
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
+| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 
 **请求示例**:
 ```http
-GET /ai-api/contents/category/tradable?page=1&pageSize=20
+GET /ai-api/contents/category/tradable?lang=en-US&page=1&pageSize=20
 ```
 
 **响应示例**:
@@ -359,12 +367,13 @@ GET /ai-api/contents/category/tradable?page=1&pageSize=20
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
+| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 
 **请求示例**:
 ```http
-GET /ai-api/contents/risk/medium?page=1&pageSize=20
+GET /ai-api/contents/risk/medium?lang=en-US&page=1&pageSize=20
 ```
 
 **响应示例**:
@@ -377,7 +386,66 @@ GET /ai-api/contents/risk/medium?page=1&pageSize=20
 }
 ```
 
-### 6. 批量创建
+---
+
+### 6. 写入翻译（供 AI 翻译脚本调用）
+
+**接口地址**: `POST /ai-api/contents/processed/:id/translations`
+
+**说明**: 写入或更新指定内容的多语言翻译。zh-CN（原文）不允许写入此接口。重复写入同一 lang 时自动覆盖（upsert）。
+
+**路径参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| id | string | 是 | 内容 ID |
+
+**请求 Body**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| lang | string | 是 | 语言：en-US/ja-JP/ko-KR（不允许 zh-CN） |
+| title | string | 是 | 翻译后的标题 |
+| summary | string | 是 | 翻译后的摘要 |
+| evidence_points | string[] | 否 | 翻译后的判断依据，默认 [] |
+| tags | string[] | 否 | 翻译后的标签，默认 [] |
+| suggested_questions | array | 否 | 翻译后的猜你想问，默认 [] |
+
+**请求示例**:
+```http
+POST /ai-api/contents/processed/news_001/translations
+Content-Type: application/json
+```
+```json
+{
+  "lang": "en-US",
+  "title": "Fed holds rates steady",
+  "summary": "The Fed kept rates unchanged. Bitcoin briefly surged past $68K before pulling back.",
+  "evidence_points": ["Fed statement unchanged", "BTC reacted positively"],
+  "tags": ["Macro", "Fed", "BTC"],
+  "suggested_questions": [
+    { "label": "What next?", "action": "chat", "payload": "{\"message\":\"What happens next?\"}" }
+  ]
+}
+```
+
+**响应示例** (HTTP 201):
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "message": "Translation saved" }
+}
+```
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 400 | lang 缺失、lang 为 zh-CN、lang 非法、title/summary 缺失 |
+| 404 | 对应 content_id 不存在 |
+
+### 7. 批量创建
 
 **接口地址**: `POST /ai-api/contents/processed/batch`
 

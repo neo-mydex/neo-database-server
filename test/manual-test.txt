@@ -1,0 +1,210 @@
+========================================
+  多语言翻译接口 curl 手动测试命令
+  Base URL: http://localhost:3000
+========================================
+
+
+# ──────────────────────────────────────
+# 0. 前置：确认服务正常
+# ──────────────────────────────────────
+
+curl http://localhost:3000/health
+
+
+# ──────────────────────────────────────
+# 1. 写入翻译 POST /processed/:id/translations
+# ──────────────────────────────────────
+
+# 写入 news_001 的英文翻译
+curl -X POST http://localhost:3000/ai-api/contents/processed/news_001/translations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lang": "en-US",
+    "title": "Fed holds rates steady, crypto market briefly surges",
+    "summary": "The Fed kept rates unchanged. Bitcoin briefly surged past $68K before pulling back.",
+    "evidence_points": ["Fed statement unchanged", "BTC briefly above 68K", "Market sentiment cautious"],
+    "tags": ["Macro", "Fed", "BTC", "Interest Rate"],
+    "suggested_questions": [
+      {"label": "What happens next?", "action": "chat", "payload": "{\"message\":\"What happens next after Fed holds rates?\"}"}
+    ]
+  }'
+
+# 写入 news_001 的日文翻译
+curl -X POST http://localhost:3000/ai-api/contents/processed/news_001/translations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lang": "ja-JP",
+    "title": "FRBが金利据え置きを発表、暗号市場が一時上昇",
+    "summary": "FRBが金利を据え置いた。ビットコインは一時68,000ドルを超えたが、その後下落した。",
+    "evidence_points": ["FRBの声明は変更なし", "BTCが一時68,000ドル超え"],
+    "tags": ["マクロ", "FRB", "BTC", "金利"],
+    "suggested_questions": [
+      {"label": "次はどうなる？", "action": "chat", "payload": "{\"message\":\"次はどうなりますか？\"}"}
+    ]
+  }'
+
+# 写入 news_001 的韩文翻译
+curl -X POST http://localhost:3000/ai-api/contents/processed/news_001/translations \
+  -H "Content-Type: application/json" \
+  -d '{
+    "lang": "ko-KR",
+    "title": "연준, 금리 동결 발표…암호화폐 시장 일시 상승",
+    "summary": "연준이 금리를 동결했다. 비트코인은 잠시 68,000달러를 돌파했다가 하락했다.",
+    "evidence_points": ["연준 성명 변동 없음", "BTC 일시 68,000달러 돌파"],
+    "tags": ["거시경제", "연준", "BTC", "금리"],
+    "suggested_questions": [
+      {"label": "다음은 어떻게 되나요?", "action": "chat", "payload": "{\"message\":\"다음은 어떻게 되나요?\"}"}
+    ]
+  }'
+
+# ── 边界校验（应该返回 400）──
+
+# 写入 zh-CN 被拒绝
+curl -X POST http://localhost:3000/ai-api/contents/processed/news_001/translations \
+  -H "Content-Type: application/json" \
+  -d '{"lang": "zh-CN", "title": "测试", "summary": "测试"}'
+
+# 非法 lang 被拒绝
+curl -X POST http://localhost:3000/ai-api/contents/processed/news_001/translations \
+  -H "Content-Type: application/json" \
+  -d '{"lang": "fr-FR", "title": "test", "summary": "test"}'
+
+# 不存在的内容 ID → 404
+curl -X POST http://localhost:3000/ai-api/contents/processed/not_exist_999/translations \
+  -H "Content-Type: application/json" \
+  -d '{"lang": "en-US", "title": "test", "summary": "test"}'
+
+
+# ──────────────────────────────────────
+# 2. 单条内容 GET /processed/:id
+# ──────────────────────────────────────
+
+# 不传 lang → 中文原文
+curl http://localhost:3000/ai-api/contents/processed/news_001
+
+# lang=zh-CN → 中文原文（同上）
+curl "http://localhost:3000/ai-api/contents/processed/news_001?lang=zh-CN"
+
+# lang=en-US → 英文翻译（需先写入）
+curl "http://localhost:3000/ai-api/contents/processed/news_001?lang=en-US"
+
+# lang=ja-JP → 日文翻译（需先写入，否则 fallback 中文）
+curl "http://localhost:3000/ai-api/contents/processed/news_001?lang=ja-JP"
+
+# lang=ko-KR → 韩文翻译（需先写入，否则 fallback 中文）
+curl "http://localhost:3000/ai-api/contents/processed/news_001?lang=ko-KR"
+
+# 无效 lang → fallback 中文，不报错
+curl "http://localhost:3000/ai-api/contents/processed/news_001?lang=fr-FR"
+
+# 不存在的 ID → 404
+curl "http://localhost:3000/ai-api/contents/processed/not_exist_999?lang=en-US"
+
+
+# ──────────────────────────────────────
+# 3. 内容列表 GET /processed
+# ──────────────────────────────────────
+
+# 不传 lang → 中文
+curl "http://localhost:3000/ai-api/contents/processed?pageSize=3"
+
+# lang=zh-CN → 中文
+curl "http://localhost:3000/ai-api/contents/processed?pageSize=3&lang=zh-CN"
+
+# lang=en-US → 有翻译的返回英文，没有的 fallback 中文
+curl "http://localhost:3000/ai-api/contents/processed?pageSize=5&lang=en-US"
+
+# lang=ja-JP
+curl "http://localhost:3000/ai-api/contents/processed?pageSize=3&lang=ja-JP"
+
+# lang=ko-KR
+curl "http://localhost:3000/ai-api/contents/processed?pageSize=3&lang=ko-KR"
+
+# 组合过滤 + lang
+curl "http://localhost:3000/ai-api/contents/processed?category=tradable&lang=en-US&pageSize=3"
+curl "http://localhost:3000/ai-api/contents/processed?risk_level=medium&lang=en-US&pageSize=3"
+curl "http://localhost:3000/ai-api/contents/processed?content_type=news&lang=en-US&pageSize=3"
+
+# 排序 + lang
+curl "http://localhost:3000/ai-api/contents/processed?sort=volatility_desc&lang=en-US&pageSize=3"
+
+# 分页 + lang
+curl "http://localhost:3000/ai-api/contents/processed?page=2&pageSize=2&lang=en-US"
+
+
+# ──────────────────────────────────────
+# 4. 按分类 GET /category/:category
+# ──────────────────────────────────────
+
+# 不传 lang → 中文
+curl "http://localhost:3000/ai-api/contents/category/tradable?pageSize=3"
+
+# lang=en-US
+curl "http://localhost:3000/ai-api/contents/category/tradable?pageSize=3&lang=en-US"
+
+# lang=ja-JP
+curl "http://localhost:3000/ai-api/contents/category/educational?pageSize=3&lang=ja-JP"
+
+# lang=ko-KR
+curl "http://localhost:3000/ai-api/contents/category/macro?pageSize=3&lang=ko-KR"
+
+# 非法分类 → 400（与 lang 无关）
+curl "http://localhost:3000/ai-api/contents/category/badtype?lang=en-US"
+
+
+# ──────────────────────────────────────
+# 5. 按风险等级 GET /risk/:riskLevel
+# ──────────────────────────────────────
+
+# 不传 lang → 中文
+curl "http://localhost:3000/ai-api/contents/risk/medium?pageSize=3"
+
+# lang=en-US
+curl "http://localhost:3000/ai-api/contents/risk/medium?pageSize=3&lang=en-US"
+
+# lang=ja-JP
+curl "http://localhost:3000/ai-api/contents/risk/low?pageSize=3&lang=ja-JP"
+
+# lang=ko-KR
+curl "http://localhost:3000/ai-api/contents/risk/high?pageSize=3&lang=ko-KR"
+
+# 非法风险等级 → 400
+curl "http://localhost:3000/ai-api/contents/risk/extreme?lang=en-US"
+
+
+# ──────────────────────────────────────
+# 6. 推荐接口 GET /recommended（需 JWT）
+# ──────────────────────────────────────
+
+# 无 token → 401
+curl "http://localhost:3000/ai-api/contents/recommended?lang=en-US"
+
+# 带有效 token（替换 <YOUR_JWT_TOKEN> 为真实 token）
+curl "http://localhost:3000/ai-api/contents/recommended?lang=en-US&pageSize=3" \
+  -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+
+curl "http://localhost:3000/ai-api/contents/recommended?lang=ja-JP&pageSize=3" \
+  -H "Authorization: Bearer <YOUR_JWT_TOKEN>"
+
+
+# ──────────────────────────────────────
+# 7. 用 jq 格式化输出（只看关键字段）
+# ──────────────────────────────────────
+
+# 单条：只看 title / summary / tags
+curl -s "http://localhost:3000/ai-api/contents/processed/news_001?lang=en-US" \
+  | jq '.data | {title, summary, tags, evidence_points}'
+
+# 列表：只看每条的 id 和 title，快速对比中英文
+curl -s "http://localhost:3000/ai-api/contents/processed?pageSize=5&lang=zh-CN" \
+  | jq '[.data[] | {id, title}]'
+
+curl -s "http://localhost:3000/ai-api/contents/processed?pageSize=5&lang=en-US" \
+  | jq '[.data[] | {id, title}]'
+
+# 对比同一条在不同语言下的 suggested_questions
+curl -s "http://localhost:3000/ai-api/contents/processed/news_001?lang=zh-CN" \
+  | jq '.data.suggested_questions'
+
+curl -s "http://localhost:3000/ai-api/contents/processed/news_001?lang=en-US" \
+  | jq '.data.suggested_questions'

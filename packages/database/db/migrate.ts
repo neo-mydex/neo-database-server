@@ -10,6 +10,7 @@ async function migrate() {
     'migrations/001_create_ai_raw_content.sql',
     'migrations/002_create_ai_processed_content.sql',
     'migrations/003_create_ai_user_profiles.sql',
+    'migrations/004_create_ai_processed_content_translations.sql',
   ]
 
   for (const file of files) {

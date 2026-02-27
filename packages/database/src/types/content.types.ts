@@ -112,6 +112,28 @@ export type CreateRawContentInput = Omit<RawContent, 'id'>
 export type CreateProcessedContentInput = Omit<ProcessedContent, 'id'>
 
 /**
+ * 支持的翻译语言
+ * zh-CN 为原文（主表），不存翻译表
+ */
+export type SupportedLang = 'zh-CN' | 'en-US' | 'ja-JP' | 'ko-KR'
+
+/**
+ * 翻译内容类型
+ * 对应数据库表：ai_processed_content_translations
+ */
+export interface ContentTranslation {
+  content_id: string
+  lang: SupportedLang
+  title: string
+  summary: string
+  evidence_points: string[]
+  tags: string[]
+  suggested_questions: SuggestedQuestion[]
+}
+
+export type CreateTranslationInput = ContentTranslation
+
+/**
  * 内容查询过滤器
  */
 export interface ContentQueryFilter {
@@ -122,6 +144,7 @@ export interface ContentQueryFilter {
   language?: string
   limit?: number
   offset?: number
+  lang?: SupportedLang
 }
 
 /**

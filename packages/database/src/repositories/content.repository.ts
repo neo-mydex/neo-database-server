@@ -12,6 +12,9 @@ import type {
   CreateProcessedContentInput,
   ContentQueryFilter,
   ContentSortOption,
+  SupportedLang,
+  ContentTranslation,
+  CreateTranslationInput,
 } from '../types/content.types.js'
 
 /**
@@ -177,23 +180,29 @@ export class ContentRepository {
   /**
    * READ - 根据 ID 查询处理后内容
    * @param id 内容 ID
+   * @param lang 语言（默认 zh-CN，返回原文）
    * @returns 处理后内容，不存在则返回 null
    */
-  async findProcessedById(id: string): Promise<ProcessedContent | null> {
+  async findProcessedById(id: string, lang: SupportedLang = 'zh-CN'): Promise<ProcessedContent | null> {
     const result = await client.query(
       `SELECT * FROM ai_processed_content WHERE id = $1`,
       [id]
     )
-    return result.rowCount && result.rowCount > 0 ? this.mapProcessedContent(result.rows[0]) : null
+    if (!result.rowCount || result.rowCount === 0) return null
+    const content = this.mapProcessedContent(result.rows[0])
+    if (lang === 'zh-CN') return content
+    const translation = await this.findTranslation(id, lang)
+    return this.applyTranslation(content, translation)
   }
 
   /**
    * READ - 查询处理后内容列表
-   * @param filter 查询过滤器
+   * @param filter 查询过滤器（含可选 lang 字段）
    * @param sort 排序选项
    * @returns 处理后内容列表
    */
   async findProcessed(filter: ContentQueryFilter = {}, sort: ContentSortOption = 'published_at_desc'): Promise<ProcessedContent[]> {
+    const lang = filter.lang ?? 'zh-CN'
     const { conditions, params } = this.buildFilterQuery(filter)
     const orderBy = this.buildSortQuery(sort)
 
@@ -210,7 +219,20 @@ export class ContentRepository {
       filter.offset || 0,
     ])
 
-    return result.rows.map(row => this.mapProcessedContent(row))
+    const contents = result.rows.map(row => this.mapProcessedContent(row))
+    if (lang === 'zh-CN' || contents.length === 0) return contents
+
+    // 批量查翻译，避免 N+1
+    const ids = contents.map(c => c.id)
+    const translationResult = await client.query(
+      `SELECT * FROM ai_processed_content_translations
+       WHERE content_id = ANY($1) AND lang = $2`,
+      [ids, lang]
+    )
+    const translationMap = new Map<string, ContentTranslation>(
+      translationResult.rows.map(t => [t.content_id, this.mapTranslation(t)])
+    )
+    return contents.map(c => this.applyTranslation(c, translationMap.get(c.id) ?? null))
   }
 
   /**
@@ -218,14 +240,16 @@ export class ContentRepository {
    * @param category 分类（educational、tradable、macro）
    * @param limit 数量限制
    * @param offset 偏移量
+   * @param lang 语言（默认 zh-CN）
    * @returns 处理后内容列表
    */
   async getProcessedByCategory(
     category: 'educational' | 'tradable' | 'macro',
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
+    lang: SupportedLang = 'zh-CN'
   ): Promise<ProcessedContent[]> {
-    return this.findProcessed({ category, limit, offset })
+    return this.findProcessed({ category, limit, offset, lang })
   }
 
   /**
@@ -233,14 +257,61 @@ export class ContentRepository {
    * @param riskLevel 风险等级（low、medium、high）
    * @param limit 数量限制
    * @param offset 偏移量
+   * @param lang 语言（默认 zh-CN）
    * @returns 处理后内容列表
    */
   async getProcessedByRiskLevel(
     riskLevel: 'low' | 'medium' | 'high',
     limit: number = 100,
-    offset: number = 0
+    offset: number = 0,
+    lang: SupportedLang = 'zh-CN'
   ): Promise<ProcessedContent[]> {
-    return this.findProcessed({ risk_level: riskLevel, limit, offset })
+    return this.findProcessed({ risk_level: riskLevel, limit, offset, lang })
+  }
+
+  // ========== 翻译操作 ==========
+
+  /**
+   * UPSERT - 写入或更新翻译
+   * @param input 翻译内容
+   */
+  async upsertTranslation(input: CreateTranslationInput): Promise<void> {
+    await client.query(
+      `INSERT INTO ai_processed_content_translations
+         (content_id, lang, title, summary, evidence_points, tags, suggested_questions, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+       ON CONFLICT (content_id, lang) DO UPDATE SET
+         title = EXCLUDED.title,
+         summary = EXCLUDED.summary,
+         evidence_points = EXCLUDED.evidence_points,
+         tags = EXCLUDED.tags,
+         suggested_questions = EXCLUDED.suggested_questions,
+         updated_at = NOW()`,
+      [
+        input.content_id,
+        input.lang,
+        input.title,
+        input.summary,
+        JSON.stringify(input.evidence_points),
+        JSON.stringify(input.tags),
+        JSON.stringify(input.suggested_questions),
+      ]
+    )
+  }
+
+  /**
+   * READ - 查询单条翻译
+   * @param contentId 内容 ID
+   * @param lang 语言
+   * @returns 翻译内容，不存在则返回 null
+   */
+  async findTranslation(contentId: string, lang: SupportedLang): Promise<ContentTranslation | null> {
+    const result = await client.query(
+      `SELECT * FROM ai_processed_content_translations
+       WHERE content_id = $1 AND lang = $2`,
+      [contentId, lang]
+    )
+    return result.rowCount && result.rowCount > 0 ? this.mapTranslation(result.rows[0]) : null
   }
 
   /**
@@ -275,6 +346,37 @@ export class ContentRepository {
   }
 
   // ========== 辅助方法 ==========
+
+  /**
+   * 将翻译内容覆盖到 ProcessedContent 上
+   * 无翻译时 fallback 返回原文
+   */
+  private applyTranslation(content: ProcessedContent, translation: ContentTranslation | null): ProcessedContent {
+    if (!translation) return content
+    return {
+      ...content,
+      title: translation.title,
+      summary: translation.summary,
+      evidence_points: translation.evidence_points,
+      tags: translation.tags,
+      suggested_questions: translation.suggested_questions,
+    }
+  }
+
+  /**
+   * 映射数据库行到 ContentTranslation 对象
+   */
+  private mapTranslation(row: any): ContentTranslation {
+    return {
+      content_id: row.content_id,
+      lang: row.lang,
+      title: row.title,
+      summary: row.summary,
+      evidence_points: row.evidence_points || [],
+      tags: row.tags || [],
+      suggested_questions: row.suggested_questions || [],
+    }
+  }
 
   /**
    * 生成内容 ID

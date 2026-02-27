@@ -17,6 +17,7 @@
     "build": "tsc",
     "migrate": "tsx db/migrate.ts",
     "seed": "tsx db/seed.ts",
+    "seed:translations": "tsx db/seed-translations.ts",
     "test": "echo \"Run tests from consuming package\""
   },
   "dependencies": {
