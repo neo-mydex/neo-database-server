@@ -176,7 +176,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
       "content_type": "social",
       "content": "On-chain alert: 3 wallets holding 50M+ USDC...",
       "source": "twitter",
-      "publishedAt": "2025-02-25T00:00:00.000Z",
+      "publishedAt": 1740441600000,
       "url": null,
       "author": "@DeFiResearch",
       "language": "en",
@@ -510,7 +510,7 @@ Content-Type: application/json
     "content_type": "news",
     "content": "正文A",
     "source": "coindesk",
-    "publishedAt": "2026-01-01T00:00:00Z",
+    "publishedAt": 1767225600000,
     "volatility": 0.85,
     "summary": "摘要A",
     "evidence_points": ["依据1"],
@@ -606,7 +606,7 @@ GET /ai-api/contents/raw/news_001
     "content_type": "news",
     "content": "...",
     "source": "coindesk",
-    "publishedAt": "2025-02-25T00:00:00.000Z",
+    "publishedAt": 1740441600000,
     "url": "https://example.com/article",
     "author": null,
     "language": "en",
@@ -660,14 +660,14 @@ GET /ai-api/contents/raw/news_001
     "content_type": "news",
     "content": "正文A",
     "source": "coindesk",
-    "publishedAt": "2026-01-01T00:00:00Z"
+    "publishedAt": 1767225600000
   },
   {
     "title": "标题B",
     "content_type": "edu",
     "content": "正文B",
     "source": "medium",
-    "publishedAt": "2026-01-01T00:00:00Z"
+    "publishedAt": 1767225600000
   }
 ]
 ```
@@ -809,7 +809,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "decision_speed": "5.0",
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
-    "registered_at": "2026-02-27T05:00:00.000Z",
+    "registered_at": 1772114400000,
     "trade_count": 0,
     "chat_count": 0,
     "analyse_count": 0,
@@ -846,12 +846,12 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "decision_speed": "3.0",
     "cat_type": "慢热的守护喵",
     "cat_desc": "你的财富像老树盘根，扎得慢但扎得深。时间是你最好的朋友，耐心是你与生俱来的天赋。",
-    "registered_at": "2025-11-01T08:00:00.000Z",
+    "registered_at": 1762084800000,
     "trade_count": 5,
     "chat_count": 2,
     "analyse_count": 2,
     "companion_days": 1,
-    "last_active_date": "2026-02-27T00:00:00.000Z"
+    "last_active_date": 1772121600000
   }
 }
 ```
@@ -1086,8 +1086,8 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
     "question": "SOL 最新市场动态",
     "answer": "Solana 价格当前为 139.76 USDT",
-    "created_at": "2025-02-25T00:00:00.000Z",
-    "updated_at": "2025-02-25T00:00:00.000Z"
+    "created_at": 1740441600000,
+    "updated_at": 1740441600000
   }
 }
 ```
@@ -1126,8 +1126,8 @@ GET /ai-api/chats/106
     "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
     "question": "SOL 最新市场动态",
     "answer": "Solana 价格当前为 139.76 USDT",
-    "created_at": "2025-02-25T00:00:00.000Z",
-    "updated_at": "2025-02-25T00:00:00.000Z"
+    "created_at": 1740441600000,
+    "updated_at": 1740441600000
   }
 }
 ```
@@ -1157,8 +1157,8 @@ GET /ai-api/chats/user/35
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "question": "SOL 最新市场动态",
       "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": "2025-02-25T00:00:00.000Z",
-      "updated_at": "2025-02-25T00:00:00.000Z"
+      "created_at": 1740441600000,
+      "updated_at": 1740441600000
     }
   ],
   "meta": { "count": 5 }
@@ -1190,8 +1190,8 @@ GET /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "question": "SOL 最新市场动态",
       "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": "2025-02-25T00:00:00.000Z",
-      "updated_at": "2025-02-25T00:00:00.000Z"
+      "created_at": 1740441600000,
+      "updated_at": 1740441600000
     }
   ],
   "meta": { "count": 5 }
@@ -1221,7 +1221,7 @@ GET /ai-api/chats/user/35/sessions
       "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
       "user_id": 35,
       "message_count": "5",
-      "last_message_at": "2025-02-25T00:00:00.000Z",
+      "last_message_at": 1740441600000,
       "first_question": "SOL 最新市场动态"
     }
   ],
@@ -1272,8 +1272,8 @@ GET /ai-api/chats/user/35/sessions
     "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
     "question": "SOL 最新市场动态",
     "answer": "更新后的回答",
-    "created_at": "2025-02-25T00:00:00.000Z",
-    "updated_at": "2025-02-25T00:00:00.000Z"
+    "created_at": 1740441600000,
+    "updated_at": 1740441600000
   }
 }
 ```
