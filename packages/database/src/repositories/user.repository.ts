@@ -16,6 +16,14 @@ import type {
  * 实现用户相关的 CRUD 操作
  */
 export class UserRepository {
+  private mapUser(row: any): UserProfile {
+    return {
+      ...row,
+      registered_at: new Date(row.registered_at).getTime(),
+      last_active_date: row.last_active_date ? new Date(row.last_active_date).getTime() : null,
+    }
+  }
+
   /**
    * CREATE - 创建新用户
    * @param userId 用户 ID
@@ -24,7 +32,7 @@ export class UserRepository {
    */
   async create(userId: string, input: CreateUserInput): Promise<UserProfile> {
     const now = new Date()
-    const result = await client.query<UserProfile>(
+    const result = await client.query(
       `INSERT INTO ai_user_profiles
         (user_id, risk_appetite, patience, info_sensitivity, decision_speed, cat_type, cat_desc, registered_at, trade_count)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
@@ -41,7 +49,7 @@ export class UserRepository {
         0, // trade_count 初始值为 0
       ]
     )
-    return result.rows[0]
+    return this.mapUser(result.rows[0])
   }
 
   /**
@@ -50,11 +58,11 @@ export class UserRepository {
    * @returns 用户档案，不存在则返回 null
    */
   async findById(userId: string): Promise<UserProfile | null> {
-    const result = await client.query<UserProfile>(
+    const result = await client.query(
       `SELECT * FROM ai_user_profiles WHERE user_id = $1`,
       [userId]
     )
-    return result.rows[0] || null
+    return result.rows[0] ? this.mapUser(result.rows[0]) : null
   }
 
   /**
@@ -64,11 +72,11 @@ export class UserRepository {
    * @returns 用户列表
    */
   async findAll(limit: number = 100, offset: number = 0): Promise<UserProfile[]> {
-    const result = await client.query<UserProfile>(
+    const result = await client.query(
       `SELECT * FROM ai_user_profiles ORDER BY registered_at DESC LIMIT $1 OFFSET $2`,
       [limit, offset]
     )
-    return result.rows
+    return result.rows.map((row: any) => this.mapUser(row))
   }
 
   /**

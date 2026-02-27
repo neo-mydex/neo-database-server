@@ -93,9 +93,9 @@
 
 ---
 
-# 接口列表
+# 接口列表（五个）
 
-## 健康检查
+## 一、健康检查
 
 **接口地址**: `GET /health`
 
@@ -109,9 +109,37 @@
 
 ---
 
-## Processed Content（ai_processed_content）
+## 二、新闻流 Processed Content（ai_processed_content）
 
 > AI 处理后的内容，包含摘要、分类、风险等级、推荐代币等字段。
+
+### 0. 前端渲染说明
+
+#### 新闻预览卡片
+
+| 位置 | 字段 | 备注 |
+|------|------|------|
+| 左上角标签 | `tags[0]` | 取第一个标签 |
+| 图片 | `images[0]` | **仅 `category = educational` 时展示**，其他分类不显示图片 |
+| 标题 | `title` | |
+| 摘要 | `summary` | |
+| 底部按钮 | 固定文案 "AI喵陪你探索web3" | 不来自接口，前端硬编码 |
+
+#### 新闻详情页
+
+| 位置 | 字段 | 备注 |
+|------|------|------|
+| 标题 | `title` | |
+| 图片 | `images[0]` | 同预览，仅 `category = educational` 时展示 |
+| 正文 | `content` | 完整原文 |
+| AI喵总结 | `summary` | |
+| 判断依据 | `evidence_points[]` | 逐条列出 |
+| 猜你想问 | `suggested_questions[]` | 全部列出，点击后按 `action` 类型处理 |
+| 相关代币 | `suggested_tokens[]` | 见下方说明 |
+
+> **相关代币注意事项**：`suggested_tokens` 只提供 `symbol`（代币符号）和 `addr`（合约地址），**价格需前端自行请求行情接口获取**。`addr` 可能为 null，最差情况下只有 `symbol` 可用，前端需做好兜底处理。
+
+---
 
 ### 1. 获取内容列表
 
@@ -193,7 +221,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 | content_type | string | 内容类型：news/edu/social |
 | content | string | 完整正文 |
 | source | string | 数据来源 |
-| publishedAt | string | 发布时间（ISO 8601） |
+| publishedAt | number | 发布时间（Unix 毫秒时间戳） |
 | url | string \| null | 原文链接 |
 | author | string \| null | 作者 |
 | language | string \| null | 语言代码 |
@@ -252,6 +280,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 **说明**: 需要 Privy JWT 认证。服务端通过 Token 解析出用户 ID，查询该用户在 `ai_user_profiles` 中的画像后返回内容列表。用户画像（`risk_appetite`、`decision_speed` 等）将用于后续个性化推荐逻辑（当前为预留 TODO）。
 
 **认证**:
+
 ```http
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
@@ -461,7 +490,7 @@ Content-Type: application/json
 | content_type | string | news/edu/social |
 | content | string | 正文 |
 | source | string | 来源 |
-| publishedAt | string | 发布时间（ISO 8601） |
+| publishedAt | number | 发布时间（Unix 毫秒时间戳） |
 | volatility | number | 波动性 0-1 |
 | summary | string | 摘要 |
 | evidence_points | string[] | 判断依据 |
@@ -512,7 +541,7 @@ Content-Type: application/json
 
 ---
 
-## Raw Content（ai_raw_content）
+## 三、新闻原文 Raw Content（ai_raw_content，前端不需要看）
 
 > 原始内容，不含 AI 处理结果（无 summary、category、tags 等）。
 
@@ -525,7 +554,7 @@ Content-Type: application/json
 | content_type | string | 内容类型：news/edu/social |
 | content | string | 完整正文 |
 | source | string | 数据来源 |
-| publishedAt | string | 发布时间（ISO 8601） |
+| publishedAt | number | 发布时间（Unix 毫秒时间戳） |
 | url | string \| null | 原文链接 |
 | author | string \| null | 作者 |
 | language | string \| null | 语言代码 |
@@ -599,7 +628,7 @@ GET /ai-api/contents/raw/news_001
 | content_type | string | 是 | news/edu/social |
 | content | string | 是 | 正文 |
 | source | string | 是 | 来源 |
-| publishedAt | string | 是 | 发布时间（ISO 8601） |
+| publishedAt | string | 是 | 发布时间（ISO 8601，写入时传字符串，返回时为毫秒时间戳） |
 | url | string | 否 | 原文链接 |
 | author | string | 否 | 作者 |
 | language | string | 否 | 语言代码 |
@@ -684,9 +713,24 @@ DELETE /ai-api/contents/raw/news_001
 
 ---
 
-## User Profiles（ai_user_profiles）
+## 四、猫窝用户信息 User Profiles（ai_user_profiles）
 
 > 除「测试用：按 userId 查询」外，所有接口均需 Privy JWT 认证。user_id 从 Token 中解析，不出现在 URL 里。
+
+### 0. 前端渲染说明
+
+#### 猫窝卡片
+
+| 位置 | 字段 | 备注 |
+|------|------|------|
+| 猫类型 | `cat_type` | 用户分类标签，如"慢热的守护喵" |
+| 猫描述 | `cat_desc` | 用户分类描述文案 |
+| 陪伴天数 | `companion_days` | 累计打卡天数 |
+| 分析次数 | `chat_count` | AI 对话次数 |
+
+> **打卡注意**：每次用户**登录时**前端需主动调用 `POST /ai-api/users/checkin`，服务端已做幂等处理，同一天多次调用只计一次，不会重复累加。
+
+---
 
 **认证头**:
 ```http
@@ -694,6 +738,7 @@ Authorization: Bearer <privy_jwt_token>
 ```
 
 **错误响应（认证失败）**:
+
 | 状态码 | 原因 |
 |--------|------|
 | 401 | 未携带 Token，或 Token 无效/已过期 |
@@ -709,12 +754,12 @@ Authorization: Bearer <privy_jwt_token>
 | decision_speed | string | 决策速度（字符串格式） |
 | cat_type | string | 用户分类标签 |
 | cat_desc | string | 用户分类描述 |
-| registered_at | string | 注册时间（ISO 8601） |
+| registered_at | number | 注册时间（Unix 毫秒时间戳） |
 | trade_count | number | 交易次数 |
 | chat_count | number | AI 对话次数 |
 | analyse_count | number | AI 分析次数 |
 | companion_days | number | 陪伴天数（打卡累计） |
-| last_active_date | string \| null | 最后打卡日期（内部去重用，格式 YYYY-MM-DD） |
+| last_active_date | number \| null | 最后打卡日期（Unix 毫秒时间戳，null 表示从未打卡） |
 
 ---
 
@@ -1003,7 +1048,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-## Chat（ai_chat）
+## 五、AI聊天记录 Chat（ai_chat）
 
 > 注意：`user_id` 为**数字类型**（整数），与 User Profiles 中的 `user_id`（字符串）是不同的字段。
 
@@ -1056,8 +1101,8 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 | session_id | string | 会话 ID |
 | question | string | 问题 |
 | answer | string | 回答 |
-| created_at | string | 创建时间（ISO 8601） |
-| updated_at | string | 更新时间（ISO 8601） |
+| created_at | number | 创建时间（Unix 毫秒时间戳） |
+| updated_at | number | 更新时间（Unix 毫秒时间戳） |
 
 ---
 
@@ -1193,7 +1238,7 @@ GET /ai-api/chats/user/35/sessions
 | session_id | string | 会话 ID |
 | user_id | number | 用户 ID |
 | message_count | string | 消息数量（字符串格式） |
-| last_message_at | string | 最后消息时间（ISO 8601） |
+| last_message_at | number | 最后消息时间（Unix 毫秒时间戳） |
 | first_question | string | 第一条问题 |
 
 ---

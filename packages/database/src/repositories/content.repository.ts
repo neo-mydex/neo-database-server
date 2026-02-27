@@ -450,7 +450,7 @@ export class ContentRepository {
       content_type: row.content_type,
       content: row.content,
       source: row.source,
-      publishedAt: row.published_at,
+      publishedAt: new Date(row.published_at).getTime(),
       url: row.url,
       author: row.author,
       language: row.language,

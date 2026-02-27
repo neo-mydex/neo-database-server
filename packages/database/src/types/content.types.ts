@@ -75,7 +75,7 @@ export interface RawContent {
   content_type: 'news' | 'edu' | 'social'
   content: string
   source: string
-  publishedAt: Date
+  publishedAt: number  // Unix 毫秒时间戳
   url?: string
   author?: string
   language?: string

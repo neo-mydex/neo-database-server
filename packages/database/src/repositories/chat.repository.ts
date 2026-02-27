@@ -16,6 +16,21 @@ import type {
  * 实现聊天相关的 CRUD 操作
  */
 export class ChatRepository {
+  private mapChat(row: any): AiChat {
+    return {
+      ...row,
+      created_at: new Date(row.created_at).getTime(),
+      updated_at: new Date(row.updated_at).getTime(),
+    }
+  }
+
+  private mapSession(row: any): ChatSession {
+    return {
+      ...row,
+      last_message_at: new Date(row.last_message_at).getTime(),
+    }
+  }
+
   /**
    * CREATE - 创建聊天记录
    * @param input 聊天记录创建输入
@@ -23,13 +38,13 @@ export class ChatRepository {
    */
   async create(input: CreateChatInput): Promise<AiChat> {
     const now = new Date()
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `INSERT INTO ai_chat (user_id, session_id, question, answer, created_at, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6)
        RETURNING *`,
       [input.user_id, input.session_id, input.question, input.answer, now, now]
     )
-    return result.rows[0]
+    return this.mapChat(result.rows[0])
   }
 
   /**
@@ -38,11 +53,11 @@ export class ChatRepository {
    * @returns 聊天记录，不存在则返回 null
    */
   async findById(id: number): Promise<AiChat | null> {
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `SELECT * FROM ai_chat WHERE id = $1`,
       [id]
     )
-    return result.rows[0] || null
+    return result.rows[0] ? this.mapChat(result.rows[0]) : null
   }
 
   /**
@@ -51,11 +66,11 @@ export class ChatRepository {
    * @returns 聊天记录列表（按创建时间升序）
    */
   async findByUserId(userId: number): Promise<AiChat[]> {
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `SELECT * FROM ai_chat WHERE user_id = $1 ORDER BY created_at ASC`,
       [userId]
     )
-    return result.rows
+    return result.rows.map((row: any) => this.mapChat(row))
   }
 
   /**
@@ -64,11 +79,11 @@ export class ChatRepository {
    * @returns 聊天记录列表（按创建时间升序）
    */
   async findBySessionId(sessionId: string): Promise<AiChat[]> {
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `SELECT * FROM ai_chat WHERE session_id = $1 ORDER BY created_at ASC`,
       [sessionId]
     )
-    return result.rows
+    return result.rows.map((row: any) => this.mapChat(row))
   }
 
   /**
@@ -77,7 +92,7 @@ export class ChatRepository {
    * @returns 会话摘要列表
    */
   async findSessionsByUserId(userId: number): Promise<ChatSession[]> {
-    const result = await client.query<ChatSession>(
+    const result = await client.query(
       `SELECT
         session_id,
         user_id,
@@ -90,7 +105,7 @@ export class ChatRepository {
        ORDER BY last_message_at DESC`,
       [userId]
     )
-    return result.rows
+    return result.rows.map((row: any) => this.mapSession(row))
   }
 
   /**
@@ -99,7 +114,7 @@ export class ChatRepository {
    * @returns 会话摘要，不存在则返回 null
    */
   async findSessionById(sessionId: string): Promise<ChatSession | null> {
-    const result = await client.query<ChatSession>(
+    const result = await client.query(
       `SELECT
         session_id,
         user_id,
@@ -111,7 +126,7 @@ export class ChatRepository {
        GROUP BY session_id, user_id`,
       [sessionId]
     )
-    return result.rows[0] || null
+    return result.rows[0] ? this.mapSession(result.rows[0]) : null
   }
 
   /**
@@ -121,11 +136,11 @@ export class ChatRepository {
    * @returns 聊天记录列表
    */
   async findRecent(limit: number = 100, offset: number = 0): Promise<AiChat[]> {
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `SELECT * FROM ai_chat ORDER BY created_at DESC LIMIT $1 OFFSET $2`,
       [limit, offset]
     )
-    return result.rows
+    return result.rows.map((row: any) => this.mapChat(row))
   }
 
   /**
@@ -156,11 +171,11 @@ export class ChatRepository {
     values.push(new Date())
     values.push(id)
 
-    const result = await client.query<AiChat>(
+    const result = await client.query(
       `UPDATE ai_chat SET ${updates.join(', ')} WHERE id = $${paramIndex} RETURNING *`,
       values
     )
-    return result.rows[0] || null
+    return result.rows[0] ? this.mapChat(result.rows[0]) : null
   }
 
   /**

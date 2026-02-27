@@ -14,12 +14,12 @@ export interface UserProfile {
   decision_speed: number     // 1-10, 决策速度
   cat_type: string           // 用户分类标签（如：激进猎人喵、稳健理财喵等）
   cat_desc: string           // 用户分类描述
-  registered_at: Date        // 注册时间
+  registered_at: number      // 注册时间（Unix 毫秒时间戳）
   trade_count: number        // 交易次数
   chat_count: number         // AI 对话次数
   analyse_count: number      // AI 分析次数
   companion_days: number     // 陪伴天数（打卡累计）
-  last_active_date: Date | null  // 最后打卡日期（打卡去重用）
+  last_active_date: number | null  // 最后打卡日期（Unix 毫秒时间戳）
 }
 
 /**

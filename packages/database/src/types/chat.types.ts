@@ -12,8 +12,8 @@ export interface AiChat {
   session_id: string
   question: string
   answer: string
-  created_at: Date
-  updated_at: Date
+  created_at: number  // Unix 毫秒时间戳
+  updated_at: number  // Unix 毫秒时间戳
 }
 
 /**
@@ -42,6 +42,6 @@ export interface ChatSession {
   session_id: string
   user_id: number  // 数据库中是 integer 类型
   message_count: number
-  last_message_at: Date
+  last_message_at: number  // Unix 毫秒时间戳
   first_question: string
 }
