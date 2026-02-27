@@ -133,6 +133,43 @@ export class UserRepository {
   }
 
   /**
+   * UPDATE - AI 对话次数 +1
+   * @param userId 用户 ID
+   */
+  async incrementChatCount(userId: string): Promise<void> {
+    await client.query(
+      `UPDATE ai_user_profiles SET chat_count = chat_count + 1 WHERE user_id = $1`,
+      [userId]
+    )
+  }
+
+  /**
+   * UPDATE - AI 分析次数 +1
+   * @param userId 用户 ID
+   */
+  async incrementAnalyseCount(userId: string): Promise<void> {
+    await client.query(
+      `UPDATE ai_user_profiles SET analyse_count = analyse_count + 1 WHERE user_id = $1`,
+      [userId]
+    )
+  }
+
+  /**
+   * UPDATE - 幂等打卡：同一天多次调用只算一次
+   * @param userId 用户 ID
+   * @returns 是否已经打过卡
+   */
+  async checkin(userId: string): Promise<{ already_checked_in: boolean }> {
+    const result = await client.query(
+      `UPDATE ai_user_profiles
+       SET companion_days = companion_days + 1, last_active_date = CURRENT_DATE
+       WHERE user_id = $1 AND (last_active_date IS NULL OR last_active_date < CURRENT_DATE)`,
+      [userId]
+    )
+    return { already_checked_in: (result.rowCount ?? 0) === 0 }
+  }
+
+  /**
    * DELETE - 删除用户
    * @param userId 用户 ID
    */

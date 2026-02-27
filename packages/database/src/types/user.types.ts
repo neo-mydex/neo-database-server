@@ -16,13 +16,20 @@ export interface UserProfile {
   cat_desc: string           // 用户分类描述
   registered_at: Date        // 注册时间
   trade_count: number        // 交易次数
+  chat_count: number         // AI 对话次数
+  analyse_count: number      // AI 分析次数
+  companion_days: number     // 陪伴天数（打卡累计）
+  last_active_date: Date | null  // 最后打卡日期（打卡去重用）
 }
 
 /**
  * 创建用户时的输入类型
- * 排除自动生成的字段：registered_at、trade_count
+ * 排除所有自动字段
  */
-export type CreateUserInput = Omit<UserProfile, 'registered_at' | 'trade_count'>
+export type CreateUserInput = Omit<
+  UserProfile,
+  'registered_at' | 'trade_count' | 'chat_count' | 'analyse_count' | 'companion_days' | 'last_active_date'
+>
 
 /**
  * 更新用户维度时的输入类型

@@ -618,15 +618,48 @@ DELETE /ai-api/contents/raw/news_001
 
 ## User Profiles（ai_user_profiles）
 
+> 除「测试用：按 userId 查询」外，所有接口均需 Privy JWT 认证。user_id 从 Token 中解析，不出现在 URL 里。
+
+**认证头**:
+```http
+Authorization: Bearer <privy_jwt_token>
+```
+
+**错误响应（认证失败）**:
+| 状态码 | 原因 |
+|--------|------|
+| 401 | 未携带 Token，或 Token 无效/已过期 |
+
+**UserProfile 字段说明**:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| user_id | string | 用户 ID（Privy DID） |
+| risk_appetite | string | 风险偏好（NUMERIC，字符串格式，如 "5.0"） |
+| patience | string | 耐心程度（字符串格式） |
+| info_sensitivity | string | 信息敏感度（字符串格式） |
+| decision_speed | string | 决策速度（字符串格式） |
+| cat_type | string | 用户分类标签 |
+| cat_desc | string | 用户分类描述 |
+| registered_at | string | 注册时间（ISO 8601） |
+| trade_count | number | 交易次数 |
+| chat_count | number | AI 对话次数 |
+| analyse_count | number | AI 分析次数 |
+| companion_days | number | 陪伴天数（打卡累计） |
+| last_active_date | string \| null | 最后打卡日期（内部去重用，格式 YYYY-MM-DD） |
+
+---
+
 ### 1. 创建用户
 
 **接口地址**: `POST /ai-api/users`
+
+**认证**: 需要 JWT（user_id 从 token 取，body 不需要传）
 
 **请求参数**:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| user_id | string | 是 | 用户 ID（如 did:privy:xxx） |
 | risk_appetite | number | 是 | 风险偏好 1-10 |
 | patience | number | 是 | 耐心程度 1-10 |
 | info_sensitivity | number | 是 | 信息敏感度 1-10 |
@@ -635,9 +668,12 @@ DELETE /ai-api/contents/raw/news_001
 | cat_desc | string | 是 | 用户分类描述 |
 
 **请求示例**:
+```http
+POST /ai-api/users
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
 ```json
 {
-  "user_id": "did:privy:123",
   "risk_appetite": 5,
   "patience": 5,
   "info_sensitivity": 5,
@@ -650,7 +686,7 @@ DELETE /ai-api/contents/raw/news_001
 **响应示例** (HTTP 201):
 ```json
 {
-  "code": 201,
+  "code": 200,
   "message": "success",
   "data": {
     "user_id": "did:privy:123",
@@ -661,36 +697,27 @@ DELETE /ai-api/contents/raw/news_001
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
     "registered_at": "2025-02-25T00:00:00.000Z",
-    "trade_count": 0
+    "trade_count": 0,
+    "chat_count": 0,
+    "analyse_count": 0,
+    "companion_days": 0,
+    "last_active_date": null
   }
 }
 ```
 
-> 维度字段由 PostgreSQL NUMERIC 类型返回，格式为字符串（如 `"5.0"`）。
-
-**字段说明**:
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| user_id | string | 用户 ID |
-| risk_appetite | string | 风险偏好（字符串格式，如 "5.0"） |
-| patience | string | 耐心程度（字符串格式） |
-| info_sensitivity | string | 信息敏感度（字符串格式） |
-| decision_speed | string | 决策速度（字符串格式） |
-| cat_type | string | 用户分类标签 |
-| cat_desc | string | 用户分类描述 |
-| registered_at | string | 注册时间（ISO 8601） |
-| trade_count | number | 交易次数 |
-
 ---
 
-### 2. 获取用户信息
+### 2. 获取当前用户信息
 
-**接口地址**: `GET /ai-api/users/:userId`
+**接口地址**: `GET /ai-api/users/`
+
+**认证**: 需要 JWT
 
 **请求示例**:
 ```http
-GET /ai-api/users/did:privy:123
+GET /ai-api/users/
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 ```
 
 **响应示例**:
@@ -707,18 +734,37 @@ GET /ai-api/users/did:privy:123
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
     "registered_at": "2025-02-25T00:00:00.000Z",
-    "trade_count": 0
+    "trade_count": 0,
+    "chat_count": 0,
+    "analyse_count": 0,
+    "companion_days": 0,
+    "last_active_date": null
   }
 }
 ```
 
-**字段说明**: 与「创建用户」相同。
+---
+
+### 3. 测试用：按 userId 查询（无鉴权）
+
+**接口地址**: `GET /ai-api/users/:userId`
+
+**认证**: 无需认证（仅供测试）
+
+**请求示例**:
+```http
+GET /ai-api/users/did:privy:123
+```
+
+**响应示例**: 与「获取当前用户信息」相同。
 
 ---
 
-### 3. 更新用户维度
+### 4. 更新用户维度
 
-**接口地址**: `PATCH /ai-api/users/:userId/traits`
+**接口地址**: `PATCH /ai-api/users/traits`
+
+**认证**: 需要 JWT
 
 **请求参数**（至少传一个）:
 
@@ -730,6 +776,10 @@ GET /ai-api/users/did:privy:123
 | decision_speed | number | 否 | 决策速度 1-10 |
 
 **请求示例**:
+```http
+PATCH /ai-api/users/traits
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
 ```json
 {
   "risk_appetite": 7,
@@ -742,19 +792,22 @@ GET /ai-api/users/did:privy:123
 {
   "code": 200,
   "message": "success",
-  "data": { "message": "更新成功" }
+  "data": { "message": "Updated successfully" }
 }
 ```
 
 ---
 
-### 4. 交易次数 +1
+### 5. 交易次数 +1
 
-**接口地址**: `PATCH /ai-api/users/:userId/trade-count`
+**接口地址**: `PATCH /ai-api/users/trade-count`
+
+**认证**: 需要 JWT
 
 **请求示例**:
 ```http
-PATCH /ai-api/users/did:privy:123/trade-count
+PATCH /ai-api/users/trade-count
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 ```
 
 **响应示例**:
@@ -762,19 +815,22 @@ PATCH /ai-api/users/did:privy:123/trade-count
 {
   "code": 200,
   "message": "success",
-  "data": { "message": "交易次数已更新" }
+  "data": { "message": "Trade count updated" }
 }
 ```
 
 ---
 
-### 5. 删除用户
+### 6. AI 对话次数 +1
 
-**接口地址**: `DELETE /ai-api/users/:userId`
+**接口地址**: `PATCH /ai-api/users/chat-count`
+
+**认证**: 需要 JWT
 
 **请求示例**:
 ```http
-DELETE /ai-api/users/did:privy:123
+PATCH /ai-api/users/chat-count
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 ```
 
 **响应示例**:
@@ -782,7 +838,98 @@ DELETE /ai-api/users/did:privy:123
 {
   "code": 200,
   "message": "success",
-  "data": { "message": "删除成功" }
+  "data": { "message": "Chat count updated" }
+}
+```
+
+---
+
+### 7. AI 分析次数 +1
+
+**接口地址**: `PATCH /ai-api/users/analyse-count`
+
+**认证**: 需要 JWT
+
+**请求示例**:
+```http
+PATCH /ai-api/users/analyse-count
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "message": "Analyse count updated" }
+}
+```
+
+---
+
+### 8. 打卡（陪伴天数 +1）
+
+**接口地址**: `POST /ai-api/users/checkin`
+
+**认证**: 需要 JWT
+
+**说明**: 幂等操作，同一天多次调用只累加一次。
+
+**请求示例**:
+```http
+POST /ai-api/users/checkin
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
+
+**响应示例（首次打卡）**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "companion_days": 1,
+    "already_checked_in": false
+  }
+}
+```
+
+**响应示例（当天重复打卡）**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "companion_days": 1,
+    "already_checked_in": true
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| companion_days | number | 当前累计陪伴天数 |
+| already_checked_in | boolean | 今天是否已打过卡（true = 本次不计入） |
+
+---
+
+### 9. 删除当前用户
+
+**接口地址**: `DELETE /ai-api/users/`
+
+**认证**: 需要 JWT
+
+**请求示例**:
+```http
+DELETE /ai-api/users/
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "message": "Deleted successfully" }
 }
 ```
 

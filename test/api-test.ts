@@ -90,13 +90,29 @@ async function testGetByRiskLevel() {
   })
 }
 
-async function testCreateUser() {
-  printSection('创建用户')
-  const testUserId = 'test_user_' + Date.now()
+// seed 数据中的已知用户（无鉴权测试接口）
+const SEED_USER_ID = 'did:privy:0x1234567890abcdef1234567890abcdef12345678'
+
+async function testGetUserById() {
+  printSection('获取用户信息（无鉴权，GET /:userId）')
+  const result = await request(`/ai-api/users/${SEED_USER_ID}`)
+  console.log(`Status: ${result.status}`)
+  if (result.ok) {
+    console.log(`User ID: ${result.data.data.user_id}`)
+    console.log(`Cat Type: ${result.data.data.cat_type}`)
+    console.log(`Trade Count: ${result.data.data.trade_count}`)
+    console.log(`Chat Count: ${result.data.data.chat_count}`)
+    console.log(`Analyse Count: ${result.data.data.analyse_count}`)
+    console.log(`Companion Days: ${result.data.data.companion_days}`)
+    console.log(`Last Active Date: ${result.data.data.last_active_date}`)
+  }
+}
+
+async function testCreateUserRequiresAuth() {
+  printSection('创建用户（需 JWT，无 token 应返回 401）')
   const result = await request('/ai-api/users', {
     method: 'POST',
     body: JSON.stringify({
-      user_id: testUserId,
       risk_appetite: 7,
       patience: 5,
       info_sensitivity: 8,
@@ -105,33 +121,23 @@ async function testCreateUser() {
       cat_desc: '追求高收益，能承受较大风险',
     }),
   })
-  console.log(`Status: ${result.status}`)
-  console.log(`Created: ${result.data.data?.user_id}`)
-  return testUserId
+  console.log(`Status: ${result.status} (expected 401)`)
+  const pass = result.status === 401
+  console.log(pass ? '✅ 正确拦截无 token 请求' : '❌ 未能拦截')
 }
 
-async function testGetUser(userId: string) {
-  printSection('获取用户信息')
-  const result = await request(`/ai-api/users/${userId}`)
-  console.log(`Status: ${result.status}`)
-  if (result.ok) {
-    console.log(`User ID: ${result.data.data.user_id}`)
-    console.log(`Cat Type: ${result.data.data.cat_type}`)
-    console.log(`Trade Count: ${result.data.data.trade_count}`)
+async function testCountEndpointsRequireAuth() {
+  printSection('计数接口鉴权检查（无 token 应返回 401）')
+  const endpoints = [
+    { method: 'PATCH', path: '/ai-api/users/chat-count' },
+    { method: 'PATCH', path: '/ai-api/users/analyse-count' },
+    { method: 'POST',  path: '/ai-api/users/checkin' },
+  ]
+  for (const ep of endpoints) {
+    const result = await request(ep.path, { method: ep.method })
+    const pass = result.status === 401
+    console.log(`  ${ep.method} ${ep.path} → ${result.status} ${pass ? '✅' : '❌'}`)
   }
-}
-
-async function testUpdateUserTraits(userId: string) {
-  printSection('更新用户维度')
-  const result = await request(`/ai-api/users/${userId}/traits`, {
-    method: 'PATCH',
-    body: JSON.stringify({
-      risk_appetite: 9,
-      patience: 3,
-    }),
-  })
-  console.log(`Status: ${result.status}`)
-  console.log(`Message: ${result.data.data?.message}`)
 }
 
 async function testCreateChat() {
@@ -195,13 +201,13 @@ async function runTests() {
     await delay(500)
 
     // 3. 用户 API 测试
-    const userId = await testCreateUser()
+    await testGetUserById()
     await delay(500)
 
-    await testGetUser(userId)
+    await testCreateUserRequiresAuth()
     await delay(500)
 
-    await testUpdateUserTraits(userId)
+    await testCountEndpointsRequireAuth()
     await delay(500)
 
     // 4. 聊天 API 测试
@@ -214,7 +220,7 @@ async function runTests() {
 
     // 完成
     printSection('✅ 所有测试完成')
-    console.log('\n测试的用户 ID (user_profiles):', userId)
+    console.log('\n测试的用户 ID (user_profiles seed):', SEED_USER_ID)
     console.log('测试的用户 ID (chat):', chatUserId)
     console.log('可以在数据库中查看测试数据\n')
 
