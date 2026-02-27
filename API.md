@@ -252,7 +252,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable
 
 **认证**:
 ```http
-Authorization: Bearer <privy_jwt_token>
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **请求参数**: 与「获取内容列表」完全相同（category/risk_level/content_type/source/language/sort/page/pageSize）
@@ -260,7 +260,7 @@ Authorization: Bearer <privy_jwt_token>
 **请求示例**:
 ```http
 GET /ai-api/contents/recommended?page=1&pageSize=20&category=tradable
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
@@ -273,7 +273,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
     "count": 20,
     "page": 1,
     "pageSize": 20,
-    "userId": "did:privy:xxx"
+    "userId": "did:privy:cmm0d4w0t00jd0cju28qvovul"
   }
 }
 ```
@@ -670,7 +670,7 @@ Authorization: Bearer <privy_jwt_token>
 **请求示例**:
 ```http
 POST /ai-api/users
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 ```json
 {
@@ -686,17 +686,17 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **响应示例** (HTTP 201):
 ```json
 {
-  "code": 200,
+  "code": 201,
   "message": "success",
   "data": {
-    "user_id": "did:privy:123",
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
     "risk_appetite": "5.0",
     "patience": "5.0",
     "info_sensitivity": "5.0",
     "decision_speed": "5.0",
     "cat_type": "均衡的全能喵",
     "cat_desc": "各项指标均衡",
-    "registered_at": "2025-02-25T00:00:00.000Z",
+    "registered_at": "2026-02-27T05:00:00.000Z",
     "trade_count": 0,
     "chat_count": 0,
     "analyse_count": 0,
@@ -717,7 +717,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 GET /ai-api/users/
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
@@ -726,19 +726,19 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
   "code": 200,
   "message": "success",
   "data": {
-    "user_id": "did:privy:123",
-    "risk_appetite": "5.0",
-    "patience": "5.0",
-    "info_sensitivity": "5.0",
-    "decision_speed": "5.0",
-    "cat_type": "均衡的全能喵",
-    "cat_desc": "各项指标均衡",
-    "registered_at": "2025-02-25T00:00:00.000Z",
-    "trade_count": 0,
-    "chat_count": 0,
-    "analyse_count": 0,
-    "companion_days": 0,
-    "last_active_date": null
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "risk_appetite": "4.0",
+    "patience": "8.5",
+    "info_sensitivity": "7.0",
+    "decision_speed": "3.0",
+    "cat_type": "慢热的守护喵",
+    "cat_desc": "你的财富像老树盘根，扎得慢但扎得深。时间是你最好的朋友，耐心是你与生俱来的天赋。",
+    "registered_at": "2025-11-01T08:00:00.000Z",
+    "trade_count": 5,
+    "chat_count": 2,
+    "analyse_count": 2,
+    "companion_days": 1,
+    "last_active_date": "2026-02-27T00:00:00.000Z"
   }
 }
 ```
@@ -753,7 +753,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 
 **请求示例**:
 ```http
-GET /ai-api/users/did:privy:123
+GET /ai-api/users/did:privy:cmm0d4w0t00jd0cju28qvovul
 ```
 
 **响应示例**: 与「获取当前用户信息」相同。
@@ -778,7 +778,7 @@ GET /ai-api/users/did:privy:123
 **请求示例**:
 ```http
 PATCH /ai-api/users/traits
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 ```json
 {
@@ -807,7 +807,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 PATCH /ai-api/users/trade-count
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
@@ -830,7 +830,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 PATCH /ai-api/users/chat-count
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
@@ -853,7 +853,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 PATCH /ai-api/users/analyse-count
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
@@ -878,7 +878,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 POST /ai-api/users/checkin
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例（首次打卡）**:
@@ -921,7 +921,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
 **请求示例**:
 ```http
 DELETE /ai-api/users/
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6...
+Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
 **响应示例**:
