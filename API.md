@@ -1228,20 +1228,24 @@ Content-Type: application/json
 ```
 data: {"type":"session_start","data":{},"ts":1772260494135}
 
-data: {"type":"llm_token","data":{"content":"从"},"ts":1772260494185}
-data: {"type":"llm_token","data":{"content":"当"},"ts":1772260494235}
-data: {"type":"llm_token","data":{"content":"前"},"ts":1772260494285}
+data: {"type":"llm_token","data":{"content":"我已经"},"ts":1772260494165}
+data: {"type":"llm_token","data":{"content":"收到你"},"ts":1772260494195}
+data: {"type":"llm_token","data":{"content":"的信息"},"ts":1772260494225}
+data: {"type":"llm_token","data":{"content":"啦"},"ts":1772260494255}
+data: {"type":"llm_token","data":{"content":"，"},"ts":1772260494285}
 ...
 
-data: {"type":"session_end","data":{},"ts":1772260495635}
+data: {"type":"session_end","data":{},"ts":1772260494415}
 ```
+
+> 每个 `llm_token` 事件携带 1-3 个字的词片段（与真实 LLM token 粒度一致），每隔 30ms 推送一次。
 
 **SSE 事件类型**:
 
 | type | 说明 |
 |------|------|
 | `session_start` | 对话开始，前端可显示 loading |
-| `llm_token` | 单个字符或词片段，`data.content` 为内容，前端逐字拼接渲染 |
+| `llm_token` | 词片段（1-3字），`data.content` 为内容，前端逐词拼接渲染 |
 | `session_end` | 对话结束，前端关闭连接并保存完整回复 |
 
 **前端消费示例**:
