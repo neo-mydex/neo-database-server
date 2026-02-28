@@ -278,11 +278,12 @@ export class ContentRepository {
   async upsertTranslation(input: CreateTranslationInput): Promise<void> {
     await client.query(
       `INSERT INTO ai_processed_content_translations
-         (content_id, lang, title, summary, evidence_points, tags, suggested_questions, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())
+         (content_id, lang, title, summary, content, evidence_points, tags, suggested_questions, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW())
        ON CONFLICT (content_id, lang) DO UPDATE SET
          title = EXCLUDED.title,
          summary = EXCLUDED.summary,
+         content = EXCLUDED.content,
          evidence_points = EXCLUDED.evidence_points,
          tags = EXCLUDED.tags,
          suggested_questions = EXCLUDED.suggested_questions,
@@ -292,6 +293,7 @@ export class ContentRepository {
         input.lang,
         input.title,
         input.summary,
+        input.content ?? null,
         JSON.stringify(input.evidence_points),
         JSON.stringify(input.tags),
         JSON.stringify(input.suggested_questions),
@@ -357,6 +359,7 @@ export class ContentRepository {
       ...content,
       title: translation.title,
       summary: translation.summary,
+      content: translation.content ?? content.content,
       evidence_points: translation.evidence_points,
       tags: translation.tags,
       suggested_questions: translation.suggested_questions,
@@ -372,6 +375,7 @@ export class ContentRepository {
       lang: row.lang,
       title: row.title,
       summary: row.summary,
+      content: row.content ?? undefined,
       evidence_points: row.evidence_points || [],
       tags: row.tags || [],
       suggested_questions: row.suggested_questions || [],

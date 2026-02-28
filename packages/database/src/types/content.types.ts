@@ -126,6 +126,7 @@ export interface ContentTranslation {
   lang: SupportedLang
   title: string
   summary: string
+  content?: string
   evidence_points: string[]
   tags: string[]
   suggested_questions: SuggestedQuestion[]

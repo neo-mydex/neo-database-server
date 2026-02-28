@@ -12,8 +12,8 @@ function parseLang(lang: unknown): SupportedLang {
 }
 
 function assertTranslationLang(lang: unknown): SupportedLang {
-  if (!lang || lang === 'zh-CN') {
-    throw new ApiError(400, 'lang is required and must not be zh-CN', { valid: ['en-US', 'ja-JP', 'ko-KR'] })
+  if (!lang) {
+    throw new ApiError(400, 'lang is required', { valid: VALID_LANGS })
   }
   if (!VALID_LANGS.includes(lang as SupportedLang)) {
     throw new ApiError(400, 'Invalid lang parameter', { valid: VALID_LANGS })
@@ -266,12 +266,8 @@ router.post(
   '/processed/:id/translations',
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params
-    const { lang, title, summary, evidence_points, tags, suggested_questions } = req.body
+    const { lang, title, summary, content, evidence_points, tags, suggested_questions } = req.body
 
-    // 不允许写入 zh-CN（原文在主表）
-    if (!lang || lang === 'zh-CN') {
-      throw new ApiError(400, 'lang is required and must not be zh-CN', { valid: ['en-US', 'ja-JP', 'ko-KR'] })
-    }
     assertTranslationLang(lang)
 
     if (!title || !summary) {
@@ -289,6 +285,7 @@ router.post(
       lang,
       title,
       summary,
+      content: typeof content === 'string' ? content : undefined,
       evidence_points: Array.isArray(evidence_points) ? evidence_points : [],
       tags: Array.isArray(tags) ? tags : [],
       suggested_questions: Array.isArray(suggested_questions) ? suggested_questions : [],
