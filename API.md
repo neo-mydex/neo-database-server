@@ -421,7 +421,7 @@ GET /ai-api/contents/risk/medium?lang=en-US&page=1&pageSize=20
 
 **接口地址**: `POST /ai-api/contents/processed/:id/translations`
 
-**说明**: 写入或更新指定内容的多语言翻译。zh-CN（原文）不允许写入此接口。重复写入同一 lang 时自动覆盖（upsert）。
+**说明**: 写入或更新指定内容的多语言翻译。四种语言均可写入。重复写入同一 lang 时自动覆盖（upsert）。
 
 **路径参数**:
 
@@ -433,9 +433,10 @@ GET /ai-api/contents/risk/medium?lang=en-US&page=1&pageSize=20
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 是 | 语言：en-US/ja-JP/ko-KR（不允许 zh-CN） |
+| lang | string | 是 | 语言：zh-CN/en-US/ja-JP/ko-KR |
 | title | string | 是 | 翻译后的标题 |
 | summary | string | 是 | 翻译后的摘要 |
+| content | string | 否 | 翻译后的正文，不传则查询时 fallback 到主表原文 |
 | evidence_points | string[] | 否 | 翻译后的判断依据，默认 [] |
 | tags | string[] | 否 | 翻译后的标签，默认 [] |
 | suggested_questions | array | 否 | 翻译后的猜你想问，默认 [] |
@@ -471,7 +472,7 @@ Content-Type: application/json
 
 | 状态码 | 原因 |
 |--------|------|
-| 400 | lang 缺失、lang 为 zh-CN、lang 非法、title/summary 缺失 |
+| 400 | lang 缺失、lang 非法、title/summary 缺失 |
 | 404 | 对应 content_id 不存在 |
 
 ### 7. 批量创建
