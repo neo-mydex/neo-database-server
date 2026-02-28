@@ -10,16 +10,19 @@ export { client, connect, disconnect } from './config/database.js'
 export { userRepo } from './repositories/user.repository.js'
 export { contentRepo } from './repositories/content.repository.js'
 export { chatRepo } from './repositories/chat.repository.js'
+export { chatbotSessionRepo } from './repositories/chatbot-session.repository.js'
 
 // ========== 导出类型定义 ==========
 export * from './types/user.types.js'
 export * from './types/content.types.js'
 export * from './types/chat.types.js'
+export * from './types/chatbot-session.types.js'
 
 // ========== 导出 Repository 类（用于测试） ==========
 export { UserRepository } from './repositories/user.repository.js'
 export { ContentRepository } from './repositories/content.repository.js'
 export { ChatRepository } from './repositories/chat.repository.js'
+export { ChatbotSessionRepository } from './repositories/chatbot-session.repository.js'
 
 // ========== 导出验证工具 ==========
 export { isValidChain, isValidTokenAddress } from './utils/validators.js'

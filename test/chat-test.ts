@@ -1,0 +1,407 @@
+/**
+ * Chat API 测试脚本 (v2)
+ * 测试 ai_chatbot_sessions 表对应的所有接口：
+ *
+ * 有鉴权接口（需要 JWT）：
+ *   GET    /ai-api/chats/sessions
+ *   GET    /ai-api/chats/sessions/:sessionId
+ *   DELETE /ai-api/chats/sessions/:sessionId
+ *   POST   /ai-api/chats/sessions/:sessionId/stream
+ *   GET    /ai-api/chats/messages?sessionId=xxx
+ *   POST   /ai-api/chats/messages
+ *   PATCH  /ai-api/chats/messages/:id
+ *   DELETE /ai-api/chats/messages/:id
+ *
+ * 无鉴权接口（供后台/测试）：
+ *   GET    /ai-api/chats/sessions/by-user/:userId
+ *
+ * 用法：
+ *   JWT=<token> tsx chat-test.ts          # 完整测试（含鉴权）
+ *   tsx chat-test.ts                       # 仅测无鉴权接口 + 鉴权拦截检查
+ */
+
+const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
+const JWT = process.env.JWT || ''
+
+// seed 数据里的已知数据（无需 JWT 即可验证）
+const SEED_USER_ID  = 'did:privy:cmm0d4w0t00jd0cju28qvovul'
+const SEED_SESSION1 = 'a1b2c3d4-0001-0001-0001-000000000001'
+const SEED_SESSION2 = 'a1b2c3d4-0002-0002-0002-000000000002'
+
+// 当前 JWT 对应的用户（从 token sub 字段得到）
+// 注意：JWT 用户和 seed 用户不同，测试时只能访问自己创建的数据
+const JWT_USER_ID = 'did:privy:cmm0pj9s1000d0cl73ozx0ysy'
+
+// ─── 工具 ──────────────────────────────────────────────────────────
+
+let passed = 0
+let failed = 0
+
+function section(title: string) {
+  console.log('\n' + '─'.repeat(62))
+  console.log(`  ${title}`)
+  console.log('─'.repeat(62))
+}
+
+function ok(label: string) { passed++; console.log(`  ✅ ${label}`) }
+function fail(label: string, detail?: any) {
+  failed++
+  console.log(`  ❌ ${label}`)
+  if (detail !== undefined) console.log(`     → `, detail)
+}
+function assert(cond: boolean, label: string, detail?: any) {
+  cond ? ok(label) : fail(label, detail)
+}
+function skip(label: string) { console.log(`  ⏭️  ${label}（跳过，无 JWT）`) }
+
+async function req(endpoint: string, options?: RequestInit & { token?: string }) {
+  const { token, ...rest } = options ?? {}
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  const res = await fetch(`${BASE_URL}${endpoint}`, { ...rest, headers })
+  let data: any = null
+  try { data = await res.json() } catch {}
+  return { status: res.status, ok: res.ok, data, res }
+}
+
+// ─── 无鉴权接口 ────────────────────────────────────────────────────
+
+async function testByUserId() {
+  section('GET /sessions/by-user/:userId — 无鉴权，查 seed 用户的会话列表')
+  const r = await req(`/ai-api/chats/sessions/by-user/${SEED_USER_ID}`)
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+  assert(Array.isArray(r.data?.data), '返回数组')
+  assert((r.data?.meta?.count ?? 0) >= 3, `会话数 >= 3（seed 有 3 个会话，得到: ${r.data?.meta?.count}）`)
+
+  const sessions: any[] = r.data?.data ?? []
+  if (sessions.length > 0) {
+    const s = sessions[0]
+    assert(typeof s.session_id === 'string',  'session_id 是字符串')
+    assert(s.user_id === SEED_USER_ID,         'user_id 正确')
+    assert(typeof s.message_count === 'number','message_count 是数字')
+    assert(typeof s.last_message_at === 'number', 'last_message_at 是毫秒时间戳')
+    assert(typeof s.first_question === 'string',  'first_question 是字符串')
+    // 按最后消息时间倒序，第一个应该是最近的会话（session3）
+    assert(sessions[0].session_id === 'a1b2c3d4-0003-0003-0003-000000000003', '第一个会话是最新的（session3）')
+  }
+}
+
+// ─── 鉴权拦截检查（无 token → 401）─────────────────────────────────
+
+async function testAuthBlocking() {
+  section('鉴权拦截：无 token 的请求应返回 401')
+  const endpoints = [
+    { method: 'GET',    path: '/ai-api/chats/sessions' },
+    { method: 'GET',    path: '/ai-api/chats/sessions/some-session-id' },
+    { method: 'DELETE', path: '/ai-api/chats/sessions/some-session-id' },
+    { method: 'POST',   path: '/ai-api/chats/sessions/some-session-id/stream' },
+    { method: 'GET',    path: '/ai-api/chats/messages?sessionId=x' },
+    { method: 'POST',   path: '/ai-api/chats/messages' },
+    { method: 'PATCH',  path: '/ai-api/chats/messages/1' },
+    { method: 'DELETE', path: '/ai-api/chats/messages/1' },
+  ]
+  for (const ep of endpoints) {
+    const r = await req(ep.path, { method: ep.method })
+    assert(r.status === 401, `${ep.method} ${ep.path} → 401（得到: ${r.status}）`)
+  }
+}
+
+// ─── 有鉴权的完整流程 ───────────────────────────────────────────────
+
+async function testGetMySessions(token: string) {
+  section('GET /sessions — JWT 鉴权，获取我的会话列表（新用户，初始为空）')
+  const r = await req('/ai-api/chats/sessions', { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+  assert(Array.isArray(r.data?.data), '返回数组')
+  // 新用户初始没有会话，只要接口正常返回即可
+  assert(typeof r.data?.meta?.count === 'number', `meta.count 是数字（得到: ${r.data?.meta?.count}）`)
+  console.log(`  当前会话数: ${r.data?.meta?.count}`)
+  return r.data?.data as any[]
+}
+
+async function testGetSessionById(token: string, sessionId: string) {
+  section(`GET /sessions/${sessionId} — JWT 鉴权，获取自己创建的会话详情`)
+  const r = await req(`/ai-api/chats/sessions/${sessionId}`, { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+  assert(r.data?.data?.session_id === sessionId, 'session_id 正确')
+  assert(typeof r.data?.data?.message_count === 'number', `有 message_count（得到: ${r.data?.data?.message_count}）`)
+  assert(typeof r.data?.data?.first_question === 'string', '有 first_question')
+}
+
+async function testGetSessionForbidden(token: string) {
+  section(`GET /sessions/${SEED_SESSION1} — 访问他人会话应返回 403`)
+  const r = await req(`/ai-api/chats/sessions/${SEED_SESSION1}`, { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 403, `HTTP 403（归属校验正确，得到: ${r.status}）`)
+}
+
+async function testGetSessionNotFound(token: string) {
+  section('GET /sessions/nonexistent — 不存在的会话应返回 404')
+  const r = await req('/ai-api/chats/sessions/session-does-not-exist-xyz', { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 404, 'HTTP 404')
+}
+
+async function testGetMessages(token: string, sessionId: string) {
+  section(`GET /messages?sessionId=${sessionId} — JWT 鉴权，查自己的会话消息`)
+  const r = await req(`/ai-api/chats/messages?sessionId=${sessionId}`, { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+  assert(Array.isArray(r.data?.data), '返回数组')
+  assert((r.data?.meta?.count ?? 0) >= 1, `消息数 >= 1（得到: ${r.data?.meta?.count}）`)
+
+  const msgs: any[] = r.data?.data ?? []
+  if (msgs.length >= 1) {
+    assert(msgs[0].user_id === JWT_USER_ID, `user_id 是当前登录用户（得到: ${msgs[0].user_id}）`)
+    assert(typeof msgs[0].created_at === 'number', 'created_at 是毫秒时间戳')
+  }
+}
+
+async function testGetMessagesForbidden(token: string) {
+  section(`GET /messages?sessionId=${SEED_SESSION2} — 访问他人会话消息应返回 404`)
+  const r = await req(`/ai-api/chats/messages?sessionId=${SEED_SESSION2}`, { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 404, `HTTP 404（归属校验正确，得到: ${r.status}）`)
+}
+
+async function testGetMessagesMissingParam(token: string) {
+  section('GET /messages（缺 sessionId）— 应返回 400')
+  const r = await req('/ai-api/chats/messages', { token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 400, 'HTTP 400')
+}
+
+async function testCreateMessage(token: string): Promise<number | null> {
+  const newSessionId = `test-session-${Date.now()}`
+  section(`POST /messages — JWT 鉴权，创建消息（session: ${newSessionId}）`)
+
+  const r = await req('/ai-api/chats/messages', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({
+      session_id: newSessionId,
+      question: 'SOL 现在还能买吗？',
+      answer: 'Solana 近期链上活跃度高，生态发展迅速，可以考虑小仓位介入。',
+    }),
+  })
+
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 201, 'HTTP 201')
+  assert(typeof r.data?.data?.id === 'number', `返回 id（得到: ${r.data?.data?.id}）`)
+  assert(r.data?.data?.user_id === JWT_USER_ID, `user_id 从 JWT 注入（得到: ${r.data?.data?.user_id}）`)
+  assert(r.data?.data?.session_id === newSessionId, 'session_id 正确')
+  assert(typeof r.data?.data?.created_at === 'number', 'created_at 是毫秒时间戳')
+
+  return r.ok ? r.data.data.id : null
+}
+
+async function testCreateMessageValidation(token: string) {
+  section('POST /messages（缺字段）— 应返回 400')
+  const r = await req('/ai-api/chats/messages', {
+    method: 'POST',
+    token,
+    body: JSON.stringify({ session_id: 'x' }),  // 缺 question / answer
+  })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 400, 'HTTP 400')
+}
+
+async function testUpdateMessage(token: string, msgId: number) {
+  section(`PATCH /messages/${msgId} — JWT 鉴权，更新消息`)
+  const r = await req(`/ai-api/chats/messages/${msgId}`, {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify({ answer: '更新后：SOL 已回调，可以关注支撑位。' }),
+  })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+  assert(r.data?.data?.id === msgId, 'id 匹配')
+  assert((r.data?.data?.answer ?? '').includes('更新后'), 'answer 已更新')
+}
+
+async function testUpdateMessageNotFound(token: string) {
+  section('PATCH /messages/9999999 — 不存在/不属于我的消息，应返回 404')
+  const r = await req('/ai-api/chats/messages/9999999', {
+    method: 'PATCH',
+    token,
+    body: JSON.stringify({ answer: '不存在' }),
+  })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 404, 'HTTP 404')
+}
+
+async function testStream(token: string) {
+  const sessionId = `test-stream-${Date.now()}`
+  section(`POST /sessions/${sessionId}/stream — JWT 鉴权，SSE 流式`)
+
+  return new Promise<void>((resolve) => {
+    let raw = ''
+    const events: any[] = []
+
+    fetch(`${BASE_URL}/ai-api/chats/sessions/${sessionId}/stream`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+      },
+      body: JSON.stringify({ message: '帮我看看 BTC' }),
+    }).then(async (res) => {
+      assert(res.status === 200, `HTTP 200（得到: ${res.status}）`)
+      assert(
+        (res.headers.get('content-type') ?? '').includes('text/event-stream'),
+        `Content-Type = text/event-stream`
+      )
+
+      const reader = res.body!.getReader()
+      const decoder = new TextDecoder()
+      while (true) {
+        const { done, value } = await reader.read()
+        if (done) break
+        raw += decoder.decode(value, { stream: true })
+      }
+
+      raw.split('\n').forEach(line => {
+        if (line.startsWith('data: ')) {
+          try { events.push(JSON.parse(line.slice(6))) } catch {}
+        }
+      })
+
+      console.log(`  收到 ${events.length} 个 SSE 事件`)
+      const types = events.map(e => e.type)
+      assert(types[0] === 'session_start', `首个事件是 session_start`)
+      assert(types[types.length - 1] === 'session_end', `末尾事件是 session_end`)
+
+      const tokens = events.filter(e => e.type === 'llm_token')
+      assert(tokens.length > 0, `有 llm_token（得到: ${tokens.length} 个）`)
+
+      const text = tokens.map(e => e.data.content).join('')
+      console.log(`  重组文本: "${text}"`)
+      assert(text.length > 0, '文本不为空')
+      assert(events.every(e => typeof e.ts === 'number'), '所有事件有 ts 字段')
+
+      resolve()
+    }).catch(err => {
+      fail('SSE 请求失败', err.message)
+      resolve()
+    })
+  })
+}
+
+async function testDeleteMessage(token: string, msgId: number) {
+  section(`DELETE /messages/${msgId} — JWT 鉴权，删除单条消息`)
+  const r = await req(`/ai-api/chats/messages/${msgId}`, { method: 'DELETE', token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.ok, 'HTTP 200')
+
+  // 再删一次 → 404
+  const r2 = await req(`/ai-api/chats/messages/${msgId}`, { method: 'DELETE', token })
+  assert(r2.status === 404, '再次删除返回 404')
+}
+
+async function testDeleteSessionNotFound(token: string) {
+  section('DELETE /sessions/nonexistent — 不存在的会话，应返回 404')
+  const r = await req('/ai-api/chats/sessions/session-does-not-exist-xyz', { method: 'DELETE', token })
+  console.log(`  HTTP ${r.status}`)
+  assert(r.status === 404, 'HTTP 404')
+}
+
+async function testDeleteNewSession(token: string) {
+  // 先找到刚才创建消息的那个 test-session，从会话列表里找
+  const r = await req('/ai-api/chats/sessions', { token })
+  const sessions: any[] = r.data?.data ?? []
+  const testSession = sessions.find((s: any) => s.session_id.startsWith('test-session-'))
+
+  if (!testSession) {
+    skip('找不到测试会话，跳过删除会话测试')
+    return
+  }
+
+  section(`DELETE /sessions/${testSession.session_id} — JWT 鉴权，删除整个会话`)
+  const r2 = await req(`/ai-api/chats/sessions/${testSession.session_id}`, { method: 'DELETE', token })
+  console.log(`  HTTP ${r2.status}`)
+  assert(r2.ok, 'HTTP 200')
+
+  // 消息应全部消失
+  const r3 = await req(`/ai-api/chats/messages?sessionId=${testSession.session_id}`, { token })
+  // sessionBelongsToUser → 归属不存在 → 404
+  assert(r3.status === 404, '会话删除后消息查询返回 404')
+
+  // 会话本身也不存在
+  const r4 = await req(`/ai-api/chats/sessions/${testSession.session_id}`, { token })
+  assert(r4.status === 404, '会话已不存在（404）')
+}
+
+// ─── 主流程 ────────────────────────────────────────────────────────
+
+async function run() {
+  console.log('\n🚀 Chat API 测试 (v2 - ai_chatbot_sessions)')
+  console.log(`📍 ${BASE_URL}`)
+  console.log(`🔑 JWT: ${JWT ? JWT.slice(0, 30) + '...' : '未提供（仅测无鉴权部分）'}`)
+
+  // ── 无鉴权接口 ──
+  await testByUserId()
+
+  // ── 鉴权拦截检查（不需要 JWT） ──
+  await testAuthBlocking()
+
+  // ── 有鉴权的完整流程 ──
+  if (!JWT) {
+    console.log('\n⚠️  未提供 JWT，跳过鉴权接口测试。')
+    console.log('   运行方式：JWT=<token> tsx chat-test.ts\n')
+  } else {
+    const token = JWT
+
+    // 1. 检查初始状态（新用户无会话）
+    await testGetMySessions(token)
+
+    // 2. 创建一条消息（这是后续所有查询测试的数据来源）
+    const newMsgId = await testCreateMessage(token)
+    await testCreateMessageValidation(token)
+
+    // 3. 从会话列表取刚创建的 sessionId
+    const sessionsAfterCreate = await req('/ai-api/chats/sessions', { token })
+    const mySession = (sessionsAfterCreate.data?.data ?? []).find(
+      (s: any) => s.session_id.startsWith('test-session-')
+    )
+    const mySessionId = mySession?.session_id
+
+    // 4. 用自己的数据测查询接口
+    if (mySessionId) {
+      await testGetSessionById(token, mySessionId)
+      await testGetMessages(token, mySessionId)
+    }
+
+    // 5. 跨用户访问校验（归属保护）
+    await testGetSessionForbidden(token)
+    await testGetMessagesForbidden(token)
+    await testGetSessionNotFound(token)
+    await testGetMessagesMissingParam(token)
+
+    // 6. 更新、SSE、删除
+    if (newMsgId) {
+      await testUpdateMessage(token, newMsgId)
+      await testUpdateMessageNotFound(token)
+      await testStream(token)
+      await testDeleteMessage(token, newMsgId)
+    }
+
+    // 7. 清理
+    await testDeleteSessionNotFound(token)
+    await testDeleteNewSession(token)
+  }
+
+  // ── 汇总 ──
+  console.log('\n' + '═'.repeat(62))
+  console.log(`  测试完成：${passed} 通过，${failed} 失败`)
+  console.log('═'.repeat(62) + '\n')
+
+  if (failed > 0) process.exit(1)
+}
+
+run().catch(err => {
+  console.error('\n💥 测试崩溃:', err)
+  process.exit(1)
+})

@@ -93,7 +93,7 @@
 
 ---
 
-# 接口列表（五个）
+# 接口列表
 
 ## 一、健康检查
 
@@ -1049,216 +1049,391 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-## 五、AI聊天记录 Chat（ai_chat）
+## 五、AI 对话记录 Chatbot Sessions（ai_chatbot_sessions）
 
-> 注意：`user_id` 为**数字类型**（整数），与 User Profiles 中的 `user_id`（字符串）是不同的字段。
+> 底层数据表已从 `ai_chat`（整数 user_id）迁移至 `ai_chatbot_sessions`（Privy ID 字符串），与 User Profiles 体系完全打通。
+>
+> **除「测试用：按 userId 查询会话列表」外，所有接口均需 Privy JWT 认证。** user_id 由服务端从 Token 中解析，前端不需要也不能传 user_id。
+>
+> **新建对话**：前端自行生成一个 UUID 作为 `session_id`，直接调用 stream 接口或 POST /messages 即可，无需提前创建会话。
 
-### 1. 创建聊天记录
+---
 
-**接口地址**: `POST /ai-api/chats`
+**认证头**:
+```http
+Authorization: Bearer <privy_jwt_token>
+```
+
+**错误响应（认证/鉴权失败）**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 401 | 未携带 Token，或 Token 无效/已过期 |
+| 403 | Token 有效，但该资源不属于当前用户 |
+
+---
+
+**ChatbotMessage 字段说明**（消息对象，多个接口复用）:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | number | 消息 ID（自增整数） |
+| user_id | string | 用户 Privy ID（如 `did:privy:xxx`） |
+| session_id | string | 会话 ID（前端生成的 UUID） |
+| question | string | 用户提问 |
+| answer | string | AI 回复 |
+| created_at | number | 创建时间（Unix 毫秒时间戳） |
+| updated_at | number | 更新时间（Unix 毫秒时间戳） |
+
+**ChatbotSession 字段说明**（会话摘要对象，多个接口复用）:
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| session_id | string | 会话 ID |
+| user_id | string | 用户 Privy ID |
+| message_count | number | 该会话下的消息数量 |
+| last_message_at | number | 最后一条消息时间（Unix 毫秒时间戳） |
+| first_question | string | 会话第一条问题（用于列表预览） |
+
+---
+
+### 会话接口
+
+#### 1. 获取我的会话列表
+
+**接口地址**: `GET /ai-api/chats/sessions`
+
+**认证**: 需要 JWT（返回当前登录用户的所有会话）
+
+**请求示例**:
+```http
+GET /ai-api/chats/sessions
+Authorization: Bearer <token>
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "message_count": 2,
+      "last_message_at": 1772260494135,
+      "first_question": "现在 BTC 值得买吗？"
+    }
+  ],
+  "meta": { "count": 3 }
+}
+```
+
+> 列表按 `last_message_at DESC` 排序（最近活跃的会话排在最前）。
+
+---
+
+#### 2. 获取单个会话详情
+
+**接口地址**: `GET /ai-api/chats/sessions/:sessionId`
+
+**认证**: 需要 JWT，且该会话必须属于当前用户（否则返回 403）
+
+**请求示例**:
+```http
+GET /ai-api/chats/sessions/a1b2c3d4-0001-0001-0001-000000000001
+Authorization: Bearer <token>
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "message_count": 2,
+    "last_message_at": 1772260494135,
+    "first_question": "现在 BTC 值得买吗？"
+  }
+}
+```
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 403 | 会话存在但不属于当前用户 |
+| 404 | 会话不存在 |
+
+---
+
+#### 3. 删除整个会话
+
+**接口地址**: `DELETE /ai-api/chats/sessions/:sessionId`
+
+**认证**: 需要 JWT，且该会话必须属于当前用户
+
+**说明**: 删除会话后，该会话下的所有消息也会一并删除（级联删除）。
+
+**请求示例**:
+```http
+DELETE /ai-api/chats/sessions/a1b2c3d4-0001-0001-0001-000000000001
+Authorization: Bearer <token>
+```
+
+**响应示例**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": { "message": "Session deleted successfully" }
+}
+```
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 403 | 会话存在但不属于当前用户 |
+| 404 | 会话不存在 |
+
+---
+
+#### 4. 流式 AI 对话（SSE）
+
+**接口地址**: `POST /ai-api/chats/sessions/:sessionId/stream`
+
+**认证**: 需要 JWT
+
+**说明**:
+- `sessionId` 由前端生成（UUID），新对话时生成新的，历史对话时复用已有的
+- 当前返回 mock 流式数据，后续接入真实 AI Agent 后前端代码**零改动**
+- 响应类型为 `text/event-stream`（SSE）
+
+**请求示例**:
+```http
+POST /ai-api/chats/sessions/a1b2c3d4-0001-0001-0001-000000000001/stream
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+```json
+{
+  "message": "现在 BTC 值得买吗？"
+}
+```
+
+**响应**（`Content-Type: text/event-stream`）:
+```
+data: {"type":"session_start","data":{},"ts":1772260494135}
+
+data: {"type":"llm_token","data":{"content":"从"},"ts":1772260494185}
+data: {"type":"llm_token","data":{"content":"当"},"ts":1772260494235}
+data: {"type":"llm_token","data":{"content":"前"},"ts":1772260494285}
+...
+
+data: {"type":"session_end","data":{},"ts":1772260495635}
+```
+
+**SSE 事件类型**:
+
+| type | 说明 |
+|------|------|
+| `session_start` | 对话开始，前端可显示 loading |
+| `llm_token` | 单个字符或词片段，`data.content` 为内容，前端逐字拼接渲染 |
+| `session_end` | 对话结束，前端关闭连接并保存完整回复 |
+
+**前端消费示例**:
+```javascript
+// 新建对话时前端生成 sessionId
+const sessionId = crypto.randomUUID()
+
+const res = await fetch(`/ai-api/chats/sessions/${sessionId}/stream`, {
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`,
+  },
+  body: JSON.stringify({ message: '现在 BTC 值得买吗？' }),
+})
+
+let fullAnswer = ''
+const reader = res.body.getReader()
+const decoder = new TextDecoder()
+
+while (true) {
+  const { done, value } = await reader.read()
+  if (done) break
+  const chunk = decoder.decode(value, { stream: true })
+  for (const line of chunk.split('\n')) {
+    if (!line.startsWith('data: ')) continue
+    const event = JSON.parse(line.slice(6))
+    if (event.type === 'llm_token') {
+      fullAnswer += event.data.content
+      // 实时渲染
+    }
+    if (event.type === 'session_end') {
+      // 对话结束，调用 POST /messages 落库
+    }
+  }
+}
+```
+
+---
+
+#### 5. 测试用：按 userId 查询会话列表（无鉴权）
+
+**接口地址**: `GET /ai-api/chats/sessions/by-user/:userId`
+
+**认证**: 无需认证（仅供后台/测试用）
+
+**请求示例**:
+```http
+GET /ai-api/chats/sessions/by-user/did:privy:cmm0d4w0t00jd0cju28qvovul
+```
+
+**响应示例**: 与「1. 获取我的会话列表」相同。
+
+---
+
+### 消息接口
+
+#### 6. 获取会话的所有消息
+
+**接口地址**: `GET /ai-api/chats/messages?sessionId=xxx`
+
+**认证**: 需要 JWT，且该会话必须属于当前用户（会话不存在或不属于当前用户均返回 404）
 
 **请求参数**:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| user_id | number | 是 | 用户 ID（整数） |
-| session_id | string | 是 | 会话 ID |
-| question | string | 是 | 问题 |
-| answer | string | 是 | 回答 |
+| sessionId | string | 是 | 会话 ID |
 
 **请求示例**:
+```http
+GET /ai-api/chats/messages?sessionId=a1b2c3d4-0001-0001-0001-000000000001
+Authorization: Bearer <token>
+```
+
+**响应示例**:
 ```json
 {
-  "user_id": 35,
-  "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-  "question": "SOL 最新市场动态",
-  "answer": "Solana 价格当前为 139.76 USDT"
+  "code": 200,
+  "message": "success",
+  "data": [
+    {
+      "id": 1,
+      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "question": "现在 BTC 值得买吗？",
+      "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓。",
+      "created_at": 1772260200000,
+      "updated_at": 1772260200000
+    },
+    {
+      "id": 2,
+      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "question": "那我应该设多少止损？",
+      "answer": "通常建议设在入场价的 8%-10% 以下。",
+      "created_at": 1772260350000,
+      "updated_at": 1772260350000
+    }
+  ],
+  "meta": { "count": 2 }
+}
+```
+
+> 消息按 `created_at ASC` 排序（最早的排在最前）。
+
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 400 | 缺少 sessionId 参数 |
+| 404 | 会话不存在，或该会话不属于当前用户 |
+
+---
+
+#### 7. 保存一条消息
+
+**接口地址**: `POST /ai-api/chats/messages`
+
+**认证**: 需要 JWT（`user_id` 由服务端从 Token 注入，body 不需要也不能传 `user_id`）
+
+**说明**: AI 流式对话结束后，前端将完整的问答落库。
+
+**请求参数**:
+
+| 参数名 | 类型 | 必填 | 说明 |
+|--------|------|------|------|
+| session_id | string | 是 | 会话 ID（与 stream 接口一致） |
+| question | string | 是 | 用户的提问 |
+| answer | string | 是 | AI 完整回复（流式结束后拼接） |
+
+**请求示例**:
+```http
+POST /ai-api/chats/messages
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+```json
+{
+  "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+  "question": "现在 BTC 值得买吗？",
+  "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。"
 }
 ```
 
 **响应示例** (HTTP 201):
 ```json
 {
-  "code": 201,
+  "code": 200,
   "message": "success",
   "data": {
-    "id": 106,
-    "user_id": 35,
-    "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-    "question": "SOL 最新市场动态",
-    "answer": "Solana 价格当前为 139.76 USDT",
-    "created_at": 1740441600000,
-    "updated_at": 1740441600000
+    "id": 1,
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+    "question": "现在 BTC 值得买吗？",
+    "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。",
+    "created_at": 1772260200000,
+    "updated_at": 1772260200000
   }
 }
 ```
 
-**字段说明**:
+**错误响应**:
 
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| id | number | 聊天记录 ID（自增整数） |
-| user_id | number | 用户 ID（整数） |
-| session_id | string | 会话 ID |
-| question | string | 问题 |
-| answer | string | 回答 |
-| created_at | number | 创建时间（Unix 毫秒时间戳） |
-| updated_at | number | 更新时间（Unix 毫秒时间戳） |
+| 状态码 | 原因 |
+|--------|------|
+| 400 | 缺少 session_id / question / answer |
 
 ---
 
-### 2. 获取单条聊天记录
+#### 8. 更新消息
 
-**接口地址**: `GET /ai-api/chats/:id`
+**接口地址**: `PATCH /ai-api/chats/messages/:id`
 
-**请求示例**:
-```http
-GET /ai-api/chats/106
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": {
-    "id": 106,
-    "user_id": 35,
-    "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-    "question": "SOL 最新市场动态",
-    "answer": "Solana 价格当前为 139.76 USDT",
-    "created_at": 1740441600000,
-    "updated_at": 1740441600000
-  }
-}
-```
-
-**字段说明**: 与「创建聊天记录」相同。
-
----
-
-### 3. 获取用户聊天记录
-
-**接口地址**: `GET /ai-api/chats/user/:userId`
-
-**请求示例**:
-```http
-GET /ai-api/chats/user/35
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": [
-    {
-      "id": 106,
-      "user_id": 35,
-      "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-      "question": "SOL 最新市场动态",
-      "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": 1740441600000,
-      "updated_at": 1740441600000
-    }
-  ],
-  "meta": { "count": 5 }
-}
-```
-
-> `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
-
----
-
-### 4. 获取会话聊天记录
-
-**接口地址**: `GET /ai-api/chats/session/:sessionId`
-
-**请求示例**:
-```http
-GET /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": [
-    {
-      "id": 106,
-      "user_id": 35,
-      "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-      "question": "SOL 最新市场动态",
-      "answer": "Solana 价格当前为 139.76 USDT",
-      "created_at": 1740441600000,
-      "updated_at": 1740441600000
-    }
-  ],
-  "meta": { "count": 5 }
-}
-```
-
-> `meta.count` 为本次返回的数组长度，记录按 `created_at ASC` 排序。
-
----
-
-### 5. 获取用户会话列表
-
-**接口地址**: `GET /ai-api/chats/user/:userId/sessions`
-
-**请求示例**:
-```http
-GET /ai-api/chats/user/35/sessions
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": [
-    {
-      "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-      "user_id": 35,
-      "message_count": "5",
-      "last_message_at": 1740441600000,
-      "first_question": "SOL 最新市场动态"
-    }
-  ],
-  "meta": { "count": 10 }
-}
-```
-
-> `message_count` 由 PostgreSQL `COUNT(*)` 返回，格式为字符串。列表按 `last_message_at DESC` 排序。
-
-**字段说明**:
-
-| 字段 | 类型 | 说明 |
-|------|------|------|
-| session_id | string | 会话 ID |
-| user_id | number | 用户 ID |
-| message_count | string | 消息数量（字符串格式） |
-| last_message_at | number | 最后消息时间（Unix 毫秒时间戳） |
-| first_question | string | 第一条问题 |
-
----
-
-### 6. 更新聊天记录
-
-**接口地址**: `PATCH /ai-api/chats/:id`
+**认证**: 需要 JWT，且该消息必须属于当前用户
 
 **请求参数**（至少传一个）:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| question | string | 否 | 问题 |
-| answer | string | 否 | 回答 |
+| question | string | 否 | 更新后的提问 |
+| answer | string | 否 | 更新后的回复 |
 
 **请求示例**:
+```http
+PATCH /ai-api/chats/messages/1
+Authorization: Bearer <token>
+Content-Type: application/json
+```
 ```json
 {
-  "answer": "更新后的回答"
+  "answer": "更新后的回复内容"
 }
 ```
 
@@ -1268,28 +1443,35 @@ GET /ai-api/chats/user/35/sessions
   "code": 200,
   "message": "success",
   "data": {
-    "id": 106,
-    "user_id": 35,
-    "session_id": "479551b8-4e78-4271-936d-cf66917105a3",
-    "question": "SOL 最新市场动态",
-    "answer": "更新后的回答",
-    "created_at": 1740441600000,
-    "updated_at": 1740441600000
+    "id": 1,
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+    "question": "现在 BTC 值得买吗？",
+    "answer": "更新后的回复内容",
+    "created_at": 1772260200000,
+    "updated_at": 1772260800000
   }
 }
 ```
 
-**字段说明**: 与「创建聊天记录」相同，返回完整记录。
+**错误响应**:
+
+| 状态码 | 原因 |
+|--------|------|
+| 404 | 消息不存在，或该消息不属于当前用户 |
 
 ---
 
-### 7. 删除聊天记录
+#### 9. 删除单条消息
 
-**接口地址**: `DELETE /ai-api/chats/:id`
+**接口地址**: `DELETE /ai-api/chats/messages/:id`
+
+**认证**: 需要 JWT，且该消息必须属于当前用户
 
 **请求示例**:
 ```http
-DELETE /ai-api/chats/106
+DELETE /ai-api/chats/messages/1
+Authorization: Bearer <token>
 ```
 
 **响应示例**:
@@ -1297,29 +1479,15 @@ DELETE /ai-api/chats/106
 {
   "code": 200,
   "message": "success",
-  "data": { "message": "删除成功" }
+  "data": { "message": "Message deleted successfully" }
 }
 ```
 
----
+**错误响应**:
 
-### 8. 删除会话
-
-**接口地址**: `DELETE /ai-api/chats/session/:sessionId`
-
-**请求示例**:
-```http
-DELETE /ai-api/chats/session/479551b8-4e78-4271-936d-cf66917105a3
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": { "message": "会话已删除" }
-}
-```
+| 状态码 | 原因 |
+|--------|------|
+| 404 | 消息不存在，或该消息不属于当前用户 |
 
 ---
 
