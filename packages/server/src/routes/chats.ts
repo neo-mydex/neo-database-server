@@ -94,21 +94,22 @@ router.post(
     res.setHeader('Connection', 'keep-alive')
 
     const mockText = '我已经收到你的信息啦，稍等我一下再回复。'
-    const chars = mockText.split('')
+    // 按标点和空格切词，模拟真实 LLM 的 token 粒度
+    const tokens = mockText.match(/[\u4e00-\u9fa5]{1,3}|[^\u4e00-\u9fa5]+/g) ?? []
 
     res.write(`data: ${JSON.stringify({ type: 'session_start', data: {}, ts: Date.now() })}\n\n`)
 
     let i = 0
     const timer = setInterval(() => {
-      if (i < chars.length) {
-        res.write(`data: ${JSON.stringify({ type: 'llm_token', data: { content: chars[i] }, ts: Date.now() })}\n\n`)
+      if (i < tokens.length) {
+        res.write(`data: ${JSON.stringify({ type: 'llm_token', data: { content: tokens[i] }, ts: Date.now() })}\n\n`)
         i++
       } else {
         res.write(`data: ${JSON.stringify({ type: 'session_end', data: {}, ts: Date.now() })}\n\n`)
         clearInterval(timer)
         res.end()
       }
-    }, 50)
+    }, 30)
 
     req.on('close', () => clearInterval(timer))
   }
