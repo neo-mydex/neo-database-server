@@ -9,11 +9,11 @@ import { Client } from 'pg'
  * PostgreSQL 客户端实例
  */
 export const client = new Client({
-  host: 'mydex-test.c16k8amcamtg.ap-northeast-1.rds.amazonaws.com',
-  port: 5432,
-  user: 'postgres',
-  password: 'SwZJ5r4X260rfTTc9Nog',
-  database: 'mydex_v1',
+  host: process.env.DB_HOST,
+  port: parseInt(process.env.DB_PORT || '5432'),
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   ssl: { rejectUnauthorized: false },
   connectionTimeoutMillis: 10000,
 })

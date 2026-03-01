@@ -6,6 +6,43 @@ import { authMiddleware } from '../middleware/auth'
 const router: Router = Router()
 
 // ================================================================
+// SSE 工具函数
+// ================================================================
+
+function sendEvent(res: Response, event: object): void {
+  res.write(`data: ${JSON.stringify(event)}\n\n`)
+}
+
+async function streamTokens(
+  res: Response,
+  text: string,
+  delayMs: number,
+  aborted: () => boolean
+): Promise<void> {
+  const tokens = text.match(/[\u4e00-\u9fa5]{1,3}|[^\u4e00-\u9fa5\s]+|\s+/g) ?? []
+  for (const token of tokens) {
+    if (aborted()) return
+    sendEvent(res, { type: 'llm_token', data: { content: token }, ts: Date.now() })
+    await new Promise(resolve => setTimeout(resolve, delayMs))
+  }
+}
+
+function genCallId(): string {
+  return `call_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`
+}
+
+function sleep(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+function detectScene(message: string): 'swap' | 'deposit' | 'text' {
+  const lower = message.toLowerCase()
+  if (lower.includes('swap') || lower.includes('兑换') || lower.includes('交换')) return 'swap'
+  if (lower.includes('deposit') || lower.includes('充值') || lower.includes('入金')) return 'deposit'
+  return 'text'
+}
+
+// ================================================================
 // 会话接口（sessions）
 // ================================================================
 
@@ -83,7 +120,10 @@ router.delete(
 /**
  * POST /ai-api/chats/sessions/:sessionId/stream
  * 流式 AI 对话（SSE，JWT 鉴权）
- * 当前返回 mock 数据，后续替换为真实 AI Agent
+ * 支持 tool_call 事件和 client_action：
+ *   - 含 swap/兑换/交换 → 三段式：文字 → OPEN_TRADE_WINDOW → 文字
+ *   - 含 deposit/充值/入金 → 三段式：文字 → SHOW_DEPOSIT_PROMPT → 文字
+ *   - 其他 → 纯文字流
  */
 router.post(
   '/sessions/:sessionId/stream',
@@ -93,25 +133,91 @@ router.post(
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    const mockText = '我已经收到你的信息啦，稍等我一下再回复。'
-    // 按标点和空格切词，模拟真实 LLM 的 token 粒度
-    const tokens = mockText.match(/[\u4e00-\u9fa5]{1,3}|[^\u4e00-\u9fa5]+/g) ?? []
+    const { message = '' } = req.body
+    let isAborted = false
+    req.on('close', () => { isAborted = true })
 
-    res.write(`data: ${JSON.stringify({ type: 'session_start', data: {}, ts: Date.now() })}\n\n`)
+    const scene = detectScene(message)
+    const callId = genCallId()
 
-    let i = 0
-    const timer = setInterval(() => {
-      if (i < tokens.length) {
-        res.write(`data: ${JSON.stringify({ type: 'llm_token', data: { content: tokens[i] }, ts: Date.now() })}\n\n`)
-        i++
-      } else {
-        res.write(`data: ${JSON.stringify({ type: 'session_end', data: {}, ts: Date.now() })}\n\n`)
-        clearInterval(timer)
-        res.end()
-      }
-    }, 30)
+    sendEvent(res, { type: 'session_start', data: { model: 'mock' }, ts: Date.now() })
 
-    req.on('close', () => clearInterval(timer))
+    if (scene === 'swap') {
+      await streamTokens(res, '好的，我来帮你创建兑换请求，稍等一下。', 40, () => isAborted)
+      if (isAborted) return
+      sendEvent(res, {
+        type: 'tool_call_start',
+        data: { tool: 'create_trade_intent', callId, args: { from_token_symbol: 'ETH', to_token_symbol: 'SOL', trade_type: 'spot', from_amount: '0.1', from_amount_usd: '350.00' } },
+        ts: Date.now()
+      })
+      await sleep(100)
+      if (isAborted) return
+      sendEvent(res, {
+        type: 'tool_call_complete',
+        data: {
+          tool: 'create_trade_intent', callId, duration: 400,
+          result: {
+            status: 'success',
+            data: {
+              message: '已准备好 ETH → SOL 的兑换',
+              client_action: {
+                type: 'OPEN_TRADE_WINDOW',
+                params: {
+                  from_token_symbol: 'ETH',
+                  to_token_symbol: 'SOL',
+                  trade_type: 'spot',
+                  from_amount: '0.1',
+                  from_amount_usd: '350.00'
+                }
+              }
+            }
+          }
+        },
+        ts: Date.now()
+      })
+      await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted)
+
+    } else if (scene === 'deposit') {
+      await streamTokens(res, '检测到余额可能不足，为你显示充值引导。', 40, () => isAborted)
+      if (isAborted) return
+      sendEvent(res, {
+        type: 'tool_call_start',
+        data: { tool: 'show_deposit_prompt', callId, args: { network: 'arb' } },
+        ts: Date.now()
+      })
+      await sleep(400)
+      if (isAborted) return
+      sendEvent(res, {
+        type: 'tool_call_complete',
+        data: {
+          tool: 'show_deposit_prompt', callId, duration: 400,
+          result: {
+            status: 'success',
+            data: {
+              message: '请先充值 USDC',
+              client_action: {
+                type: 'SHOW_DEPOSIT_PROMPT',
+                params: {
+                  network: 'arb',
+                  address: '0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4',
+                  redirectUrl: 'https://buy.onramper.com'
+                }
+              }
+            }
+          }
+        },
+        ts: Date.now()
+      })
+      await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted)
+
+    } else {
+      await streamTokens(res, '我已经收到你的信息啦，请问还有什么可以帮你？', 40, () => isAborted)
+    }
+
+    if (!isAborted) {
+      sendEvent(res, { type: 'session_end', data: {}, ts: Date.now() })
+      res.end()
+    }
   }
 )
 

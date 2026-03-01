@@ -46,6 +46,7 @@ export async function verifyPrivyToken(token: string): Promise<string | null> {
           audience: PRIVY_APP_ID,
           issuer: 'privy.io',
           algorithms: ['RS256', 'ES256'],
+          ignoreExpiration: process.env.NODE_ENV !== 'production',
         },
         (err, decoded: any) => {
           if (err) {

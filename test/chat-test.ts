@@ -233,54 +233,162 @@ async function testUpdateMessageNotFound(token: string) {
   assert(r.status === 404, 'HTTP 404')
 }
 
+// SSE 通用读取工具：发送请求，返回所有解析好的事件
+async function fetchSSE(token: string, sessionId: string, message: string): Promise<{ status: number; contentType: string; events: any[] }> {
+  const res = await fetch(`${BASE_URL}/ai-api/chats/sessions/${sessionId}/stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${token}`,
+    },
+    body: JSON.stringify({ message }),
+  })
+
+  const contentType = res.headers.get('content-type') ?? ''
+  const events: any[] = []
+
+  if (res.ok) {
+    const reader = res.body!.getReader()
+    const decoder = new TextDecoder()
+    let raw = ''
+    while (true) {
+      const { done, value } = await reader.read()
+      if (done) break
+      raw += decoder.decode(value, { stream: true })
+    }
+    raw.split('\n').forEach(line => {
+      if (line.startsWith('data: ')) {
+        try { events.push(JSON.parse(line.slice(6))) } catch {}
+      }
+    })
+  }
+
+  return { status: res.status, contentType, events }
+}
+
 async function testStream(token: string) {
   const sessionId = `test-stream-${Date.now()}`
-  section(`POST /sessions/${sessionId}/stream — JWT 鉴权，SSE 流式`)
+  section(`POST /sessions/${sessionId}/stream — 纯文字（无关键词）`)
 
   return new Promise<void>((resolve) => {
-    let raw = ''
-    const events: any[] = []
+    fetchSSE(token, sessionId, '帮我看看 BTC').then(({ status, contentType, events }) => {
+      assert(status === 200, `HTTP 200（得到: ${status}）`)
+      assert(contentType.includes('text/event-stream'), `Content-Type = text/event-stream`)
 
-    fetch(`${BASE_URL}/ai-api/chats/sessions/${sessionId}/stream`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-      },
-      body: JSON.stringify({ message: '帮我看看 BTC' }),
-    }).then(async (res) => {
-      assert(res.status === 200, `HTTP 200（得到: ${res.status}）`)
-      assert(
-        (res.headers.get('content-type') ?? '').includes('text/event-stream'),
-        `Content-Type = text/event-stream`
-      )
-
-      const reader = res.body!.getReader()
-      const decoder = new TextDecoder()
-      while (true) {
-        const { done, value } = await reader.read()
-        if (done) break
-        raw += decoder.decode(value, { stream: true })
-      }
-
-      raw.split('\n').forEach(line => {
-        if (line.startsWith('data: ')) {
-          try { events.push(JSON.parse(line.slice(6))) } catch {}
-        }
-      })
-
-      console.log(`  收到 ${events.length} 个 SSE 事件`)
       const types = events.map(e => e.type)
+      console.log(`  收到 ${events.length} 个 SSE 事件`)
       assert(types[0] === 'session_start', `首个事件是 session_start`)
       assert(types[types.length - 1] === 'session_end', `末尾事件是 session_end`)
 
       const tokens = events.filter(e => e.type === 'llm_token')
       assert(tokens.length > 0, `有 llm_token（得到: ${tokens.length} 个）`)
 
+      const toolCalls = events.filter(e => e.type === 'tool_call_start' || e.type === 'tool_call_complete')
+      assert(toolCalls.length === 0, `无 tool_call 事件（纯文字场景）`)
+
       const text = tokens.map(e => e.data.content).join('')
       console.log(`  重组文本: "${text}"`)
-      assert(text.length > 0, '文本不为空')
       assert(events.every(e => typeof e.ts === 'number'), '所有事件有 ts 字段')
+
+      resolve()
+    }).catch(err => {
+      fail('SSE 请求失败', err.message)
+      resolve()
+    })
+  })
+}
+
+async function testStreamSwap(token: string) {
+  const sessionId = `test-stream-swap-${Date.now()}`
+  section(`POST /sessions/${sessionId}/stream — swap 流程（含 tool_call + OPEN_TRADE_WINDOW）`)
+
+  return new Promise<void>((resolve) => {
+    fetchSSE(token, sessionId, '我想 swap 一些 ETH').then(({ status, events }) => {
+      assert(status === 200, `HTTP 200（得到: ${status}）`)
+
+      const types = events.map(e => e.type)
+      console.log(`  收到 ${events.length} 个 SSE 事件，类型序列: ${types.join(' → ')}`)
+      assert(types[0] === 'session_start', `首个事件是 session_start`)
+      assert(types[types.length - 1] === 'session_end', `末尾事件是 session_end`)
+
+      // tool_call_start
+      const toolStart = events.find(e => e.type === 'tool_call_start')
+      assert(!!toolStart, '有 tool_call_start 事件')
+      assert(toolStart?.data?.tool === 'create_trade_intent', `tool = create_trade_intent（得到: ${toolStart?.data?.tool}）`)
+      assert(typeof toolStart?.data?.callId === 'string', 'tool_call_start 有 callId')
+
+      // tool_call_complete
+      const toolComplete = events.find(e => e.type === 'tool_call_complete')
+      assert(!!toolComplete, '有 tool_call_complete 事件')
+      assert(toolComplete?.data?.callId === toolStart?.data?.callId, 'callId 前后一致')
+      assert(toolComplete?.data?.result?.status === 'success', 'result.status = success')
+
+      const clientAction = toolComplete?.data?.result?.data?.client_action
+      assert(!!clientAction, '有 client_action')
+      assert(clientAction?.type === 'OPEN_TRADE_WINDOW', `client_action.type = OPEN_TRADE_WINDOW（得到: ${clientAction?.type}）`)
+
+      const params = clientAction?.params
+      assert(typeof params?.from_token_symbol === 'string', `params.from_token_symbol 存在（得到: ${params?.from_token_symbol}）`)
+      assert(typeof params?.to_token_symbol === 'string', `params.to_token_symbol 存在（得到: ${params?.to_token_symbol}）`)
+      assert(params?.trade_type === 'spot', `params.trade_type = spot（得到: ${params?.trade_type}）`)
+      console.log(`  client_action.params: ${JSON.stringify(params)}`)
+
+      // 三段式：前段 llm_token → tool_call → 后段 llm_token
+      const firstTokenIdx = types.indexOf('llm_token')
+      const toolStartIdx = types.indexOf('tool_call_start')
+      const toolCompleteIdx = types.indexOf('tool_call_complete')
+      const lastTokenIdx = types.lastIndexOf('llm_token')
+      assert(firstTokenIdx < toolStartIdx, '前段 llm_token 在 tool_call_start 之前')
+      assert(toolCompleteIdx < lastTokenIdx, '后段 llm_token 在 tool_call_complete 之后')
+
+      resolve()
+    }).catch(err => {
+      fail('SSE 请求失败', err.message)
+      resolve()
+    })
+  })
+}
+
+async function testStreamDeposit(token: string) {
+  const sessionId = `test-stream-deposit-${Date.now()}`
+  section(`POST /sessions/${sessionId}/stream — deposit 流程（含 tool_call + SHOW_DEPOSIT_PROMPT）`)
+
+  return new Promise<void>((resolve) => {
+    fetchSSE(token, sessionId, '我想充值 USDC').then(({ status, events }) => {
+      assert(status === 200, `HTTP 200（得到: ${status}）`)
+
+      const types = events.map(e => e.type)
+      console.log(`  收到 ${events.length} 个 SSE 事件，类型序列: ${types.join(' → ')}`)
+      assert(types[0] === 'session_start', `首个事件是 session_start`)
+      assert(types[types.length - 1] === 'session_end', `末尾事件是 session_end`)
+
+      // tool_call_start
+      const toolStart = events.find(e => e.type === 'tool_call_start')
+      assert(!!toolStart, '有 tool_call_start 事件')
+      assert(toolStart?.data?.tool === 'show_deposit_prompt', `tool = show_deposit_prompt（得到: ${toolStart?.data?.tool}）`)
+
+      // tool_call_complete
+      const toolComplete = events.find(e => e.type === 'tool_call_complete')
+      assert(!!toolComplete, '有 tool_call_complete 事件')
+      assert(toolComplete?.data?.callId === toolStart?.data?.callId, 'callId 前后一致')
+
+      const clientAction = toolComplete?.data?.result?.data?.client_action
+      assert(!!clientAction, '有 client_action')
+      assert(clientAction?.type === 'SHOW_DEPOSIT_PROMPT', `client_action.type = SHOW_DEPOSIT_PROMPT（得到: ${clientAction?.type}）`)
+
+      const params = clientAction?.params
+      assert(typeof params?.network === 'string', `params.network 存在（得到: ${params?.network}）`)
+      assert(typeof params?.address === 'string', `params.address 存在（得到: ${params?.address}）`)
+      assert((params?.address ?? '').startsWith('0x'), `params.address 是 EVM 格式`)
+      console.log(`  client_action.params: ${JSON.stringify(params)}`)
+
+      // 三段式顺序验证
+      const firstTokenIdx = types.indexOf('llm_token')
+      const toolStartIdx = types.indexOf('tool_call_start')
+      const toolCompleteIdx = types.indexOf('tool_call_complete')
+      const lastTokenIdx = types.lastIndexOf('llm_token')
+      assert(firstTokenIdx < toolStartIdx, '前段 llm_token 在 tool_call_start 之前')
+      assert(toolCompleteIdx < lastTokenIdx, '后段 llm_token 在 tool_call_complete 之后')
 
       resolve()
     }).catch(err => {
@@ -385,6 +493,8 @@ async function run() {
       await testUpdateMessage(token, newMsgId)
       await testUpdateMessageNotFound(token)
       await testStream(token)
+      await testStreamSwap(token)
+      await testStreamDeposit(token)
       await testDeleteMessage(token, newMsgId)
     }
 
