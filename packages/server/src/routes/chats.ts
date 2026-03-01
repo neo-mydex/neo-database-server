@@ -9,8 +9,8 @@ const router: Router = Router()
 // SSE 工具函数
 // ================================================================
 
-function sendEvent(res: Response, event: object): void {
-  res.write(`data: ${JSON.stringify(event)}\n\n`)
+function sendEvent(res: Response, event: { type: string; data: any; ts: number }): void {
+  res.write(`data: ${JSON.stringify({ type: event.type, data: JSON.stringify(event.data), ts: event.ts })}\n\n`)
 }
 
 async function streamTokens(
@@ -133,7 +133,9 @@ router.post(
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    const { message = '', context = {} } = req.body
+    const message: string = req.body.message ?? ''
+    let context: Record<string, any> = {}
+    try { context = JSON.parse(req.body.context ?? '{}') } catch {}
     let isAborted = false
     req.on('close', () => { isAborted = true })
 
@@ -154,7 +156,7 @@ router.post(
             symbol: 'ETH',
             side: 'BUY',
             tradeType: 'SPOT',
-            network: context.network ?? 'eth',
+            network: 'eth',
             amountUsd: '100',
           },
         },
@@ -178,7 +180,7 @@ router.post(
                   symbol: 'ETH',
                   side: 'BUY',
                   tradeType: 'SPOT',
-                  network: context.network ?? 'eth',
+                  network: 'eth',
                   amountUsd: '100',
                 },
               },
@@ -199,7 +201,7 @@ router.post(
           callId,
           args: {
             token: 'USDC',
-            network: context.network ?? 'eth',
+            network: 'eth',
           },
         },
         ts: Date.now(),
@@ -220,7 +222,7 @@ router.post(
                 type: 'SHOW_DEPOSIT_PROMPT',
                 params: {
                   token: 'USDC',
-                  network: context.network ?? 'eth',
+                  network: 'eth',
                   address: '0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4',
                   redirectUrl: 'https://buy.onramper.com',
                 },

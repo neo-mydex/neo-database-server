@@ -245,7 +245,7 @@ async function fetchSSE(token: string, sessionId: string, message: string): Prom
       'Content-Type': 'application/json',
       'Authorization': `Bearer ${token}`,
     },
-    body: JSON.stringify({ message }),
+    body: JSON.stringify({ message, context: JSON.stringify({ source: '/home' }) }),
   })
 
   const contentType = res.headers.get('content-type') ?? ''
@@ -262,7 +262,10 @@ async function fetchSSE(token: string, sessionId: string, message: string): Prom
     }
     raw.split('\n').forEach(line => {
       if (line.startsWith('data: ')) {
-        try { events.push(JSON.parse(line.slice(6))) } catch {}
+        try {
+          const outer = JSON.parse(line.slice(6))
+          events.push({ ...outer, data: JSON.parse(outer.data) })
+        } catch {}
       }
     })
   }

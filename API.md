@@ -1225,13 +1225,7 @@ Authorization: Bearer <token>
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
 | message | string | 是 | 用户输入的问题 |
-| context | object | 建议必填 | 前端当前状态，AI 据此感知用户所处场景，会完整写入 AI System Prompt |
-| context.pathname | string | 建议必填 | 用户当前所在页面路径，如 `/trade/BTC-USD`、`/portfolio`，AI 可据此推断意图 |
-| context.walletAddress | string | 否 | 当前连接的钱包地址（工具调用余额/持仓时需要） |
-| context.network | string | 否 | 当前选中的网络 |
-| context.tokenSymbol | string | 否 | 当前页面的代币标的 |
-
-> `context` 是自由 JSON 对象，字段不受限制，前端想让 AI 感知到的任何状态都可以放进去。`pathname` 是目前唯一确定必传的字段，其余字段待前后端对齐后补充。
+| context | string | 建议必填 | JSON string，含 source（当前页面路径），服务端会 JSON.parse |
 
 **请求示例**:
 ```http
@@ -1242,88 +1236,201 @@ Content-Type: application/json
 ```json
 {
   "message": "现在 BTC 值得买吗？",
-  "context": {
-    "pathname": "/home"
+  "context": "{\"source\":\"/home\"}"
+}
+```
+
+**响应格式**（`Content-Type: text/event-stream`）
+
+每行格式固定为：
+
+```
+data: <JSON string>\n\n
+```
+
+外层 JSON 结构始终是三个字段：
+
+```json
+{
+  "type": "事件类型",
+  "data": "<内层对象序列化后的 JSON string，需要二次 JSON.parse>",
+  "ts":   1772260494135
+}
+```
+
+> `data` 字段是 **JSON string**，不是对象，收到后需要 `JSON.parse(outer.data)` 再访问字段。
+
+---
+
+**事件流时序**
+
+| 场景 | 事件顺序 |
+|------|----------|
+| 纯文字 | `session_start` → `llm_token` × N → `session_end` |
+| swap   | `session_start` → `llm_token` × N → `tool_call_start` → `tool_call_complete` → `llm_token` × N → `session_end` |
+| deposit | `session_start` → `llm_token` × N → `tool_call_start` → `tool_call_complete` → `llm_token` × N → `session_end` |
+
+---
+
+**各事件类型的 `data` 解析结构**
+
+##### `session_start`
+> 触发场景：所有场景，对话的第一个事件
+
+```json
+{
+  "model": "mock"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `model` | string | 当前模型标识，现为 `"mock"`，接入真实 AI 后会变更 |
+
+---
+
+##### `llm_token`
+> 触发场景：所有场景，每隔约 40ms 推送一个词片段
+
+```json
+{
+  "content": "好的，"
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `content` | string | 1-3 字的词片段，前端按顺序拼接即可还原完整回答 |
+
+---
+
+##### `tool_call_start`
+> 触发场景：swap / deposit，工具调用发起时
+
+```json
+{
+  "tool":   "create_trade_intent",
+  "callId": "call_1772260494310_ab3xy",
+  "args": {
+    "symbol":    "ETH",
+    "side":      "BUY",
+    "tradeType": "SPOT",
+    "network":   "eth",
+    "amountUsd": "100"
   }
 }
 ```
 
-**响应**（`Content-Type: text/event-stream`）
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `tool` | string | 工具名，见下方工具枚举 |
+| `callId` | string | 本次调用的唯一 ID，与后续 `tool_call_complete` 对应 |
+| `args` | object | 传给工具的参数，结构因工具不同而异（见下方） |
 
-**场景 1：纯文字**（message 不含 swap/deposit 关键词）:
-```
-data: {"type":"session_start","data":{"model":"mock"},"ts":1772260494135}
+---
 
-data: {"type":"llm_token","data":{"content":"我已经"},"ts":1772260494165}
-data: {"type":"llm_token","data":{"content":"收到你"},"ts":1772260494195}
-data: {"type":"llm_token","data":{"content":"的信息"},"ts":1772260494225}
-...
+##### `tool_call_complete`
+> 触发场景：swap / deposit，工具调用完成时
 
-data: {"type":"session_end","data":{},"ts":1772260494415}
-```
-
-**场景 2：swap**（message 含 swap / 兑换 / 交换）:
-```
-data: {"type":"session_start","data":{"model":"mock"},"ts":1772260494135}
-
-data: {"type":"llm_token","data":{"content":"好的，"},"ts":1772260494165}
-data: {"type":"llm_token","data":{"content":"我来帮你"},"ts":1772260494195}
-data: {"type":"llm_token","data":{"content":"创建兑换"},"ts":1772260494225}
-data: {"type":"llm_token","data":{"content":"请求，"},"ts":1772260494255}
-data: {"type":"llm_token","data":{"content":"稍等一下。"},"ts":1772260494285}
-
-data: {"type":"tool_call_start","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","args":{"symbol":"ETH","side":"BUY","tradeType":"SPOT","network":"eth","amountUsd":"100"}},"ts":1772260494310}
-
-data: {"type":"tool_call_complete","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","duration":400,"result":{"status":"success","data":{"message":"已准备好买入 ETH 的交易","client_action":{"type":"OPEN_TRADE_WINDOW","params":{"symbol":"ETH","side":"BUY","tradeType":"SPOT","network":"eth","amountUsd":"100"}}}}},"ts":1772260494410}
-
-data: {"type":"llm_token","data":{"content":"交易窗口"},"ts":1772260494440}
-data: {"type":"llm_token","data":{"content":"已为你"},"ts":1772260494470}
-data: {"type":"llm_token","data":{"content":"打开，"},"ts":1772260494500}
-data: {"type":"llm_token","data":{"content":"请确认"},"ts":1772260494530}
-data: {"type":"llm_token","data":{"content":"参数后提交。"},"ts":1772260494560}
-
-data: {"type":"session_end","data":{},"ts":1772260494590}
+```json
+{
+  "tool":     "create_trade_intent",
+  "callId":   "call_1772260494310_ab3xy",
+  "duration": 400,
+  "result": {
+    "status": "success",
+    "data": {
+      "message": "已准备好买入 ETH 的交易",
+      "client_action": {
+        "type": "OPEN_TRADE_WINDOW",
+        "params": { ... }
+      }
+    }
+  }
+}
 ```
 
-**场景 3：deposit**（message 含 deposit / 充值 / 入金）:
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `tool` | string | 工具名，与 `tool_call_start` 一致 |
+| `callId` | string | 与 `tool_call_start` 的 `callId` 相同 |
+| `duration` | number | 工具调用耗时（ms） |
+| `result.status` | string | `"success"` 或 `"error"` |
+| `result.data.message` | string | 工具返回的文字描述 |
+| `result.data.client_action` | object | **前端需要执行的动作**，见下方 `client_action` 结构 |
+
+---
+
+##### `session_end`
+> 触发场景：所有场景，对话的最后一个事件
+
+```json
+{}
 ```
-data: {"type":"session_start","data":{"model":"mock"},"ts":1772260494135}
 
-data: {"type":"llm_token","data":{"content":"检测到"},"ts":1772260494165}
-...
+收到此事件后，前端应关闭连接，并调用 `POST /messages` 将本次对话落库。
 
-data: {"type":"tool_call_start","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","args":{"token":"USDC","network":"eth"}},"ts":1772260494310}
+---
 
-data: {"type":"tool_call_complete","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","duration":400,"result":{"status":"success","data":{"message":"请先充值 USDC","client_action":{"type":"SHOW_DEPOSIT_PROMPT","params":{"token":"USDC","network":"eth","address":"0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4","redirectUrl":"https://buy.onramper.com"}}}}},"ts":1772260494710}
+**`client_action` 结构**
 
-data: {"type":"llm_token","data":{"content":"充值完成"},"ts":1772260494740}
-...
+`client_action` 嵌套在 `tool_call_complete` 的 `result.data` 里，结构如下：
 
-data: {"type":"session_end","data":{},"ts":1772260494820}
+```json
+{
+  "type":   "OPEN_TRADE_WINDOW",
+  "params": { ... }
+}
 ```
 
-> 每个 `llm_token` 事件携带 1-3 个字的词片段，每隔约 40ms 推送一次。
+###### `OPEN_TRADE_WINDOW`（swap 场景）
 
-**SSE 事件类型**:
+```json
+{
+  "type": "OPEN_TRADE_WINDOW",
+  "params": {
+    "symbol":    "ETH",
+    "side":      "BUY",
+    "tradeType": "SPOT",
+    "network":   "eth",
+    "amountUsd": "100"
+  }
+}
+```
 
-| type | 触发场景 | 说明 |
-|------|----------|------|
-| `session_start` | 所有场景 | 对话开始，`data.model` 当前为 `"mock"`；前端可显示 loading |
-| `llm_token` | 所有场景 | 词片段（1-3字），`data.content` 为内容，前端逐词拼接渲染 |
-| `tool_call_start` | swap / deposit | tool 调用开始；`data.tool` 为工具名，`data.callId` 为本次调用 ID，`data.args` 为调用参数 |
-| `tool_call_complete` | swap / deposit | tool 调用完成；`data.result.data.client_action` 包含前端应执行的动作（`type` + `params`） |
-| `session_end` | 所有场景 | 对话结束，前端关闭连接并调用 POST /messages 落库 |
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `symbol` | string | 交易标的，如 `"ETH"` |
+| `side` | string | 方向，`"BUY"` 或 `"SELL"` |
+| `tradeType` | string | 交易类型，当前固定 `"SPOT"` |
+| `network` | string | 网络，当前固定 `"eth"` |
+| `amountUsd` | string | 金额（USD），字符串格式 |
 
-**client_action type 枚举**:
+###### `SHOW_DEPOSIT_PROMPT`（deposit 场景）
 
-| type | 触发时机 | params 字段 |
-|------|----------|-------------|
-| `OPEN_TRADE_WINDOW` | swap 场景 tool 调用成功后 | `symbol`, `side`, `tradeType`, `network`, `amountUsd` |
-| `SHOW_DEPOSIT_PROMPT` | deposit 场景 tool 调用成功后 | `token`, `network`, `address`, `redirectUrl` |
+```json
+{
+  "type": "SHOW_DEPOSIT_PROMPT",
+  "params": {
+    "token":       "USDC",
+    "network":     "eth",
+    "address":     "0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4",
+    "redirectUrl": "https://buy.onramper.com"
+  }
+}
+```
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `token` | string | 充值币种，如 `"USDC"` |
+| `network` | string | 网络，当前固定 `"eth"` |
+| `address` | string | 充值目标地址（EVM 格式） |
+| `redirectUrl` | string | 法币入金跳转链接 |
+
+---
 
 **前端消费示例**:
 ```javascript
-// 新建对话时前端生成 sessionId
 const sessionId = crypto.randomUUID()
 
 const res = await fetch(`/ai-api/chats/sessions/${sessionId}/stream`, {
@@ -1332,7 +1439,10 @@ const res = await fetch(`/ai-api/chats/sessions/${sessionId}/stream`, {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${token}`,
   },
-  body: JSON.stringify({ message: '我想兑换 ETH' }),
+  body: JSON.stringify({
+    message: '我想兑换 ETH',
+    context: JSON.stringify({ source: '/trade' }),
+  }),
 })
 
 let fullAnswer = ''
@@ -1345,22 +1455,41 @@ while (true) {
   const chunk = decoder.decode(value, { stream: true })
   for (const line of chunk.split('\n')) {
     if (!line.startsWith('data: ')) continue
-    const event = JSON.parse(line.slice(6))
-    if (event.type === 'llm_token') {
-      fullAnswer += event.data.content
-      // 实时渲染
-    }
-    if (event.type === 'tool_call_complete') {
-      const clientAction = event.data.result?.data?.client_action
-      if (clientAction?.type === 'OPEN_TRADE_WINDOW') {
-        // 打开交易窗口，传入 clientAction.params
-      }
-      if (clientAction?.type === 'SHOW_DEPOSIT_PROMPT') {
-        // 显示充值引导，传入 clientAction.params
-      }
-    }
-    if (event.type === 'session_end') {
-      // 对话结束，调用 POST /messages 落库（可附带 answer_verbose、tools、client_actions）
+
+    const outer = JSON.parse(line.slice(6))   // 外层：{ type, data, ts }
+    const data  = JSON.parse(outer.data)       // 内层：各事件的实际数据
+
+    switch (outer.type) {
+      case 'session_start':
+        // data.model === 'mock'，可显示 loading
+        break
+
+      case 'llm_token':
+        fullAnswer += data.content             // 逐词拼接
+        // 实时渲染 fullAnswer
+        break
+
+      case 'tool_call_start':
+        // data.tool, data.callId, data.args
+        // 可显示"AI 正在处理..."
+        break
+
+      case 'tool_call_complete':
+        const action = data.result?.data?.client_action
+        if (action?.type === 'OPEN_TRADE_WINDOW') {
+          // action.params: { symbol, side, tradeType, network, amountUsd }
+          openTradeWindow(action.params)
+        }
+        if (action?.type === 'SHOW_DEPOSIT_PROMPT') {
+          // action.params: { token, network, address, redirectUrl }
+          showDepositPrompt(action.params)
+        }
+        break
+
+      case 'session_end':
+        // 对话结束，调用 POST /messages 落库
+        await saveMessage({ sessionId, question: userInput, answer: fullAnswer })
+        break
     }
   }
 }
