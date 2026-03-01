@@ -1224,7 +1224,14 @@ Authorization: Bearer <token>
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| message | string | 是 | 用户发送的消息 |
+| message | string | 是 | 用户输入的问题 |
+| context | object | 建议必填 | 前端当前状态，AI 据此感知用户所处场景，会完整写入 AI System Prompt |
+| context.pathname | string | 建议必填 | 用户当前所在页面路径，如 `/trade/BTC-USD`、`/portfolio`，AI 可据此推断意图 |
+| context.walletAddress | string | 否 | 当前连接的钱包地址（工具调用余额/持仓时需要） |
+| context.network | string | 否 | 当前选中的网络 |
+| context.tokenSymbol | string | 否 | 当前页面的代币标的 |
+
+> `context` 是自由 JSON 对象，字段不受限制，前端想让 AI 感知到的任何状态都可以放进去。`pathname` 是目前唯一确定必传的字段，其余字段待前后端对齐后补充。
 
 **请求示例**:
 ```http
@@ -1234,7 +1241,10 @@ Content-Type: application/json
 ```
 ```json
 {
-  "message": "现在 BTC 值得买吗？"
+  "message": "现在 BTC 值得买吗？",
+  "context": {
+    "pathname": "/home"
+  }
 }
 ```
 

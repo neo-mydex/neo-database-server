@@ -4,10 +4,34 @@
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。长期持有逻辑仍然成立，但需注意控制仓位在总资产的 20% 以内。",
-    "question_verbose": null,
-    "answer_verbose": null,
-    "tools": null,
-    "client_actions": null,
+    "question_verbose": {
+      "message": "现在 BTC 值得买吗？",
+      "context": {
+        "pathname": "/home"
+      }
+    },
+    "answer_verbose": [
+      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740384000000 },
+      { "type": "llm_token", "data": { "content": "从当前" }, "ts": 1740384000040 },
+      { "type": "llm_token", "data": { "content": "链上数据" }, "ts": 1740384000080 },
+      { "type": "llm_token", "data": { "content": "和市场" }, "ts": 1740384000120 },
+      { "type": "llm_token", "data": { "content": "情绪来看，" }, "ts": 1740384000160 },
+      { "type": "llm_token", "data": { "content": "BTC 短期" }, "ts": 1740384000200 },
+      { "type": "llm_token", "data": { "content": "波动较大，" }, "ts": 1740384000240 },
+      { "type": "llm_token", "data": { "content": "建议分批" }, "ts": 1740384000280 },
+      { "type": "llm_token", "data": { "content": "建仓而非" }, "ts": 1740384000320 },
+      { "type": "llm_token", "data": { "content": "一次性重仓。" }, "ts": 1740384000360 },
+      { "type": "llm_token", "data": { "content": "长期持有" }, "ts": 1740384000400 },
+      { "type": "llm_token", "data": { "content": "逻辑仍然" }, "ts": 1740384000440 },
+      { "type": "llm_token", "data": { "content": "成立，" }, "ts": 1740384000480 },
+      { "type": "llm_token", "data": { "content": "但需注意" }, "ts": 1740384000520 },
+      { "type": "llm_token", "data": { "content": "控制仓位" }, "ts": 1740384000560 },
+      { "type": "llm_token", "data": { "content": "在总资产的" }, "ts": 1740384000600 },
+      { "type": "llm_token", "data": { "content": "20% 以内。" }, "ts": 1740384000640 },
+      { "type": "session_end", "data": {}, "ts": 1740384000680 }
+    ],
+    "tools": [],
+    "client_actions": [],
     "created_at": "2026-02-20T10:00:00.000Z"
   },
   {
@@ -15,10 +39,31 @@
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "那我应该设多少止损？",
     "answer": "通常建议设在入场价的 8%-10% 以下。如果你的风险偏好较低，可以收紧到 5%。记住，止损是为了保护本金，不是认输。",
-    "question_verbose": null,
-    "answer_verbose": null,
-    "tools": null,
-    "client_actions": null,
+    "question_verbose": {
+      "message": "那我应该设多少止损？",
+      "context": {
+        "pathname": "/home"
+      }
+    },
+    "answer_verbose": [
+      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740384150000 },
+      { "type": "llm_token", "data": { "content": "通常建议" }, "ts": 1740384150040 },
+      { "type": "llm_token", "data": { "content": "设在入场价" }, "ts": 1740384150080 },
+      { "type": "llm_token", "data": { "content": "的 8%-10%" }, "ts": 1740384150120 },
+      { "type": "llm_token", "data": { "content": "以下。" }, "ts": 1740384150160 },
+      { "type": "llm_token", "data": { "content": "如果你的" }, "ts": 1740384150200 },
+      { "type": "llm_token", "data": { "content": "风险偏好" }, "ts": 1740384150240 },
+      { "type": "llm_token", "data": { "content": "较低，" }, "ts": 1740384150280 },
+      { "type": "llm_token", "data": { "content": "可以收紧" }, "ts": 1740384150320 },
+      { "type": "llm_token", "data": { "content": "到 5%。" }, "ts": 1740384150360 },
+      { "type": "llm_token", "data": { "content": "记住，" }, "ts": 1740384150400 },
+      { "type": "llm_token", "data": { "content": "止损是为了" }, "ts": 1740384150440 },
+      { "type": "llm_token", "data": { "content": "保护本金，" }, "ts": 1740384150480 },
+      { "type": "llm_token", "data": { "content": "不是认输。" }, "ts": 1740384150520 },
+      { "type": "session_end", "data": {}, "ts": 1740384150560 }
+    ],
+    "tools": [],
+    "client_actions": [],
     "created_at": "2026-02-20T10:02:30.000Z"
   },
   {
@@ -26,10 +71,36 @@
     "session_id": "a1b2c3d4-0002-0002-0002-000000000002",
     "question": "ETH 最近为什么一直跌？",
     "answer": "ETH 近期下跌主要受几个因素影响：1) 宏观市场风险情绪收缩；2) ETH ETF 净流出持续；3) Layer2 生态分流了部分资金。短期内仍有压力，但 Pectra 升级预期是正面催化剂。",
-    "question_verbose": null,
-    "answer_verbose": null,
-    "tools": null,
-    "client_actions": null,
+    "question_verbose": {
+      "message": "ETH 最近为什么一直跌？",
+      "context": {
+        "pathname": "/news/eth-price-drop"
+      }
+    },
+    "answer_verbose": [
+      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740470700000 },
+      { "type": "llm_token", "data": { "content": "ETH 近期" }, "ts": 1740470700040 },
+      { "type": "llm_token", "data": { "content": "下跌主要" }, "ts": 1740470700080 },
+      { "type": "llm_token", "data": { "content": "受几个" }, "ts": 1740470700120 },
+      { "type": "llm_token", "data": { "content": "因素影响：" }, "ts": 1740470700160 },
+      { "type": "llm_token", "data": { "content": "1) 宏观市场" }, "ts": 1740470700200 },
+      { "type": "llm_token", "data": { "content": "风险情绪" }, "ts": 1740470700240 },
+      { "type": "llm_token", "data": { "content": "收缩；" }, "ts": 1740470700280 },
+      { "type": "llm_token", "data": { "content": "2) ETH ETF" }, "ts": 1740470700320 },
+      { "type": "llm_token", "data": { "content": "净流出持续；" }, "ts": 1740470700360 },
+      { "type": "llm_token", "data": { "content": "3) Layer2" }, "ts": 1740470700400 },
+      { "type": "llm_token", "data": { "content": "生态分流了" }, "ts": 1740470700440 },
+      { "type": "llm_token", "data": { "content": "部分资金。" }, "ts": 1740470700480 },
+      { "type": "llm_token", "data": { "content": "短期内" }, "ts": 1740470700520 },
+      { "type": "llm_token", "data": { "content": "仍有压力，" }, "ts": 1740470700560 },
+      { "type": "llm_token", "data": { "content": "但 Pectra" }, "ts": 1740470700600 },
+      { "type": "llm_token", "data": { "content": "升级预期" }, "ts": 1740470700640 },
+      { "type": "llm_token", "data": { "content": "是正面" }, "ts": 1740470700680 },
+      { "type": "llm_token", "data": { "content": "催化剂。" }, "ts": 1740470700720 },
+      { "type": "session_end", "data": {}, "ts": 1740470700760 }
+    ],
+    "tools": [],
+    "client_actions": [],
     "created_at": "2026-02-22T14:15:00.000Z"
   },
   {
@@ -40,67 +111,62 @@
     "question_verbose": {
       "message": "我想用 100 USDC 换 ETH，帮我操作一下",
       "context": {
-        "path": "/trade",
-        "chainId": 1,
-        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+        "pathname": "/trade",
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+        "network": "eth"
       }
     },
     "answer_verbose": [
+      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740441600000 },
+      { "type": "llm_token", "data": { "content": "好的，" }, "ts": 1740441600040 },
+      { "type": "llm_token", "data": { "content": "我来帮你" }, "ts": 1740441600080 },
+      { "type": "llm_token", "data": { "content": "创建一个" }, "ts": 1740441600120 },
+      { "type": "llm_token", "data": { "content": "swap 交易，" }, "ts": 1740441600160 },
+      { "type": "llm_token", "data": { "content": "稍等一下。" }, "ts": 1740441600200 },
       {
-        "type": "session_start",
-        "session_id": "sse-session-0003-a",
-        "timestamp": "2026-02-25T09:00:00.000Z"
-      },
-      {
-        "type": "token",
-        "content": "好的，",
-        "timestamp": "2026-02-25T09:00:00.030Z"
-      },
-      {
-        "type": "token",
-        "content": "我来帮你",
-        "timestamp": "2026-02-25T09:00:00.060Z"
-      },
-      {
-        "type": "token",
-        "content": "创建一个 swap 交易。",
-        "timestamp": "2026-02-25T09:00:00.090Z"
-      },
-      {
-        "type": "tool_call",
-        "tool": "create_trade_intent",
-        "params": {
-          "from_token": "USDC",
-          "to_token": "ETH",
-          "amount": "100",
-          "chain_id": 1
+        "type": "tool_call_start",
+        "data": {
+          "tool": "create_trade_intent",
+          "callId": "call_1740441600250_ab3xy",
+          "args": {
+            "symbol": "ETH",
+            "side": "BUY",
+            "network": "eth",
+            "amountUsd": "100"
+          }
         },
-        "timestamp": "2026-02-25T09:00:00.150Z"
+        "ts": 1740441600250
       },
       {
-        "type": "token",
-        "content": "将用 100 USDC 兑换 ETH，",
-        "timestamp": "2026-02-25T09:00:00.300Z"
-      },
-      {
-        "type": "client_action",
-        "action": "OPEN_TRADE_WINDOW",
-        "payload": {
-          "from_token": "USDC",
-          "to_token": "ETH",
-          "amount": "100"
+        "type": "tool_call_complete",
+        "data": {
+          "tool": "create_trade_intent",
+          "callId": "call_1740441600250_ab3xy",
+          "duration": 400,
+          "result": {
+            "status": "success",
+            "data": {
+              "message": "已准备好 USDC → ETH 的兑换",
+              "client_action": {
+                "type": "OPEN_TRADE_WINDOW",
+                "params": {
+                  "symbol": "ETH",
+                  "side": "BUY",
+                  "tradeType": "SPOT",
+                  "network": "eth",
+                  "amountUsd": "100"
+                }
+              }
+            }
+          }
         },
-        "timestamp": "2026-02-25T09:00:00.350Z"
+        "ts": 1740441600650
       },
-      {
-        "type": "token",
-        "content": "已为你打开交易窗口，请确认交易详情后继续。",
-        "timestamp": "2026-02-25T09:00:00.400Z"
-      },
-      {
-        "type": "session_end",
-        "timestamp": "2026-02-25T09:00:00.450Z"
-      }
+      { "type": "llm_token", "data": { "content": "交易窗口" }, "ts": 1740441600700 },
+      { "type": "llm_token", "data": { "content": "已为你打开，" }, "ts": 1740441600740 },
+      { "type": "llm_token", "data": { "content": "请确认" }, "ts": 1740441600780 },
+      { "type": "llm_token", "data": { "content": "交易详情后继续。" }, "ts": 1740441600820 },
+      { "type": "session_end", "data": {}, "ts": 1740441600860 }
     ],
     "tools": ["create_trade_intent"],
     "client_actions": ["OPEN_TRADE_WINDOW"],
@@ -114,54 +180,56 @@
     "question_verbose": {
       "message": "我想充值一些 ETH 到我的账户",
       "context": {
-        "path": "/portfolio",
-        "chainId": 1,
-        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+        "pathname": "/portfolio",
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678",
+        "network": "eth"
       }
     },
     "answer_verbose": [
+      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740528000000 },
+      { "type": "llm_token", "data": { "content": "检测到" }, "ts": 1740528000040 },
+      { "type": "llm_token", "data": { "content": "余额可能不足，" }, "ts": 1740528000080 },
+      { "type": "llm_token", "data": { "content": "为你显示" }, "ts": 1740528000120 },
+      { "type": "llm_token", "data": { "content": "充值引导。" }, "ts": 1740528000160 },
       {
-        "type": "session_start",
-        "session_id": "sse-session-0004-a",
-        "timestamp": "2026-02-26T11:00:00.000Z"
-      },
-      {
-        "type": "token",
-        "content": "好的，",
-        "timestamp": "2026-02-26T11:00:00.030Z"
-      },
-      {
-        "type": "token",
-        "content": "我来帮你",
-        "timestamp": "2026-02-26T11:00:00.060Z"
-      },
-      {
-        "type": "tool_call",
-        "tool": "show_deposit_prompt",
-        "params": {
-          "token": "ETH",
-          "chain_id": 1
+        "type": "tool_call_start",
+        "data": {
+          "tool": "show_deposit_prompt",
+          "callId": "call_1740528000200_cd5zw",
+          "args": {
+            "token": "ETH",
+            "network": "eth"
+          }
         },
-        "timestamp": "2026-02-26T11:00:00.100Z"
+        "ts": 1740528000200
       },
       {
-        "type": "client_action",
-        "action": "SHOW_DEPOSIT_PROMPT",
-        "payload": {
-          "token": "ETH",
-          "chain_id": 1
+        "type": "tool_call_complete",
+        "data": {
+          "tool": "show_deposit_prompt",
+          "callId": "call_1740528000200_cd5zw",
+          "duration": 400,
+          "result": {
+            "status": "success",
+            "data": {
+              "message": "请先充值 ETH",
+              "client_action": {
+                "type": "SHOW_DEPOSIT_PROMPT",
+                "params": {
+                  "token": "ETH",
+                  "network": "eth",
+                  "address": "0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4",
+                  "redirectUrl": "https://buy.onramper.com"
+                }
+              }
+            }
+          }
         },
-        "timestamp": "2026-02-26T11:00:00.150Z"
+        "ts": 1740528000600
       },
-      {
-        "type": "token",
-        "content": "打开充值入口。请在弹出的充值面板中选择充值网络和金额，完成后点击确认即可。",
-        "timestamp": "2026-02-26T11:00:00.200Z"
-      },
-      {
-        "type": "session_end",
-        "timestamp": "2026-02-26T11:00:00.250Z"
-      }
+      { "type": "llm_token", "data": { "content": "充值完成后" }, "ts": 1740528000650 },
+      { "type": "llm_token", "data": { "content": "即可继续操作。" }, "ts": 1740528000690 },
+      { "type": "session_end", "data": {}, "ts": 1740528000730 }
     ],
     "tools": ["show_deposit_prompt"],
     "client_actions": ["SHOW_DEPOSIT_PROMPT"],
