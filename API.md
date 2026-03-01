@@ -1082,10 +1082,10 @@ Authorization: Bearer <privy_jwt_token>
 | session_id | string | 会话 ID（前端生成的 UUID） |
 | question | string | 用户提问（纯文字，向后兼容） |
 | answer | string | AI 回复（纯文字，向后兼容） |
-| question_verbose | object \| null | 结构化问题，含 context（如当前页面路径、chainId 等）；纯文字对话为 null |
-| answer_verbose | array \| null | 完整 SSE 事件数组，供前端历史回放；纯文字对话为 null |
-| tools | string[] \| null | 本次对话触发的 tool 名列表（如 `["create_trade_intent"]`）；无 tool 调用为 null |
-| client_actions | string[] \| null | 本次对话触发的 client action type 列表（如 `["OPEN_TRADE_WINDOW"]`）；无 action 为 null |
+| question_verbose | object | 结构化问题，含 message 和 context（如当前页面路径、钱包地址等）；无 tool 场景时 context 只含 pathname |
+| answer_verbose | array | 完整 SSE 事件数组，供前端历史回放；纯文字场景为 `[]` |
+| tools | string[] | 本次对话触发的 tool 名列表（如 `["create_trade_intent"]`）；无 tool 调用时为 `[]` |
+| client_actions | string[] | 本次对话触发的 client action type 列表（如 `["OPEN_TRADE_WINDOW"]`）；无 action 时为 `[]` |
 | created_at | number | 创建时间（Unix 毫秒时间戳） |
 | updated_at | number | 更新时间（Unix 毫秒时间戳） |
 
@@ -1272,9 +1272,9 @@ data: {"type":"llm_token","data":{"content":"创建兑换"},"ts":1772260494225}
 data: {"type":"llm_token","data":{"content":"请求，"},"ts":1772260494255}
 data: {"type":"llm_token","data":{"content":"稍等一下。"},"ts":1772260494285}
 
-data: {"type":"tool_call_start","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","args":{"from_token_symbol":"ETH","to_token_symbol":"SOL","trade_type":"spot","from_amount":"0.1","from_amount_usd":"350.00"}},"ts":1772260494310}
+data: {"type":"tool_call_start","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","args":{"symbol":"ETH","side":"BUY","tradeType":"SPOT","network":"eth","amountUsd":"100"}},"ts":1772260494310}
 
-data: {"type":"tool_call_complete","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","duration":400,"result":{"status":"success","data":{"message":"已准备好 ETH → SOL 的兑换","client_action":{"type":"OPEN_TRADE_WINDOW","params":{"from_token_symbol":"ETH","to_token_symbol":"SOL","trade_type":"spot","from_amount":"0.1","from_amount_usd":"350.00"}}}}},"ts":1772260494410}
+data: {"type":"tool_call_complete","data":{"tool":"create_trade_intent","callId":"call_1772260494310_ab3xy","duration":400,"result":{"status":"success","data":{"message":"已准备好买入 ETH 的交易","client_action":{"type":"OPEN_TRADE_WINDOW","params":{"symbol":"ETH","side":"BUY","tradeType":"SPOT","network":"eth","amountUsd":"100"}}}}},"ts":1772260494410}
 
 data: {"type":"llm_token","data":{"content":"交易窗口"},"ts":1772260494440}
 data: {"type":"llm_token","data":{"content":"已为你"},"ts":1772260494470}
@@ -1292,9 +1292,9 @@ data: {"type":"session_start","data":{"model":"mock"},"ts":1772260494135}
 data: {"type":"llm_token","data":{"content":"检测到"},"ts":1772260494165}
 ...
 
-data: {"type":"tool_call_start","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","args":{"network":"arb"}},"ts":1772260494310}
+data: {"type":"tool_call_start","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","args":{"token":"USDC","network":"eth"}},"ts":1772260494310}
 
-data: {"type":"tool_call_complete","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","duration":400,"result":{"status":"success","data":{"message":"请先充值 USDC","client_action":{"type":"SHOW_DEPOSIT_PROMPT","params":{"network":"arb","address":"0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4","redirectUrl":"https://buy.onramper.com"}}}}},"ts":1772260494710}
+data: {"type":"tool_call_complete","data":{"tool":"show_deposit_prompt","callId":"call_1772260494310_cd5zw","duration":400,"result":{"status":"success","data":{"message":"请先充值 USDC","client_action":{"type":"SHOW_DEPOSIT_PROMPT","params":{"token":"USDC","network":"eth","address":"0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4","redirectUrl":"https://buy.onramper.com"}}}}},"ts":1772260494710}
 
 data: {"type":"llm_token","data":{"content":"充值完成"},"ts":1772260494740}
 ...
@@ -1318,8 +1318,8 @@ data: {"type":"session_end","data":{},"ts":1772260494820}
 
 | type | 触发时机 | params 字段 |
 |------|----------|-------------|
-| `OPEN_TRADE_WINDOW` | swap 场景 tool 调用成功后 | `from_token_symbol`, `to_token_symbol`, `trade_type`, `from_amount`, `from_amount_usd` |
-| `SHOW_DEPOSIT_PROMPT` | deposit 场景 tool 调用成功后 | `network`, `address`, `redirectUrl` |
+| `OPEN_TRADE_WINDOW` | swap 场景 tool 调用成功后 | `symbol`, `side`, `tradeType`, `network`, `amountUsd` |
+| `SHOW_DEPOSIT_PROMPT` | deposit 场景 tool 调用成功后 | `token`, `network`, `address`, `redirectUrl` |
 
 **前端消费示例**:
 ```javascript
@@ -1411,30 +1411,35 @@ Authorization: Bearer <token>
   "data": [
     {
       "id": 1,
-      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
       "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
       "question": "现在 BTC 值得买吗？",
       "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓。",
-      "question_verbose": null,
-      "answer_verbose": null,
-      "tools": null,
-      "client_actions": null,
+      "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+      "answer_verbose": [
+        { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260200000 },
+        { "type": "llm_token", "data": { "content": "从当前" }, "ts": 1772260200030 },
+        { "type": "llm_token", "data": { "content": "链上数据" }, "ts": 1772260200060 },
+        { "type": "session_end", "data": {}, "ts": 1772260200400 }
+      ],
+      "tools": [],
+      "client_actions": [],
       "created_at": 1772260200000,
       "updated_at": 1772260200000
     },
     {
       "id": 3,
-      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
       "session_id": "a1b2c3d4-0003-0003-0003-000000000003",
       "question": "我想用 100 USDC 换 ETH",
       "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
-      "question_verbose": { "message": "我想用 100 USDC 换 ETH", "context": { "path": "/trade", "chainId": 1 } },
+      "question_verbose": { "message": "我想用 100 USDC 换 ETH", "context": { "pathname": "/trade", "network": "eth" } },
       "answer_verbose": [
         { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260494135 },
         { "type": "llm_token", "data": { "content": "好的，" }, "ts": 1772260494165 },
-        { "type": "tool_call_start", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": {} }, "ts": 1772260494310 },
-        { "type": "tool_call_complete", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "client_action": { "type": "OPEN_TRADE_WINDOW", "params": {} } } } }, "ts": 1772260494410 },
-        { "type": "session_end", "data": {}, "ts": 1772260494590 }
+        { "type": "tool_call_start", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260494310 },
+        { "type": "tool_call_complete", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260494710 },
+        { "type": "session_end", "data": {}, "ts": 1772260494900 }
       ],
       "tools": ["create_trade_intent"],
       "client_actions": ["OPEN_TRADE_WINDOW"],
@@ -1472,7 +1477,7 @@ Authorization: Bearer <token>
 | session_id | string | 是 | 会话 ID（与 stream 接口一致） |
 | question | string | 是 | 用户的提问（纯文字） |
 | answer | string | 是 | AI 完整回复（流式结束后拼接的纯文字） |
-| question_verbose | object | 否 | 结构化问题，含 context（如 `{"message":"...","context":{"path":"/trade"}}`） |
+| question_verbose | object | 否 | 结构化问题，含 context（如 `{"message":"...","context":{"pathname":"/trade"}}`） |
 | answer_verbose | array | 否 | 完整 SSE 事件数组（前端按收到顺序收集所有 event 对象） |
 | tools | string[] | 否 | 触发的 tool 名列表（从 `tool_call_complete` 事件中收集 `data.tool`） |
 | client_actions | string[] | 否 | 触发的 client action type 列表（从 `tool_call_complete.result.data.client_action.type` 收集） |
@@ -1499,7 +1504,7 @@ Content-Type: application/json
   "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
   "question_verbose": {
     "message": "我想用 100 USDC 换 ETH",
-    "context": { "path": "/trade", "chainId": 1 }
+    "context": { "pathname": "/trade", "network": "eth" }
   },
   "answer_verbose": [
     { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260494135 },
@@ -1524,10 +1529,10 @@ Content-Type: application/json
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。",
-    "question_verbose": null,
-    "answer_verbose": null,
-    "tools": null,
-    "client_actions": null,
+    "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+    "answer_verbose": [],
+    "tools": [],
+    "client_actions": [],
     "created_at": 1772260200000,
     "updated_at": 1772260200000
   }
@@ -1554,10 +1559,10 @@ Content-Type: application/json
 |--------|------|------|------|
 | question | string | 否 | 更新后的提问（纯文字） |
 | answer | string | 否 | 更新后的回复（纯文字） |
-| question_verbose | object \| null | 否 | 更新结构化问题 |
-| answer_verbose | array \| null | 否 | 更新完整 SSE 事件数组 |
-| tools | string[] \| null | 否 | 更新触发的 tool 名列表 |
-| client_actions | string[] \| null | 否 | 更新触发的 client action type 列表 |
+| question_verbose | object | 否 | 更新结构化问题 |
+| answer_verbose | array | 否 | 更新完整 SSE 事件数组 |
+| tools | string[] | 否 | 更新触发的 tool 名列表 |
+| client_actions | string[] | 否 | 更新触发的 client action type 列表 |
 
 **请求示例**:
 ```http
@@ -1582,10 +1587,10 @@ Content-Type: application/json
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "更新后的回复内容",
-    "question_verbose": null,
-    "answer_verbose": null,
-    "tools": null,
-    "client_actions": null,
+    "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+    "answer_verbose": [],
+    "tools": [],
+    "client_actions": [],
     "created_at": 1772260200000,
     "updated_at": 1772260800000
   }
