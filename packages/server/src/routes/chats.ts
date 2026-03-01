@@ -29,7 +29,7 @@ router.get(
 router.get(
   '/sessions/by-user/:userId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params
+    const userId = req.params.userId as string
     const sessions = await chatbotSessionRepo.findSessionsByUserId(userId)
     res.json(successResponse(sessions, { count: sessions.length }))
   })
@@ -43,7 +43,7 @@ router.get(
   '/sessions/:sessionId',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const { sessionId } = req.params
+    const sessionId = req.params.sessionId as string
 
     const session = await chatbotSessionRepo.findSessionById(sessionId)
     if (!session) {
@@ -65,7 +65,7 @@ router.delete(
   '/sessions/:sessionId',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const { sessionId } = req.params
+    const sessionId = req.params.sessionId as string
 
     const session = await chatbotSessionRepo.findSessionById(sessionId)
     if (!session) {
@@ -179,7 +179,7 @@ router.patch(
   '/messages/:id',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id)
+    const id = parseInt(req.params.id as string)
     const { question, answer } = req.body
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
@@ -200,7 +200,7 @@ router.delete(
   '/messages/:id',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id)
+    const id = parseInt(req.params.id as string)
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
     if (!belongs) {

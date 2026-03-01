@@ -218,7 +218,7 @@ router.delete(
 router.get(
   '/:userId',
   asyncHandler(async (req: Request, res: Response) => {
-    const { userId } = req.params
+    const userId = req.params.userId as string
     const user = await userRepo.findById(userId)
 
     if (!user) {

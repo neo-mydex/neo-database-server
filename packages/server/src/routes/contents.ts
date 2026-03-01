@@ -92,7 +92,7 @@ router.post(
       content_type,
       content,
       source,
-      publishedAt: new Date(publishedAt),
+      publishedAt: Number(publishedAt),
       url,
       author,
       language,
@@ -135,7 +135,7 @@ router.post(
         content_type: item.content_type,
         content: item.content,
         source: item.source,
-        publishedAt: new Date(item.publishedAt),
+        publishedAt: Number(item.publishedAt),
         url: item.url,
         author: item.author,
         language: item.language,
@@ -155,7 +155,7 @@ router.post(
 router.delete(
   '/raw/:id',
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params
+    const id = req.params.id as string
 
     const existing = await contentRepo.findRawById(id)
     if (!existing) {
@@ -234,7 +234,7 @@ router.post(
         content_type: item.content_type,
         content: item.content,
         source: item.source,
-        publishedAt: new Date(item.publishedAt),
+        publishedAt: Number(item.publishedAt),
         url: item.url,
         author: item.author,
         language: item.language,
@@ -265,7 +265,7 @@ router.post(
 router.post(
   '/processed/:id/translations',
   asyncHandler(async (req: Request, res: Response) => {
-    const { id } = req.params
+    const id = req.params.id as string
     const { lang, title, summary, content, evidence_points, tags, suggested_questions } = req.body
 
     assertTranslationLang(lang)
