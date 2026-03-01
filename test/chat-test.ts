@@ -24,7 +24,7 @@ const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 const JWT = process.env.JWT || ''
 
 // seed 数据里的已知数据（无需 JWT 即可验证）
-const SEED_USER_ID  = 'did:privy:cmm0d4w0t00jd0cju28qvovul'
+const SEED_USER_ID  = 'did:privy:0x1234567890abcdef1234567890abcdef12345678'
 const SEED_SESSION1 = 'a1b2c3d4-0001-0001-0001-000000000001'
 const SEED_SESSION2 = 'a1b2c3d4-0002-0002-0002-000000000002'
 
@@ -82,8 +82,8 @@ async function testByUserId() {
     assert(typeof s.message_count === 'number','message_count 是数字')
     assert(typeof s.last_message_at === 'number', 'last_message_at 是毫秒时间戳')
     assert(typeof s.first_question === 'string',  'first_question 是字符串')
-    // 按最后消息时间倒序，第一个应该是最近的会话（session3）
-    assert(sessions[0].session_id === 'a1b2c3d4-0003-0003-0003-000000000003', '第一个会话是最新的（session3）')
+    // 按最后消息时间倒序，第一个应该是最近的会话（session4，2026-02-26）
+    assert(sessions[0].session_id === 'a1b2c3d4-0004-0004-0004-000000000004', '第一个会话是最新的（session4）')
   }
 }
 
@@ -328,9 +328,11 @@ async function testStreamSwap(token: string) {
       assert(clientAction?.type === 'OPEN_TRADE_WINDOW', `client_action.type = OPEN_TRADE_WINDOW（得到: ${clientAction?.type}）`)
 
       const params = clientAction?.params
-      assert(typeof params?.from_token_symbol === 'string', `params.from_token_symbol 存在（得到: ${params?.from_token_symbol}）`)
-      assert(typeof params?.to_token_symbol === 'string', `params.to_token_symbol 存在（得到: ${params?.to_token_symbol}）`)
-      assert(params?.trade_type === 'spot', `params.trade_type = spot（得到: ${params?.trade_type}）`)
+      assert(typeof params?.symbol === 'string', `params.symbol 存在（得到: ${params?.symbol}）`)
+      assert(typeof params?.side === 'string', `params.side 存在（得到: ${params?.side}）`)
+      assert(params?.tradeType === 'SPOT', `params.tradeType = SPOT（得到: ${params?.tradeType}）`)
+      assert(typeof params?.network === 'string', `params.network 存在（得到: ${params?.network}）`)
+      assert(typeof params?.amountUsd === 'string', `params.amountUsd 存在（得到: ${params?.amountUsd}）`)
       console.log(`  client_action.params: ${JSON.stringify(params)}`)
 
       // 三段式：前段 llm_token → tool_call → 后段 llm_token

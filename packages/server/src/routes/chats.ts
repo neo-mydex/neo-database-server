@@ -133,7 +133,7 @@ router.post(
     res.setHeader('Cache-Control', 'no-cache')
     res.setHeader('Connection', 'keep-alive')
 
-    const { message = '' } = req.body
+    const { message = '', context = {} } = req.body
     let isAborted = false
     req.on('close', () => { isAborted = true })
 
@@ -147,33 +147,45 @@ router.post(
       if (isAborted) return
       sendEvent(res, {
         type: 'tool_call_start',
-        data: { tool: 'create_trade_intent', callId, args: { from_token_symbol: 'ETH', to_token_symbol: 'SOL', trade_type: 'spot', from_amount: '0.1', from_amount_usd: '350.00' } },
-        ts: Date.now()
+        data: {
+          tool: 'create_trade_intent',
+          callId,
+          args: {
+            symbol: 'ETH',
+            side: 'BUY',
+            tradeType: 'SPOT',
+            network: context.network ?? 'eth',
+            amountUsd: '100',
+          },
+        },
+        ts: Date.now(),
       })
-      await sleep(100)
+      await sleep(400)
       if (isAborted) return
       sendEvent(res, {
         type: 'tool_call_complete',
         data: {
-          tool: 'create_trade_intent', callId, duration: 400,
+          tool: 'create_trade_intent',
+          callId,
+          duration: 400,
           result: {
             status: 'success',
             data: {
-              message: '已准备好 ETH → SOL 的兑换',
+              message: '已准备好买入 ETH 的交易',
               client_action: {
                 type: 'OPEN_TRADE_WINDOW',
                 params: {
-                  from_token_symbol: 'ETH',
-                  to_token_symbol: 'SOL',
-                  trade_type: 'spot',
-                  from_amount: '0.1',
-                  from_amount_usd: '350.00'
-                }
-              }
-            }
-          }
+                  symbol: 'ETH',
+                  side: 'BUY',
+                  tradeType: 'SPOT',
+                  network: context.network ?? 'eth',
+                  amountUsd: '100',
+                },
+              },
+            },
+          },
         },
-        ts: Date.now()
+        ts: Date.now(),
       })
       await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted)
 
@@ -182,15 +194,24 @@ router.post(
       if (isAborted) return
       sendEvent(res, {
         type: 'tool_call_start',
-        data: { tool: 'show_deposit_prompt', callId, args: { network: 'arb' } },
-        ts: Date.now()
+        data: {
+          tool: 'show_deposit_prompt',
+          callId,
+          args: {
+            token: 'USDC',
+            network: context.network ?? 'eth',
+          },
+        },
+        ts: Date.now(),
       })
       await sleep(400)
       if (isAborted) return
       sendEvent(res, {
         type: 'tool_call_complete',
         data: {
-          tool: 'show_deposit_prompt', callId, duration: 400,
+          tool: 'show_deposit_prompt',
+          callId,
+          duration: 400,
           result: {
             status: 'success',
             data: {
@@ -198,15 +219,16 @@ router.post(
               client_action: {
                 type: 'SHOW_DEPOSIT_PROMPT',
                 params: {
-                  network: 'arb',
+                  token: 'USDC',
+                  network: context.network ?? 'eth',
                   address: '0x6da2ddd35367c323a5cb45ea0ecdb8d243445db4',
-                  redirectUrl: 'https://buy.onramper.com'
-                }
-              }
-            }
-          }
+                  redirectUrl: 'https://buy.onramper.com',
+                },
+              },
+            },
+          },
         },
-        ts: Date.now()
+        ts: Date.now(),
       })
       await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted)
 
@@ -258,7 +280,7 @@ router.post(
   '/messages',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const { session_id, question, answer } = req.body
+    const { session_id, question, answer, question_verbose, answer_verbose, tools, client_actions } = req.body
 
     if (!session_id || !question || !answer) {
       throw new ApiError(400, 'Missing required fields', {
@@ -271,6 +293,10 @@ router.post(
       session_id,
       question,
       answer,
+      question_verbose,
+      answer_verbose,
+      tools,
+      client_actions,
     })
 
     res.status(201).json(successResponse(message))
@@ -286,14 +312,21 @@ router.patch(
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
     const id = parseInt(req.params.id as string)
-    const { question, answer } = req.body
+    const { question, answer, question_verbose, answer_verbose, tools, client_actions } = req.body
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
     if (!belongs) {
       throw new ApiError(404, 'Message not found')
     }
 
-    const message = await chatbotSessionRepo.updateMessage(id, { question, answer })
+    const message = await chatbotSessionRepo.updateMessage(id, {
+      question,
+      answer,
+      question_verbose,
+      answer_verbose,
+      tools,
+      client_actions,
+    })
     res.json(successResponse(message))
   })
 )
