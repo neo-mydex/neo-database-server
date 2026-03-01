@@ -29,6 +29,6 @@ jobs:
 
             pnpm build
 
-            pm2 restart neo-database-server
+            pm2 restart neo-database-server --update-env
 
             pm2 status

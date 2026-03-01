@@ -5,13 +5,14 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "dev": "tsx --env-file=../../.env src/main.ts",
-    "start": "node --env-file=../../.env dist/index.js",
+    "dev": "tsx src/main.ts",
+    "start": "node dist/index.js",
     "build": "tsc"
   },
   "dependencies": {
     "@mydex/database": "workspace:*",
     "cors": "^2.8.6",
+    "dotenv": "^17.3.1",
     "express": "^5.2.1",
     "jsonwebtoken": "^9.0.3",
     "jwks-rsa": "^3.2.2",

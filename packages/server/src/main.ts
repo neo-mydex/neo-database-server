@@ -6,6 +6,7 @@
  * 2. 生产环境：pnpm run build && pnpm start
  */
 
+import 'dotenv/config'
 import express from 'express'
 import cors from 'cors'
 import { connect, disconnect } from '@mydex/database'
