@@ -2,7 +2,7 @@
   "name": "database-server-tests",
   "version": "1.0.0",
   "scripts": {
-    "test": "tsx api-test.ts",
+    "test": "tsx chat-test.ts",
     "test:translation": "tsx translation-test.ts",
     "test:curl": "sh curl-test.sh"
   },

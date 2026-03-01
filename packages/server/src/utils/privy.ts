@@ -28,8 +28,14 @@ function getKey(header: jwt.JwtHeader, callback: jwt.SigningKeyCallback) {
 
 /**
  * 验证 Privy JWT token，返回用户 ID (sub)，验证失败返回 null
+ * DEV_MODE=true 时跳过签名和过期验证，仅解码 sub（仅供本地测试使用）
  */
 export async function verifyPrivyToken(token: string): Promise<string | null> {
+  if (process.env.DEV_MODE === 'true') {
+    const decoded = jwt.decode(token) as any
+    return decoded?.sub ?? null
+  }
+
   return new Promise((resolve) => {
     try {
       const decodedToken = jwt.decode(token, { complete: true })

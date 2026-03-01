@@ -20,6 +20,10 @@
  *   tsx chat-test.ts                       # 仅测无鉴权接口 + 鉴权拦截检查
  */
 
+import { config } from 'dotenv'
+import { resolve } from 'path'
+config({ path: resolve(__dirname, '../.env') })
+
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 const JWT = process.env.JWT || ''
 
