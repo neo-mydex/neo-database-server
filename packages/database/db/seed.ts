@@ -2,6 +2,7 @@ import { connect, disconnect, client } from '@mydex/database'
 import rawData from '../docs/raw_content_sample.json'
 import processedData from '../docs/processed_content_sample.json'
 import userProfileData from '../docs/user_profiles_sample.json'
+import chatbotSessionData from '../docs/chatbot_sessions_sample.json'
 
 async function seed() {
   await connect()
@@ -86,6 +87,27 @@ async function seed() {
       ]
     )
     console.log(`  插入: ${item.id}`)
+  }
+
+  console.log('\n📥 写入 ai_chatbot_sessions...')
+  for (const item of chatbotSessionData) {
+    await client.query(
+      `INSERT INTO ai_chatbot_sessions
+        (user_id, session_id, question, answer, question_verbose, answer_verbose, tools, client_actions, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $9)`,
+      [
+        item.user_id,
+        item.session_id,
+        item.question,
+        item.answer,
+        item.question_verbose ? JSON.stringify(item.question_verbose) : null,
+        item.answer_verbose ? JSON.stringify(item.answer_verbose) : null,
+        item.tools ?? null,
+        item.client_actions ?? null,
+        item.created_at,
+      ]
+    )
+    console.log(`  插入: [${item.session_id}] ${item.question.slice(0, 20)}...`)
   }
 
   console.log('\n🎉 完成！')

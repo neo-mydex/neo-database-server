@@ -34,10 +34,22 @@ export class ChatbotSessionRepository {
   async createMessage(input: CreateChatbotMessageInput): Promise<ChatbotMessage> {
     const now = new Date()
     const result = await client.query(
-      `INSERT INTO ai_chatbot_sessions (user_id, session_id, question, answer, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO ai_chatbot_sessions
+         (user_id, session_id, question, answer, question_verbose, answer_verbose, tools, client_actions, created_at, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
-      [input.user_id, input.session_id, input.question, input.answer, now, now]
+      [
+        input.user_id,
+        input.session_id,
+        input.question,
+        input.answer,
+        input.question_verbose ?? null,
+        input.answer_verbose ? JSON.stringify(input.answer_verbose) : null,
+        input.tools ?? null,
+        input.client_actions ?? null,
+        now,
+        now,
+      ]
     )
     return this.mapMessage(result.rows[0])
   }
@@ -124,8 +136,12 @@ export class ChatbotSessionRepository {
     const values: any[] = []
     let idx = 1
 
-    if (input.question !== undefined) { updates.push(`question = $${idx++}`); values.push(input.question) }
-    if (input.answer   !== undefined) { updates.push(`answer = $${idx++}`);   values.push(input.answer) }
+    if (input.question          !== undefined) { updates.push(`question = $${idx++}`);          values.push(input.question) }
+    if (input.answer            !== undefined) { updates.push(`answer = $${idx++}`);            values.push(input.answer) }
+    if (input.question_verbose  !== undefined) { updates.push(`question_verbose = $${idx++}`); values.push(input.question_verbose) }
+    if (input.answer_verbose    !== undefined) { updates.push(`answer_verbose = $${idx++}`);   values.push(input.answer_verbose ? JSON.stringify(input.answer_verbose) : null) }
+    if (input.tools             !== undefined) { updates.push(`tools = $${idx++}`);             values.push(input.tools) }
+    if (input.client_actions    !== undefined) { updates.push(`client_actions = $${idx++}`);   values.push(input.client_actions) }
 
     if (updates.length === 0) return this.findMessageById(id)
 

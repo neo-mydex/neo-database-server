@@ -1,37 +1,170 @@
 [
   {
-    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。长期持有逻辑仍然成立，但需注意控制仓位在总资产的 20% 以内。",
+    "question_verbose": null,
+    "answer_verbose": null,
+    "tools": null,
+    "client_actions": null,
     "created_at": "2026-02-20T10:00:00.000Z"
   },
   {
-    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "那我应该设多少止损？",
     "answer": "通常建议设在入场价的 8%-10% 以下。如果你的风险偏好较低，可以收紧到 5%。记住，止损是为了保护本金，不是认输。",
+    "question_verbose": null,
+    "answer_verbose": null,
+    "tools": null,
+    "client_actions": null,
     "created_at": "2026-02-20T10:02:30.000Z"
   },
   {
-    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
     "session_id": "a1b2c3d4-0002-0002-0002-000000000002",
     "question": "ETH 最近为什么一直跌？",
     "answer": "ETH 近期下跌主要受几个因素影响：1) 宏观市场风险情绪收缩；2) ETH ETF 净流出持续；3) Layer2 生态分流了部分资金。短期内仍有压力，但 Pectra 升级预期是正面催化剂。",
+    "question_verbose": null,
+    "answer_verbose": null,
+    "tools": null,
+    "client_actions": null,
     "created_at": "2026-02-22T14:15:00.000Z"
   },
   {
-    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
-    "session_id": "a1b2c3d4-0002-0002-0002-000000000002",
-    "question": "Pectra 升级是什么时候？",
-    "answer": "Pectra 升级预计在 2026 年上半年主网上线，具体时间以以太坊开发者公告为准。主要带来账户抽象（EIP-7702）和质押体验改善，长期利好 ETH 生态。",
-    "created_at": "2026-02-22T14:17:45.000Z"
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
+    "session_id": "a1b2c3d4-0003-0003-0003-000000000003",
+    "question": "我想用 100 USDC 换 ETH，帮我操作一下",
+    "answer": "好的，我来帮你创建一个 swap 交易。将用 100 USDC 兑换 ETH，已为你打开交易窗口，请确认交易详情后继续。",
+    "question_verbose": {
+      "message": "我想用 100 USDC 换 ETH，帮我操作一下",
+      "context": {
+        "path": "/trade",
+        "chainId": 1,
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+      }
+    },
+    "answer_verbose": [
+      {
+        "type": "session_start",
+        "session_id": "sse-session-0003-a",
+        "timestamp": "2026-02-25T09:00:00.000Z"
+      },
+      {
+        "type": "token",
+        "content": "好的，",
+        "timestamp": "2026-02-25T09:00:00.030Z"
+      },
+      {
+        "type": "token",
+        "content": "我来帮你",
+        "timestamp": "2026-02-25T09:00:00.060Z"
+      },
+      {
+        "type": "token",
+        "content": "创建一个 swap 交易。",
+        "timestamp": "2026-02-25T09:00:00.090Z"
+      },
+      {
+        "type": "tool_call",
+        "tool": "create_trade_intent",
+        "params": {
+          "from_token": "USDC",
+          "to_token": "ETH",
+          "amount": "100",
+          "chain_id": 1
+        },
+        "timestamp": "2026-02-25T09:00:00.150Z"
+      },
+      {
+        "type": "token",
+        "content": "将用 100 USDC 兑换 ETH，",
+        "timestamp": "2026-02-25T09:00:00.300Z"
+      },
+      {
+        "type": "client_action",
+        "action": "OPEN_TRADE_WINDOW",
+        "payload": {
+          "from_token": "USDC",
+          "to_token": "ETH",
+          "amount": "100"
+        },
+        "timestamp": "2026-02-25T09:00:00.350Z"
+      },
+      {
+        "type": "token",
+        "content": "已为你打开交易窗口，请确认交易详情后继续。",
+        "timestamp": "2026-02-25T09:00:00.400Z"
+      },
+      {
+        "type": "session_end",
+        "timestamp": "2026-02-25T09:00:00.450Z"
+      }
+    ],
+    "tools": ["create_trade_intent"],
+    "client_actions": ["OPEN_TRADE_WINDOW"],
+    "created_at": "2026-02-25T09:00:00.000Z"
   },
   {
-    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
-    "session_id": "a1b2c3d4-0003-0003-0003-000000000003",
-    "question": "帮我分析一下我的资产配置",
-    "answer": "根据你的画像（风险偏好中等、决策速度适中），建议配置比例：BTC 40%、ETH 30%、主流 DeFi 代币 20%、稳定币备用 10%。当前市场波动较大，稳定币比例可适当上调至 20%。",
-    "created_at": "2026-02-25T09:30:00.000Z"
+    "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
+    "session_id": "a1b2c3d4-0004-0004-0004-000000000004",
+    "question": "我想充值一些 ETH 到我的账户",
+    "answer": "好的，我来帮你打开充值入口。请在弹出的充值面板中选择充值网络和金额，完成后点击确认即可。",
+    "question_verbose": {
+      "message": "我想充值一些 ETH 到我的账户",
+      "context": {
+        "path": "/portfolio",
+        "chainId": 1,
+        "walletAddress": "0x1234567890abcdef1234567890abcdef12345678"
+      }
+    },
+    "answer_verbose": [
+      {
+        "type": "session_start",
+        "session_id": "sse-session-0004-a",
+        "timestamp": "2026-02-26T11:00:00.000Z"
+      },
+      {
+        "type": "token",
+        "content": "好的，",
+        "timestamp": "2026-02-26T11:00:00.030Z"
+      },
+      {
+        "type": "token",
+        "content": "我来帮你",
+        "timestamp": "2026-02-26T11:00:00.060Z"
+      },
+      {
+        "type": "tool_call",
+        "tool": "show_deposit_prompt",
+        "params": {
+          "token": "ETH",
+          "chain_id": 1
+        },
+        "timestamp": "2026-02-26T11:00:00.100Z"
+      },
+      {
+        "type": "client_action",
+        "action": "SHOW_DEPOSIT_PROMPT",
+        "payload": {
+          "token": "ETH",
+          "chain_id": 1
+        },
+        "timestamp": "2026-02-26T11:00:00.150Z"
+      },
+      {
+        "type": "token",
+        "content": "打开充值入口。请在弹出的充值面板中选择充值网络和金额，完成后点击确认即可。",
+        "timestamp": "2026-02-26T11:00:00.200Z"
+      },
+      {
+        "type": "session_end",
+        "timestamp": "2026-02-26T11:00:00.250Z"
+      }
+    ],
+    "tools": ["show_deposit_prompt"],
+    "client_actions": ["SHOW_DEPOSIT_PROMPT"],
+    "created_at": "2026-02-26T11:00:00.000Z"
   }
 ]
