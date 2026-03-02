@@ -179,6 +179,7 @@ router.post(
         type: 'tool_call_start',
         data: {
           tool: 'create_trade_intent',
+          content: 'Executing create_trade_intent tool...',
           callId,
           args: {
             symbol: 'ETH',
@@ -228,6 +229,7 @@ router.post(
         type: 'tool_call_start',
         data: {
           tool: 'show_deposit_prompt',
+          content: 'Executing show_deposit_prompt tool...',
           callId,
           args: {
             token: 'USDC',

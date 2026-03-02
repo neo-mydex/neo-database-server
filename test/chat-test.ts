@@ -330,6 +330,7 @@ async function testStreamSwap(token: string) {
   const toolStart = events.find(e => e.type === 'tool_call_start')
   assert(!!toolStart, '有 tool_call_start 事件')
   assert(toolStart?.data?.tool === 'create_trade_intent', `tool = create_trade_intent（得到: ${toolStart?.data?.tool}）`)
+  assert(toolStart?.data?.content === 'Executing create_trade_intent tool...', `tool_call_start 有 content（得到: ${toolStart?.data?.content}）`)
   assert(typeof toolStart?.data?.callId === 'string', 'tool_call_start 有 callId')
 
   const toolComplete = events.find(e => e.type === 'tool_call_complete')
@@ -388,6 +389,7 @@ async function testStreamDeposit(token: string) {
   const toolStart = events.find(e => e.type === 'tool_call_start')
   assert(!!toolStart, '有 tool_call_start 事件')
   assert(toolStart?.data?.tool === 'show_deposit_prompt', `tool = show_deposit_prompt（得到: ${toolStart?.data?.tool}）`)
+  assert(toolStart?.data?.content === 'Executing show_deposit_prompt tool...', `tool_call_start 有 content（得到: ${toolStart?.data?.content}）`)
 
   const toolComplete = events.find(e => e.type === 'tool_call_complete')
   assert(!!toolComplete, '有 tool_call_complete 事件')

@@ -230,7 +230,10 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
           "sentiment": "bullish",
           "confidence": 0.85,
           "chain": "arb",
-          "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548"
+          "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548",
+          "usdPrice":1.3, // 0302 morails 查询
+          "priceChange": 1.079210724244654, // 0302 morails 查询
+          "logo": "https:xxx.png" // 0302 morails 查询
         }
       ],
       "overall_sentiment": "bullish"
@@ -1121,7 +1124,7 @@ Authorization: Bearer <privy_jwt_token>
 ```json
 [
   { "type": "llm_token",         "data": { "content": "好的，" },        "ts": 1234567890000 },
-  { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1234567890200 },
+  { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "content": "Executing create_trade_intent tool...", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1234567890200 },
   { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1234567890600 },
   { "type": "llm_token",         "data": { "content": "交易窗口已为你打开，请确认参数后提交。" }, "ts": 1234567890650 }
 ]
@@ -1168,7 +1171,7 @@ message.answer_verbose.forEach(consumeEvent)
 | 事件类型 | 含义 | 关键字段 |
 |----------|------|----------|
 | `llm_token` | AI 输出的一个文字片段 | `data.content` |
-| `tool_call_start` | 开始调用工具 | `data.tool`（工具名）、`data.callId`、`data.args` |
+| `tool_call_start` | 开始调用工具 | `data.tool`（工具名）、`data.content`（加载提示文字）、`data.callId`、`data.args` |
 | `tool_call_complete` | 工具调用完成 | `data.result.data.client_action`（含 `type` 和 `params`） |
 
 **`client_action.type` 对应的前端组件**：
@@ -1400,8 +1403,9 @@ data: <JSON string>\n\n
 
 ```json
 {
-  "tool":   "create_trade_intent",
-  "callId": "call_1772260494310_ab3xy",
+  "tool":    "create_trade_intent",
+  "content": "Executing create_trade_intent tool...",
+  "callId":  "call_1772260494310_ab3xy",
   "args": {
     "symbol":    "ETH",
     "side":      "BUY",
@@ -1415,6 +1419,7 @@ data: <JSON string>\n\n
 | 字段 | 类型 | 说明 |
 |------|------|------|
 | `tool` | string | 工具名，见下方工具枚举 |
+| `content` | string | 给用户的加载状态提示，格式为 `"Executing <tool> tool..."`，前端可直接渲染展示 |
 | `callId` | string | 本次调用的唯一 ID，与后续 `tool_call_complete` 对应 |
 | `args` | object | 传给工具的参数，结构因工具不同而异（见下方） |
 
@@ -1567,8 +1572,9 @@ while (true) {
         break
 
       case 'tool_call_start':
-        // data.tool, data.callId, data.args
-        // 可显示"AI 正在处理..."
+        // data.tool, data.content, data.callId, data.args
+        // data.content 是可直接展示的加载提示，如 "Executing create_trade_intent tool..."
+        showToolLoading(data.content)
         break
 
       case 'tool_call_complete':
@@ -1668,7 +1674,7 @@ Authorization: Bearer <token>
         { "type": "llm_token",         "data": { "content": "创建兑换" }, "ts": 1772260400120 },
         { "type": "llm_token",         "data": { "content": "请求，" },   "ts": 1772260400160 },
         { "type": "llm_token",         "data": { "content": "稍等一下。" },"ts": 1772260400200 },
-        { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_1772260400250_ab3xy", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
+        { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "content": "Executing create_trade_intent tool...", "callId": "call_1772260400250_ab3xy", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
         { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_1772260400250_ab3xy", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260400650 },
         { "type": "llm_token",         "data": { "content": "交易窗口" }, "ts": 1772260400700 },
         { "type": "llm_token",         "data": { "content": "已为你打开，请确认参数后提交。" }, "ts": 1772260400740 }
@@ -1808,7 +1814,7 @@ Content-Type: application/json
     "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "pathname": "/trade" } },
     "answer_verbose": [
       { "type": "llm_token",         "data": { "content": "好的，我来帮你创建兑换请求，稍等一下。" }, "ts": 1772260400040 },
-      { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
+      { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "content": "Executing create_trade_intent tool...", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
       { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260400650 },
       { "type": "llm_token",         "data": { "content": "交易窗口已为你打开，请确认参数后提交。" }, "ts": 1772260400700 }
     ],
