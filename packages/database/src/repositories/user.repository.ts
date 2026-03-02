@@ -53,6 +53,53 @@ export class UserRepository {
   }
 
   /**
+   * UPSERT - 创建或更新用户
+   * 用户不存在时创建（用传入值或默认值），已存在时更新传入的字段
+   * @param userId 用户 ID
+   * @param input 可选的用户字段
+   * @returns 用户档案 + 是否新创建
+   */
+  async upsert(userId: string, input: Partial<Omit<CreateUserInput, 'user_id'>>): Promise<{ user: UserProfile; created: boolean }> {
+    const existing = await this.findById(userId)
+
+    if (!existing) {
+      const user = await this.create(userId, {
+        user_id: userId,
+        risk_appetite: input.risk_appetite ?? 5,
+        patience: input.patience ?? 5,
+        info_sensitivity: input.info_sensitivity ?? 5,
+        decision_speed: input.decision_speed ?? 5,
+        cat_type: input.cat_type ?? '均衡的全能喵',
+        cat_desc: input.cat_desc ?? '各项指标均衡',
+      })
+      return { user, created: true }
+    }
+
+    // 已存在：只更新传入的字段
+    const updates: string[] = []
+    const values: any[] = []
+    let i = 1
+
+    if (input.risk_appetite !== undefined) { updates.push(`risk_appetite = $${i++}`); values.push(input.risk_appetite) }
+    if (input.patience !== undefined) { updates.push(`patience = $${i++}`); values.push(input.patience) }
+    if (input.info_sensitivity !== undefined) { updates.push(`info_sensitivity = $${i++}`); values.push(input.info_sensitivity) }
+    if (input.decision_speed !== undefined) { updates.push(`decision_speed = $${i++}`); values.push(input.decision_speed) }
+    if (input.cat_type !== undefined) { updates.push(`cat_type = $${i++}`); values.push(input.cat_type) }
+    if (input.cat_desc !== undefined) { updates.push(`cat_desc = $${i++}`); values.push(input.cat_desc) }
+
+    if (updates.length > 0) {
+      values.push(userId)
+      await client.query(
+        `UPDATE ai_user_profiles SET ${updates.join(', ')} WHERE user_id = $${i}`,
+        values
+      )
+    }
+
+    const user = await this.findById(userId)
+    return { user: user!, created: false }
+  }
+
+  /**
    * READ - 根据 user_id 查询用户
    * @param userId 用户 ID
    * @returns 用户档案，不存在则返回 null

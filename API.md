@@ -767,7 +767,7 @@ DELETE /ai-api/contents/raw/news_001
 | 陪伴天数 | `companion_days` | 累计打卡天数 |
 | 分析次数 | `chat_count` | AI 对话次数 |
 
-> **打卡注意**：每次用户**登录时**前端需主动调用 `POST /ai-api/users/checkin`，服务端已做幂等处理，同一天多次调用只计一次，不会重复累加。
+> **登录说明**：每次用户登录时前端调用 `POST /ai-api/users`，服务端自动完成注册或更新，无需额外判断用户是否存在。
 
 ---
 
@@ -802,16 +802,18 @@ Authorization: Bearer <privy_jwt_token>
 
 ---
 
-### 1. 创建用户
+### 1. 登录 / 创建或更新用户
 
 **接口地址**: `POST /ai-api/users`
 
 **认证**: 需要 JWT（user_id 从 token 取，body 不需要传）
 
-**请求参数**（body 所有字段均可选，不传则使用默认值）:
+**说明**: upsert 语义。用户不存在时创建并返回 201，已存在时更新传入的字段并返回 200。前端登录时调用此接口即可，无需关心用户是否已注册。
 
-| 参数名 | 类型 | 必填 | 默认值 | 说明 |
-|--------|------|------|--------|------|
+**请求参数**（body 所有字段均可选）:
+
+| 参数名 | 类型 | 必填 | 默认值（仅首次创建时生效） | 说明 |
+|--------|------|------|--------------------------|------|
 | risk_appetite | number | 否 | 5 | 风险偏好 1-10 |
 | patience | number | 否 | 5 | 耐心程度 1-10 |
 | info_sensitivity | number | 否 | 5 | 信息敏感度 1-10 |
@@ -819,15 +821,15 @@ Authorization: Bearer <privy_jwt_token>
 | cat_type | string | 否 | "均衡的全能喵" | 用户分类标签 |
 | cat_desc | string | 否 | "各项指标均衡" | 用户分类描述 |
 
-> user_id 从 JWT token 自动解析，body 无需传入。
+> user_id 从 JWT token 自动解析，body 无需传入。已存在的用户若不传某字段，该字段保持原值不变。
 
-**请求示例（空 body，全部使用默认值）**:
+**请求示例（登录，空 body）**:
 ```http
 POST /ai-api/users
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
 ```
 
-**响应示例** (HTTP 201):
+**响应示例（首次登录，HTTP 201）**:
 ```json
 {
   "code": 201,
@@ -846,6 +848,29 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "analyse_count": 0,
     "companion_days": 0,
     "last_active_date": null
+  }
+}
+```
+
+**响应示例（再次登录，HTTP 200）**:
+```json
+{
+  "code": 200,
+  "message": "success",
+  "data": {
+    "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+    "risk_appetite": "5.0",
+    "patience": "5.0",
+    "info_sensitivity": "5.0",
+    "decision_speed": "5.0",
+    "cat_type": "均衡的全能喵",
+    "cat_desc": "各项指标均衡",
+    "registered_at": 1772114400000,
+    "trade_count": 3,
+    "chat_count": 10,
+    "analyse_count": 2,
+    "companion_days": 5,
+    "last_active_date": 1772114400000
   }
 }
 ```

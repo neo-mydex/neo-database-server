@@ -35,26 +35,13 @@ router.post(
     const { risk_appetite, patience, info_sensitivity, decision_speed, cat_type, cat_desc } = req.body
     const userId = req.userId!
 
-    // 验证必填字段
-    if (!risk_appetite || !patience || !info_sensitivity || !decision_speed || !cat_type || !cat_desc) {
-      throw new ApiError(400, 'Missing required fields', {
-        required: ['risk_appetite', 'patience', 'info_sensitivity', 'decision_speed', 'cat_type', 'cat_desc'],
-      })
-    }
-
-    // 验证数值范围
-    if ([risk_appetite, patience, info_sensitivity, decision_speed].some((v) => v < 1 || v > 10)) {
+    // 验证数值范围（仅当前端传了值时才校验）
+    const numericFields = [risk_appetite, patience, info_sensitivity, decision_speed].filter((v) => v !== undefined)
+    if (numericFields.some((v) => v < 1 || v > 10)) {
       throw new ApiError(400, 'Trait values must be between 1 and 10')
     }
 
-    // 检查用户是否已存在
-    const existing = await userRepo.exists(userId)
-    if (existing) {
-      throw new ApiError(409, 'User already exists')
-    }
-
-    const user = await userRepo.create(userId, {
-      user_id: userId,
+    const { user, created } = await userRepo.upsert(userId, {
       risk_appetite,
       patience,
       info_sensitivity,
@@ -63,7 +50,7 @@ router.post(
       cat_desc,
     })
 
-    res.status(201).json(successResponse(user))
+    res.status(created ? 201 : 200).json(successResponse(user))
   })
 )
 
