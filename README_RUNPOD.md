@@ -27,8 +27,63 @@ export NVM_DIR="/workspace/.nvm" && source "$NVM_DIR/nvm.sh"
 ```bash
 pm2 status                              # 查看所有进程状态
 pm2 logs neo-database-server            # 查看日志
-pm2 restart neo-database-server         # 重启服务
+pm2 restart neo-database-server --update-env  # 普通重启（不改启动参数时用）
 ```
+
+### 手动完整重启（改过启动参数或 .env 丢失时用）
+
+> ⚠️ `pm2 restart` 沿用旧的启动配置，改了参数必须先 delete 再重新 start。
+
+```bash
+export NVM_DIR="/workspace/.nvm" && source "$NVM_DIR/nvm.sh"
+cd /workspace/node/neo-database-server
+pm2 delete neo-database-server
+PORT=10000 pm2 start packages/server/dist/main.js \
+  --name neo-database-server \
+  --node-args="--env-file=/workspace/node/neo-database-server/.env"
+pm2 save
+```
+
+### .env 文件
+
+路径：`/workspace/node/neo-database-server/.env`
+
+> ⚠️ `.env` 不在 git 里，手动操作或 CI 异常时可能丢失，丢失后服务会因找不到数据库配置而崩溃。
+
+```
+NODE_ENV=production
+PORT=10000
+PRIVY_APP_ID=cmlubuldi02gs0blamh0qewit
+DB_HOST=mydex-test.c16k8amcamtg.ap-northeast-1.rds.amazonaws.com
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=（见内部文档）
+DB_NAME=mydex_v1
+```
+
+重建命令：
+
+```bash
+cat > /workspace/node/neo-database-server/.env << 'EOF'
+NODE_ENV=production
+PORT=10000
+PRIVY_APP_ID=cmlubuldi02gs0blamh0qewit
+DB_HOST=mydex-test.c16k8amcamtg.ap-northeast-1.rds.amazonaws.com
+DB_PORT=5432
+DB_USER=postgres
+DB_PASSWORD=（填入真实密码）
+DB_NAME=mydex_v1
+EOF
+```
+
+### ⚠️ 已知踩坑
+
+| 问题 | 原因 | 解决 |
+|------|------|------|
+| `node: .env: not found` | `--env-file` 用了相对路径，pm2 重启时 cwd 不固定 | 必须用绝对路径 `--env-file=/workspace/node/.../.env` |
+| 服务 online 但外部 curl 连不上 | 服务监听的是 3000，但 RunPod 对外映射的是内部 10000 | 启动时必须加 `PORT=10000` |
+| CI 部署后服务崩溃（↺ 58 次） | `package.json` 里 `start` 脚本写的是 `dist/index.js`，实际入口是 `dist/main.js` | 已修复，入口为 `packages/server/dist/main.js` |
+| `git pull` 被 abort | RunPod 上 `.env` 有修改与 git 冲突 | CI 在 pull 前备份 `.env`，pull 后恢复 |
 
 ## 自动部署
 
