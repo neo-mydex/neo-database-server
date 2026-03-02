@@ -13,18 +13,32 @@ function sendEvent(res: Response, event: { type: string; data: any; ts: number }
   res.write(`data: ${JSON.stringify({ type: event.type, data: JSON.stringify(event.data), ts: event.ts })}\n\n`)
 }
 
+type SseEvent = { type: string; data: any; ts: number }
+
+function sendAndCollect(
+  res: Response,
+  event: SseEvent,
+  collector: SseEvent[]
+): void {
+  sendEvent(res, event)
+  collector.push(event)
+}
+
 async function streamTokens(
   res: Response,
   text: string,
   delayMs: number,
   aborted: () => boolean,
-  collector?: string[]
+  tokenCollector?: string[],
+  eventCollector?: SseEvent[]
 ): Promise<void> {
   const tokens = text.match(/[\u4e00-\u9fa5]{1,3}|[^\u4e00-\u9fa5\s]+|\s+/g) ?? []
   for (const token of tokens) {
     if (aborted()) return
-    sendEvent(res, { type: 'llm_token', data: { content: token }, ts: Date.now() })
-    collector?.push(token)
+    const event: SseEvent = { type: 'llm_token', data: { content: token }, ts: Date.now() }
+    sendEvent(res, event)
+    tokenCollector?.push(token)
+    eventCollector?.push(event)
     await new Promise(resolve => setTimeout(resolve, delayMs))
   }
 }
@@ -149,18 +163,19 @@ router.post(
 
     console.log(`🟢 STREAM ${req.params.sessionId} ← "${message}" [scene: ${scene}]`)
 
-    // 收集 answer tokens、触发的 tools 和 client_actions
+    // 收集 answer tokens、触发的 tools、client_actions 和完整 SSE 事件序列
     const answerTokens: string[] = []
     const tools: string[] = []
     const clientActions: string[] = []
+    const answerEvents: SseEvent[] = []
 
     sendEvent(res, { type: 'session_start', data: { model: 'mock' }, ts: Date.now() })
 
     if (scene === 'swap') {
-      await streamTokens(res, '好的，我来帮你创建兑换请求，稍等一下。', 40, () => isAborted, answerTokens)
+      await streamTokens(res, '好的，我来帮你创建兑换请求，稍等一下。', 40, () => isAborted, answerTokens, answerEvents)
       if (isAborted) return
       tools.push('create_trade_intent')
-      sendEvent(res, {
+      sendAndCollect(res, {
         type: 'tool_call_start',
         data: {
           tool: 'create_trade_intent',
@@ -174,11 +189,11 @@ router.post(
           },
         },
         ts: Date.now(),
-      })
+      }, answerEvents)
       await sleep(400)
       if (isAborted) return
       clientActions.push('OPEN_TRADE_WINDOW')
-      sendEvent(res, {
+      sendAndCollect(res, {
         type: 'tool_call_complete',
         data: {
           tool: 'create_trade_intent',
@@ -202,14 +217,14 @@ router.post(
           },
         },
         ts: Date.now(),
-      })
-      await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted, answerTokens)
+      }, answerEvents)
+      await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted, answerTokens, answerEvents)
 
     } else if (scene === 'deposit') {
-      await streamTokens(res, '检测到余额可能不足，为你显示充值引导。', 40, () => isAborted, answerTokens)
+      await streamTokens(res, '检测到余额可能不足，为你显示充值引导。', 40, () => isAborted, answerTokens, answerEvents)
       if (isAborted) return
       tools.push('show_deposit_prompt')
-      sendEvent(res, {
+      sendAndCollect(res, {
         type: 'tool_call_start',
         data: {
           tool: 'show_deposit_prompt',
@@ -220,11 +235,11 @@ router.post(
           },
         },
         ts: Date.now(),
-      })
+      }, answerEvents)
       await sleep(400)
       if (isAborted) return
       clientActions.push('SHOW_DEPOSIT_PROMPT')
-      sendEvent(res, {
+      sendAndCollect(res, {
         type: 'tool_call_complete',
         data: {
           tool: 'show_deposit_prompt',
@@ -247,21 +262,22 @@ router.post(
           },
         },
         ts: Date.now(),
-      })
-      await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted, answerTokens)
+      }, answerEvents)
+      await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted, answerTokens, answerEvents)
 
     } else {
-      await streamTokens(res, '我已经收到你的信息啦，请问还有什么可以帮你？', 40, () => isAborted, answerTokens)
+      await streamTokens(res, '我已经收到你的信息啦，请问还有什么可以帮你？', 40, () => isAborted, answerTokens, answerEvents)
     }
 
     if (!isAborted) {
-      // 落库：保存本轮问答
+      // 落库：保存本轮问答（含完整 SSE 事件序列，不含 session_start/session_end）
       const saved = await chatbotSessionRepo.createMessage({
         user_id: req.userId!,
         session_id: req.params.sessionId as string,
         question: message,
         answer: answerTokens.join(''),
         question_verbose: { message, context },
+        answer_verbose: answerEvents,
         tools,
         client_actions: clientActions,
       })

@@ -1098,12 +1098,85 @@ Authorization: Bearer <privy_jwt_token>
 | session_id | string | 会话 ID（前端生成的 UUID） |
 | question | string | 用户提问（纯文字） |
 | answer | string | AI 回复（纯文字，stream 结束后服务端自动拼接） |
-| question_verbose | object | 结构化问题：`{ "message": "...", "context": { "source": "/trade" } }` |
-| answer_verbose | array | 完整 SSE 事件数组，供历史回放（stream 自动落库时为 `[]`，可通过 PATCH 补充） |
+| question_verbose | object | 结构化问题：`{ "message": "...", "context": { "pathname": "/trade" } }` |
+| answer_verbose | array | 完整 SSE 事件数组，供历史回放（stream 自动落库，不含 session_start/session_end） |
 | tools | string[] | 本次对话触发的 tool 名列表（如 `["create_trade_intent"]`）；无调用时为 `[]` |
 | client_actions | string[] | 本次对话触发的 client action type 列表（如 `["OPEN_TRADE_WINDOW"]`）；无 action 时为 `[]` |
 | created_at | number | 创建时间（Unix 毫秒时间戳） |
 | updated_at | number | 更新时间（Unix 毫秒时间戳） |
+
+**question_verbose 结构**：
+
+```json
+{
+  "message": "用户原始输入文字",
+  "context": { "pathname": "/trade" }
+}
+```
+
+**answer_verbose 结构**（完整 SSE 事件数组，不含 session_start/session_end）：
+
+```json
+[
+  { "type": "llm_token",         "data": { "content": "好的，" },        "ts": 1234567890000 },
+  { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1234567890200 },
+  { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1234567890600 },
+  { "type": "llm_token",         "data": { "content": "交易窗口已为你打开，请确认参数后提交。" }, "ts": 1234567890650 }
+]
+```
+
+**历史回放 = 重播一次 SSE 流**
+
+`answer_verbose` 存储的事件格式与实时 SSE 流完全一致。前端只需将「消费 SSE 事件」的逻辑封装成一个函数，实时流和历史回放都复用它：
+
+- **实时流**：服务端 SSE 推送事件，逐个喂入处理函数
+- **历史回放**：从 `GET /messages` 取到 `answer_verbose`，将数组整体喂入同一处理函数
+
+两者唯一的区别是**时序控制**：实时流由服务端 delay 控制，历史回放前端可选择瞬间渲染（直接遍历），或用 `event.ts` 的差值模拟原始打字节奏。
+
+**事件处理逻辑**（实时流与历史回放共用）：
+
+```ts
+function consumeEvent(event: { type: string; data: any; ts: number }) {
+  switch (event.type) {
+    case 'llm_token':
+      // 追加到 AI 气泡文字
+      appendText(event.data.content)
+      break
+    case 'tool_call_start':
+      // 显示「工具调用中...」状态
+      showToolLoading(event.data.tool)
+      break
+    case 'tool_call_complete':
+      // 取 client_action 渲染对应组件（交易卡片、充值弹窗等）
+      renderClientAction(event.data.result.data.client_action)
+      break
+  }
+}
+
+// 实时流
+sseSource.onmessage = (e) => consumeEvent(JSON.parse(e.data))
+
+// 历史回放（瞬间渲染）
+message.answer_verbose.forEach(consumeEvent)
+```
+
+**各事件类型说明**：
+
+| 事件类型 | 含义 | 关键字段 |
+|----------|------|----------|
+| `llm_token` | AI 输出的一个文字片段 | `data.content` |
+| `tool_call_start` | 开始调用工具 | `data.tool`（工具名）、`data.callId`、`data.args` |
+| `tool_call_complete` | 工具调用完成 | `data.result.data.client_action`（含 `type` 和 `params`） |
+
+**`client_action.type` 对应的前端组件**：
+
+| type | 触发场景 | 前端行为 |
+|------|----------|----------|
+| `OPEN_TRADE_WINDOW` | 用户请求 swap/买入 | 打开交易窗口，`params` 含 `symbol/side/tradeType/network/amountUsd` |
+| `SHOW_DEPOSIT_PROMPT` | 检测余额不足 | 显示充值引导，`params` 含 `token/network/address/redirectUrl` |
+
+纯文字回复时 `answer_verbose` 为全 `llm_token` 数组，无 `tool_call` 事件。
 
 **ChatbotSession 字段说明**（会话摘要对象，多个接口复用）:
 
@@ -1566,8 +1639,15 @@ Authorization: Bearer <token>
       "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
       "question": "现在 BTC 值得买吗？",
       "answer": "我已经收到你的信息啦，请问还有什么可以帮你？",
-      "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "source": "/home" } },
-      "answer_verbose": [],
+      "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+      "answer_verbose": [
+        { "type": "llm_token", "data": { "content": "我已经" },     "ts": 1772260200040 },
+        { "type": "llm_token", "data": { "content": "收到你的" },   "ts": 1772260200080 },
+        { "type": "llm_token", "data": { "content": "信息啦，" },   "ts": 1772260200120 },
+        { "type": "llm_token", "data": { "content": "请问还有" },   "ts": 1772260200160 },
+        { "type": "llm_token", "data": { "content": "什么可以" },   "ts": 1772260200200 },
+        { "type": "llm_token", "data": { "content": "帮你？" },     "ts": 1772260200240 }
+      ],
       "tools": [],
       "client_actions": [],
       "created_at": 1772260200000,
@@ -1579,8 +1659,18 @@ Authorization: Bearer <token>
       "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
       "question": "我想 swap 一些 ETH",
       "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
-      "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "source": "/trade" } },
-      "answer_verbose": [],
+      "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "pathname": "/trade" } },
+      "answer_verbose": [
+        { "type": "llm_token",         "data": { "content": "好的，" },   "ts": 1772260400040 },
+        { "type": "llm_token",         "data": { "content": "我来帮你" }, "ts": 1772260400080 },
+        { "type": "llm_token",         "data": { "content": "创建兑换" }, "ts": 1772260400120 },
+        { "type": "llm_token",         "data": { "content": "请求，" },   "ts": 1772260400160 },
+        { "type": "llm_token",         "data": { "content": "稍等一下。" },"ts": 1772260400200 },
+        { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_1772260400250_ab3xy", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
+        { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_1772260400250_ab3xy", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260400650 },
+        { "type": "llm_token",         "data": { "content": "交易窗口" }, "ts": 1772260400700 },
+        { "type": "llm_token",         "data": { "content": "已为你打开，请确认参数后提交。" }, "ts": 1772260400740 }
+      ],
       "tools": ["create_trade_intent"],
       "client_actions": ["OPEN_TRADE_WINDOW"],
       "created_at": 1772260400000,
@@ -1651,7 +1741,7 @@ Content-Type: application/json
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。",
-    "question_verbose": {},
+    "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
     "answer_verbose": [],
     "tools": [],
     "client_actions": [],
@@ -1713,8 +1803,13 @@ Content-Type: application/json
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "我想 swap 一些 ETH",
     "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
-    "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "source": "/trade" } },
-    "answer_verbose": [],
+    "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "pathname": "/trade" } },
+    "answer_verbose": [
+      { "type": "llm_token",         "data": { "content": "好的，我来帮你创建兑换请求，稍等一下。" }, "ts": 1772260400040 },
+      { "type": "tool_call_start",   "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260400250 },
+      { "type": "tool_call_complete","data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "message": "已准备好买入 ETH 的交易", "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260400650 },
+      { "type": "llm_token",         "data": { "content": "交易窗口已为你打开，请确认参数后提交。" }, "ts": 1772260400700 }
+    ],
     "tools": ["create_trade_intent"],
     "client_actions": ["OPEN_TRADE_WINDOW"],
     "created_at": 1772260200000,

@@ -11,24 +11,22 @@
       }
     },
     "answer_verbose": [
-      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740384000000 },
-      { "type": "llm_token", "data": { "content": "从当前" }, "ts": 1740384000040 },
-      { "type": "llm_token", "data": { "content": "链上数据" }, "ts": 1740384000080 },
-      { "type": "llm_token", "data": { "content": "和市场" }, "ts": 1740384000120 },
-      { "type": "llm_token", "data": { "content": "情绪来看，" }, "ts": 1740384000160 },
-      { "type": "llm_token", "data": { "content": "BTC 短期" }, "ts": 1740384000200 },
-      { "type": "llm_token", "data": { "content": "波动较大，" }, "ts": 1740384000240 },
-      { "type": "llm_token", "data": { "content": "建议分批" }, "ts": 1740384000280 },
-      { "type": "llm_token", "data": { "content": "建仓而非" }, "ts": 1740384000320 },
-      { "type": "llm_token", "data": { "content": "一次性重仓。" }, "ts": 1740384000360 },
-      { "type": "llm_token", "data": { "content": "长期持有" }, "ts": 1740384000400 },
-      { "type": "llm_token", "data": { "content": "逻辑仍然" }, "ts": 1740384000440 },
-      { "type": "llm_token", "data": { "content": "成立，" }, "ts": 1740384000480 },
-      { "type": "llm_token", "data": { "content": "但需注意" }, "ts": 1740384000520 },
-      { "type": "llm_token", "data": { "content": "控制仓位" }, "ts": 1740384000560 },
-      { "type": "llm_token", "data": { "content": "在总资产的" }, "ts": 1740384000600 },
-      { "type": "llm_token", "data": { "content": "20% 以内。" }, "ts": 1740384000640 },
-      { "type": "session_end", "data": {}, "ts": 1740384000680 }
+      { "type": "llm_token", "data": { "content": "从当前" },      "ts": 1740384000040 },
+      { "type": "llm_token", "data": { "content": "链上数据" },    "ts": 1740384000080 },
+      { "type": "llm_token", "data": { "content": "和市场" },      "ts": 1740384000120 },
+      { "type": "llm_token", "data": { "content": "情绪来看，" },  "ts": 1740384000160 },
+      { "type": "llm_token", "data": { "content": "BTC 短期" },    "ts": 1740384000200 },
+      { "type": "llm_token", "data": { "content": "波动较大，" },  "ts": 1740384000240 },
+      { "type": "llm_token", "data": { "content": "建议分批" },    "ts": 1740384000280 },
+      { "type": "llm_token", "data": { "content": "建仓而非" },    "ts": 1740384000320 },
+      { "type": "llm_token", "data": { "content": "一次性重仓。" },"ts": 1740384000360 },
+      { "type": "llm_token", "data": { "content": "长期持有" },    "ts": 1740384000400 },
+      { "type": "llm_token", "data": { "content": "逻辑仍然" },    "ts": 1740384000440 },
+      { "type": "llm_token", "data": { "content": "成立，" },      "ts": 1740384000480 },
+      { "type": "llm_token", "data": { "content": "但需注意" },    "ts": 1740384000520 },
+      { "type": "llm_token", "data": { "content": "控制仓位" },    "ts": 1740384000560 },
+      { "type": "llm_token", "data": { "content": "在总资产的" },  "ts": 1740384000600 },
+      { "type": "llm_token", "data": { "content": "20% 以内。" },  "ts": 1740384000640 }
     ],
     "tools": [],
     "client_actions": [],
@@ -46,21 +44,19 @@
       }
     },
     "answer_verbose": [
-      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740384150000 },
-      { "type": "llm_token", "data": { "content": "通常建议" }, "ts": 1740384150040 },
-      { "type": "llm_token", "data": { "content": "设在入场价" }, "ts": 1740384150080 },
-      { "type": "llm_token", "data": { "content": "的 8%-10%" }, "ts": 1740384150120 },
-      { "type": "llm_token", "data": { "content": "以下。" }, "ts": 1740384150160 },
-      { "type": "llm_token", "data": { "content": "如果你的" }, "ts": 1740384150200 },
-      { "type": "llm_token", "data": { "content": "风险偏好" }, "ts": 1740384150240 },
-      { "type": "llm_token", "data": { "content": "较低，" }, "ts": 1740384150280 },
-      { "type": "llm_token", "data": { "content": "可以收紧" }, "ts": 1740384150320 },
-      { "type": "llm_token", "data": { "content": "到 5%。" }, "ts": 1740384150360 },
-      { "type": "llm_token", "data": { "content": "记住，" }, "ts": 1740384150400 },
-      { "type": "llm_token", "data": { "content": "止损是为了" }, "ts": 1740384150440 },
-      { "type": "llm_token", "data": { "content": "保护本金，" }, "ts": 1740384150480 },
-      { "type": "llm_token", "data": { "content": "不是认输。" }, "ts": 1740384150520 },
-      { "type": "session_end", "data": {}, "ts": 1740384150560 }
+      { "type": "llm_token", "data": { "content": "通常建议" },    "ts": 1740384150040 },
+      { "type": "llm_token", "data": { "content": "设在入场价" },  "ts": 1740384150080 },
+      { "type": "llm_token", "data": { "content": "的 8%-10%" },  "ts": 1740384150120 },
+      { "type": "llm_token", "data": { "content": "以下。" },      "ts": 1740384150160 },
+      { "type": "llm_token", "data": { "content": "如果你的" },    "ts": 1740384150200 },
+      { "type": "llm_token", "data": { "content": "风险偏好" },    "ts": 1740384150240 },
+      { "type": "llm_token", "data": { "content": "较低，" },      "ts": 1740384150280 },
+      { "type": "llm_token", "data": { "content": "可以收紧" },    "ts": 1740384150320 },
+      { "type": "llm_token", "data": { "content": "到 5%。" },     "ts": 1740384150360 },
+      { "type": "llm_token", "data": { "content": "记住，" },      "ts": 1740384150400 },
+      { "type": "llm_token", "data": { "content": "止损是为了" },  "ts": 1740384150440 },
+      { "type": "llm_token", "data": { "content": "保护本金，" },  "ts": 1740384150480 },
+      { "type": "llm_token", "data": { "content": "不是认输。" },  "ts": 1740384150520 }
     ],
     "tools": [],
     "client_actions": [],
@@ -78,26 +74,24 @@
       }
     },
     "answer_verbose": [
-      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740470700000 },
-      { "type": "llm_token", "data": { "content": "ETH 近期" }, "ts": 1740470700040 },
-      { "type": "llm_token", "data": { "content": "下跌主要" }, "ts": 1740470700080 },
-      { "type": "llm_token", "data": { "content": "受几个" }, "ts": 1740470700120 },
-      { "type": "llm_token", "data": { "content": "因素影响：" }, "ts": 1740470700160 },
-      { "type": "llm_token", "data": { "content": "1) 宏观市场" }, "ts": 1740470700200 },
-      { "type": "llm_token", "data": { "content": "风险情绪" }, "ts": 1740470700240 },
-      { "type": "llm_token", "data": { "content": "收缩；" }, "ts": 1740470700280 },
+      { "type": "llm_token", "data": { "content": "ETH 近期" },    "ts": 1740470700040 },
+      { "type": "llm_token", "data": { "content": "下跌主要" },    "ts": 1740470700080 },
+      { "type": "llm_token", "data": { "content": "受几个" },      "ts": 1740470700120 },
+      { "type": "llm_token", "data": { "content": "因素影响：" },  "ts": 1740470700160 },
+      { "type": "llm_token", "data": { "content": "1) 宏观市场" },"ts": 1740470700200 },
+      { "type": "llm_token", "data": { "content": "风险情绪" },    "ts": 1740470700240 },
+      { "type": "llm_token", "data": { "content": "收缩；" },      "ts": 1740470700280 },
       { "type": "llm_token", "data": { "content": "2) ETH ETF" }, "ts": 1740470700320 },
-      { "type": "llm_token", "data": { "content": "净流出持续；" }, "ts": 1740470700360 },
-      { "type": "llm_token", "data": { "content": "3) Layer2" }, "ts": 1740470700400 },
-      { "type": "llm_token", "data": { "content": "生态分流了" }, "ts": 1740470700440 },
-      { "type": "llm_token", "data": { "content": "部分资金。" }, "ts": 1740470700480 },
-      { "type": "llm_token", "data": { "content": "短期内" }, "ts": 1740470700520 },
-      { "type": "llm_token", "data": { "content": "仍有压力，" }, "ts": 1740470700560 },
-      { "type": "llm_token", "data": { "content": "但 Pectra" }, "ts": 1740470700600 },
-      { "type": "llm_token", "data": { "content": "升级预期" }, "ts": 1740470700640 },
-      { "type": "llm_token", "data": { "content": "是正面" }, "ts": 1740470700680 },
-      { "type": "llm_token", "data": { "content": "催化剂。" }, "ts": 1740470700720 },
-      { "type": "session_end", "data": {}, "ts": 1740470700760 }
+      { "type": "llm_token", "data": { "content": "净流出持续；" },"ts": 1740470700360 },
+      { "type": "llm_token", "data": { "content": "3) Layer2" },  "ts": 1740470700400 },
+      { "type": "llm_token", "data": { "content": "生态分流了" },  "ts": 1740470700440 },
+      { "type": "llm_token", "data": { "content": "部分资金。" },  "ts": 1740470700480 },
+      { "type": "llm_token", "data": { "content": "短期内" },      "ts": 1740470700520 },
+      { "type": "llm_token", "data": { "content": "仍有压力，" },  "ts": 1740470700560 },
+      { "type": "llm_token", "data": { "content": "但 Pectra" },  "ts": 1740470700600 },
+      { "type": "llm_token", "data": { "content": "升级预期" },    "ts": 1740470700640 },
+      { "type": "llm_token", "data": { "content": "是正面" },      "ts": 1740470700680 },
+      { "type": "llm_token", "data": { "content": "催化剂。" },    "ts": 1740470700720 }
     ],
     "tools": [],
     "client_actions": [],
@@ -117,12 +111,11 @@
       }
     },
     "answer_verbose": [
-      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740441600000 },
-      { "type": "llm_token", "data": { "content": "好的，" }, "ts": 1740441600040 },
-      { "type": "llm_token", "data": { "content": "我来帮你" }, "ts": 1740441600080 },
-      { "type": "llm_token", "data": { "content": "创建一个" }, "ts": 1740441600120 },
+      { "type": "llm_token", "data": { "content": "好的，" },      "ts": 1740441600040 },
+      { "type": "llm_token", "data": { "content": "我来帮你" },    "ts": 1740441600080 },
+      { "type": "llm_token", "data": { "content": "创建一个" },    "ts": 1740441600120 },
       { "type": "llm_token", "data": { "content": "swap 交易，" }, "ts": 1740441600160 },
-      { "type": "llm_token", "data": { "content": "稍等一下。" }, "ts": 1740441600200 },
+      { "type": "llm_token", "data": { "content": "稍等一下。" },  "ts": 1740441600200 },
       {
         "type": "tool_call_start",
         "data": {
@@ -131,6 +124,7 @@
           "args": {
             "symbol": "ETH",
             "side": "BUY",
+            "tradeType": "SPOT",
             "network": "eth",
             "amountUsd": "100"
           }
@@ -162,11 +156,10 @@
         },
         "ts": 1740441600650
       },
-      { "type": "llm_token", "data": { "content": "交易窗口" }, "ts": 1740441600700 },
-      { "type": "llm_token", "data": { "content": "已为你打开，" }, "ts": 1740441600740 },
-      { "type": "llm_token", "data": { "content": "请确认" }, "ts": 1740441600780 },
-      { "type": "llm_token", "data": { "content": "交易详情后继续。" }, "ts": 1740441600820 },
-      { "type": "session_end", "data": {}, "ts": 1740441600860 }
+      { "type": "llm_token", "data": { "content": "交易窗口" },    "ts": 1740441600700 },
+      { "type": "llm_token", "data": { "content": "已为你打开，" },"ts": 1740441600740 },
+      { "type": "llm_token", "data": { "content": "请确认" },      "ts": 1740441600780 },
+      { "type": "llm_token", "data": { "content": "交易详情后继续。" }, "ts": 1740441600820 }
     ],
     "tools": ["create_trade_intent"],
     "client_actions": ["OPEN_TRADE_WINDOW"],
@@ -186,11 +179,10 @@
       }
     },
     "answer_verbose": [
-      { "type": "session_start", "data": { "model": "mock" }, "ts": 1740528000000 },
-      { "type": "llm_token", "data": { "content": "检测到" }, "ts": 1740528000040 },
-      { "type": "llm_token", "data": { "content": "余额可能不足，" }, "ts": 1740528000080 },
-      { "type": "llm_token", "data": { "content": "为你显示" }, "ts": 1740528000120 },
-      { "type": "llm_token", "data": { "content": "充值引导。" }, "ts": 1740528000160 },
+      { "type": "llm_token", "data": { "content": "检测到" },      "ts": 1740528000040 },
+      { "type": "llm_token", "data": { "content": "余额可能不足，" },"ts": 1740528000080 },
+      { "type": "llm_token", "data": { "content": "为你显示" },    "ts": 1740528000120 },
+      { "type": "llm_token", "data": { "content": "充值引导。" },  "ts": 1740528000160 },
       {
         "type": "tool_call_start",
         "data": {
@@ -227,9 +219,8 @@
         },
         "ts": 1740528000600
       },
-      { "type": "llm_token", "data": { "content": "充值完成后" }, "ts": 1740528000650 },
-      { "type": "llm_token", "data": { "content": "即可继续操作。" }, "ts": 1740528000690 },
-      { "type": "session_end", "data": {}, "ts": 1740528000730 }
+      { "type": "llm_token", "data": { "content": "充值完成后" },  "ts": 1740528000650 },
+      { "type": "llm_token", "data": { "content": "即可继续操作。" },"ts": 1740528000690 }
     ],
     "tools": ["show_deposit_prompt"],
     "client_actions": ["SHOW_DEPOSIT_PROMPT"],
