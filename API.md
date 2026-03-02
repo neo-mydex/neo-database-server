@@ -145,11 +145,18 @@
 
 **接口地址**: `GET /ai-api/contents/processed`
 
+**语言说明**：服务端按以下优先级决定返回语言：
+1. `Accept-Language` 请求头（推荐，支持 `zh-CN`/`zh-cn`/`zh-tw`/`en`/`en-US`/`ko`/`ko-KR`/`ja`/`ja-JP`）
+2. `?lang=` 查询参数（兜底）
+3. 默认 `zh-CN`
+
+`zh-tw` 当前映射到 `zh-CN`（暂无繁中翻译）。
+
 **请求参数**:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
 | category | string | 否 | 分类筛选：educational/tradable/macro |
 | risk_level | string | 否 | 风险等级筛选：low/medium/high |
 | content_type | string | 否 | 内容类型筛选：news/edu/social |
@@ -179,7 +186,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
       "publishedAt": 1740441600000,
       "url": null,
       "author": "@DeFiResearch",
-      "language": "en",
+      "language": "en-US",
       "images": ["https://example.com/image.jpg"],
       "social_metrics": null,
       "volatility": "0.85",
@@ -327,7 +334,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
 
 **请求示例**:
 ```http
@@ -361,7 +368,7 @@ GET /ai-api/contents/processed/news_001?lang=en-US
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 
@@ -396,7 +403,7 @@ GET /ai-api/contents/category/tradable?lang=en-US&page=1&pageSize=20
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认，中文原文）/en-US（英文）/ja-JP（日文）/ko-KR（韩文）。无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 

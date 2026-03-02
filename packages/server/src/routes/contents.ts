@@ -6,9 +6,40 @@ import { authMiddleware } from '../middleware/auth'
 
 const VALID_LANGS: SupportedLang[] = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR']
 
-function parseLang(lang: unknown): SupportedLang {
-  if (!lang || !VALID_LANGS.includes(lang as SupportedLang)) return 'zh-CN'
-  return lang as SupportedLang
+// Accept-Language header 值 → SupportedLang 映射（前端 i18n 框架常见格式）
+const ACCEPT_LANG_MAP: Record<string, SupportedLang> = {
+  'en': 'en-US',
+  'en-us': 'en-US',
+  'zh': 'zh-CN',
+  'zh-cn': 'zh-CN',
+  'zh-tw': 'zh-CN',
+  'ko': 'ko-KR',
+  'ko-kr': 'ko-KR',
+  'ja': 'ja-JP',
+  'ja-jp': 'ja-JP',
+}
+
+/**
+ * 解析语言：优先 ?lang= 参数，其次 Accept-Language header，最后 fallback zh-CN
+ * 兼容大小写（zh-CN / zh-cn 均可）
+ */
+function parseLang(lang: unknown, req?: Request): SupportedLang {
+  // 1. ?lang= 参数优先（兼容大小写）
+  if (lang) {
+    const normalized = (lang as string).toLowerCase()
+    if (ACCEPT_LANG_MAP[normalized]) return ACCEPT_LANG_MAP[normalized]
+    const upper = lang as SupportedLang
+    if (VALID_LANGS.includes(upper)) return upper
+  }
+  // 2. Accept-Language header
+  if (req) {
+    const header = req.headers['accept-language'] ?? ''
+    // 取第一个语言标签（如 "zh-CN,zh;q=0.9,en;q=0.8" → "zh-CN"）
+    const first = header.split(',')[0].trim().split(';')[0].trim().toLowerCase()
+    if (first && ACCEPT_LANG_MAP[first]) return ACCEPT_LANG_MAP[first]
+  }
+  // 3. fallback
+  return 'zh-CN'
 }
 
 function assertTranslationLang(lang: unknown): SupportedLang {
@@ -305,7 +336,7 @@ router.get(
   '/processed/:id',
   asyncHandler(async (req: Request, res: Response) => {
     const { id } = req.params
-    const lang = parseLang(req.query.lang)
+    const lang = parseLang(req.query.lang, req)
     const content = await contentRepo.findProcessedById(id as string, lang)
 
     if (!content) {
@@ -344,7 +375,7 @@ router.get(
       pageSize = '20',
     } = req.query
 
-    const lang = parseLang(req.query.lang)
+    const lang = parseLang(req.query.lang, req)
 
     // 参数验证
     const pageNum = parseInt(page as string)
@@ -384,7 +415,7 @@ router.get(
   asyncHandler(async (req: Request, res: Response) => {
     const { category } = req.params
     const { page = '1', pageSize = '20' } = req.query
-    const lang = parseLang(req.query.lang)
+    const lang = parseLang(req.query.lang, req)
 
     // 验证分类参数
     const validCategories = ['educational', 'tradable', 'macro']
@@ -426,7 +457,7 @@ router.get(
   asyncHandler(async (req: Request, res: Response) => {
     const { riskLevel } = req.params
     const { page = '1', pageSize = '20' } = req.query
-    const lang = parseLang(req.query.lang)
+    const lang = parseLang(req.query.lang, req)
 
     // 验证风险等级参数
     const validRiskLevels = ['low', 'medium', 'high']
@@ -476,7 +507,7 @@ router.get(
       pageSize = '20',
     } = req.query
 
-    const lang = parseLang(req.query.lang)
+    const lang = parseLang(req.query.lang, req)
 
     const pageNum = parseInt(page as string)
     const pageSizeNum = Math.min(parseInt(pageSize as string), 100)
