@@ -58,42 +58,43 @@ const router: Router = Router()
 
 interface TokenMarketData {
   usdPrice: number | null
-  change1hPct: number | null
   change24hPct: number | null
   logo: string
 }
 
 /**
- * 从 Binance 查询单个 token 的实时价格和涨跌幅，logo 来自 CoinCap。
- * 查不到（小币未上 Binance）时价格字段返回 null，logo 仍然返回。
+ * 从 OKX 查询单个 token 的实时价格和 24h 涨跌幅，logo 来自 CoinCap。
+ * 查不到（小币未上 OKX）时价格字段返回 null，logo 仍然返回。
  */
 async function fetchTokenMarketData(symbol: string): Promise<TokenMarketData> {
-  const pair = `${symbol.toUpperCase()}USDT`
+  const instId = `${symbol.toUpperCase()}-USDT`
   const logo = `https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`
 
   try {
-    const [res24h, res1h] = await Promise.all([
-      fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`),
-      fetch(`https://api.binance.com/api/v3/ticker?symbol=${pair}&windowSize=1h`),
-    ])
+    const res = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${instId}`)
 
-    if (!res24h.ok || !res1h.ok) {
-      return { usdPrice: null, change1hPct: null, change24hPct: null, logo }
+    if (!res.ok) {
+      return { usdPrice: null, change24hPct: null, logo }
     }
 
-    const [data24h, data1h] = await Promise.all([
-      res24h.json() as Promise<any>,
-      res1h.json() as Promise<any>,
-    ])
+    const json = await res.json() as any
+    const ticker = json?.data?.[0]
+
+    if (!ticker) {
+      return { usdPrice: null, change24hPct: null, logo }
+    }
+
+    const last = parseFloat(ticker.last)
+    const open24h = parseFloat(ticker.open24h)
+    const change24hPct = ((last - open24h) / open24h) * 100
 
     return {
-      usdPrice: parseFloat(data24h.lastPrice),
-      change24hPct: parseFloat(data24h.priceChangePercent),
-      change1hPct: parseFloat(data1h.priceChangePercent),
+      usdPrice: last,
+      change24hPct: parseFloat(change24hPct.toFixed(4)),
       logo,
     }
   } catch {
-    return { usdPrice: null, change1hPct: null, change24hPct: null, logo }
+    return { usdPrice: null, change24hPct: null, logo }
   }
 }
 

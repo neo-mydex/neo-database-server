@@ -232,7 +232,6 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
           "chain": "arb",
           "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548",
           "usdPrice": 0.106,
-          "change1hPct": 4.289,
           "change24hPct": 4.743,
           "logo": "https://assets.coincap.io/assets/icons/arb@2x.png"
         }
@@ -291,9 +290,8 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 | confidence | number | 置信度 0-1 |
 | chain | string \| null | 区块链代号：eth/sol/bsc/polygon/avax/base/op/arb/ftm/movr/glm/aurora/metis/cro |
 | addr | string \| null | 代币地址（EVM: 0x 开头，SOL: base58 编码） |
-| usdPrice | number \| null | 当前 USD 价格（Binance 实时，查不到时为 null） |
-| change1hPct | number \| null | 1小时涨跌幅百分比（如 4.29 表示 +4.29%，查不到时为 null） |
-| change24hPct | number \| null | 24小时涨跌幅百分比（查不到时为 null） |
+| usdPrice | number \| null | 当前 USD 价格（OKX 实时，查不到时为 null） |
+| change24hPct | number \| null | 24小时涨跌幅百分比（如 4.29 表示 +4.29%，查不到时为 null） |
 | logo | string | 代币图标 URL（CoinCap，格式：`https://assets.coincap.io/assets/icons/{symbol小写}@2x.png`） |
 
 **SocialMetrics 字段说明**:
