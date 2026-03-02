@@ -23,9 +23,13 @@ jobs:
 
             cd /workspace/node/neo-database-server
 
-            git stash
+            cp .env /tmp/neo-server.env.bak 2>/dev/null || true
+
+            git checkout -- .env 2>/dev/null || true
 
             git pull origin main
+
+            cp /tmp/neo-server.env.bak .env 2>/dev/null || true
 
             pnpm install --frozen-lockfile
 
