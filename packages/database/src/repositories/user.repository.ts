@@ -54,11 +54,13 @@ export class UserRepository {
     const now = new Date()
     const result = await client.query(
       `INSERT INTO ai_user_profiles
-        (user_id, risk_appetite, patience, info_sensitivity, decision_speed, cat_type, cat_desc, registered_at, trade_count)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        (user_id, evm_address, sol_address, risk_appetite, patience, info_sensitivity, decision_speed, cat_type, cat_desc, registered_at, trade_count)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
        RETURNING *`,
       [
         userId,
+        input.evm_address,
+        input.sol_address,
         input.risk_appetite,
         input.patience,
         input.info_sensitivity,
@@ -66,7 +68,7 @@ export class UserRepository {
         input.cat_type,
         input.cat_desc,
         now,
-        0, // trade_count 初始值为 0
+        0,
       ]
     )
     return this.mapUser(result.rows[0])
@@ -91,6 +93,8 @@ export class UserRepository {
       const cat = await this.lookupCat(risk, speed, info, patience)
       const user = await this.create(userId, {
         user_id: userId,
+        evm_address: input.evm_address,
+        sol_address: input.sol_address,
         risk_appetite: risk,
         patience,
         info_sensitivity: info,
@@ -106,6 +110,8 @@ export class UserRepository {
     const values: any[] = []
     let i = 1
 
+    updates.push(`evm_address = $${i++}`); values.push(input.evm_address)
+    updates.push(`sol_address = $${i++}`); values.push(input.sol_address)
     if (input.risk_appetite !== undefined) { updates.push(`risk_appetite = $${i++}`); values.push(input.risk_appetite) }
     if (input.patience !== undefined) { updates.push(`patience = $${i++}`); values.push(input.patience) }
     if (input.info_sensitivity !== undefined) { updates.push(`info_sensitivity = $${i++}`); values.push(input.info_sensitivity) }

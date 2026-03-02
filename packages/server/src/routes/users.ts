@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express'
-import { userRepo } from '@mydex/database'
+import { userRepo, isValidTokenAddress } from '@mydex/database'
 import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 import { authMiddleware } from '../middleware/auth'
 
@@ -32,8 +32,21 @@ router.post(
   '/',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const { risk_appetite, patience, info_sensitivity, decision_speed } = req.body
+    const { evmAddress, solAddress, risk_appetite, patience, info_sensitivity, decision_speed } = req.body
     const userId = req.userId!
+
+    // 必填校验
+    if (!evmAddress || !solAddress) {
+      throw new ApiError(400, 'evmAddress and solAddress are required')
+    }
+
+    // 地址格式校验
+    if (!isValidTokenAddress(evmAddress, 'eth')) {
+      throw new ApiError(400, 'Invalid evmAddress format (expected 0x + 40 hex chars)')
+    }
+    if (!isValidTokenAddress(solAddress, 'sol')) {
+      throw new ApiError(400, 'Invalid solAddress format (expected base58, 32-44 chars)')
+    }
 
     // 验证数值范围（仅当前端传了值时才校验）
     const numericFields = [risk_appetite, patience, info_sensitivity, decision_speed].filter((v) => v !== undefined)
@@ -42,6 +55,8 @@ router.post(
     }
 
     const { user, created } = await userRepo.upsert(userId, {
+      evm_address: evmAddress,
+      sol_address: solAddress,
       risk_appetite,
       patience,
       info_sensitivity,

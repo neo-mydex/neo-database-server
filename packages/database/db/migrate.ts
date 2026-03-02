@@ -15,6 +15,7 @@ async function migrate() {
     'migrations/006_chatbot_sessions_uuid_id.sql',
     'migrations/007_create_ai_cat_map.sql',
     'migrations/008_patch_ai_cat_map_insert.sql',
+    'migrations/009_add_address_to_user_profiles.sql',
   ]
 
   for (const file of files) {

@@ -8,6 +8,8 @@
  */
 export interface UserProfile {
   user_id: string
+  evm_address: string        // EVM 钱包地址（0x...）
+  sol_address: string        // Solana 钱包地址（base58）
   risk_appetite: number      // 1-10, 风险偏好
   patience: number           // 1-10, 耐心程度
   info_sensitivity: number   // 1-10, 信息敏感度
@@ -47,8 +49,8 @@ export interface UpdateUserCatInput {
 
 /**
  * POST /ai-api/users upsert 输入类型
+ * evm_address/sol_address 必填，其余维度字段可选
  * 排除 user_id（从 JWT 取）以及 cat_type/cat_desc（服务端自动查表）
  */
-export type UpsertUserInput = Partial<
-  Omit<CreateUserInput, 'user_id' | 'cat_type' | 'cat_desc'>
->
+export type UpsertUserInput = Pick<CreateUserInput, 'evm_address' | 'sol_address'> &
+  Partial<Omit<CreateUserInput, 'user_id' | 'cat_type' | 'cat_desc' | 'evm_address' | 'sol_address'>>
