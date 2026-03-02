@@ -59,6 +59,62 @@ async function testGetProcessedContents() {
   }
 }
 
+async function testLangResolution() {
+  printSection('语言解析：Accept-Language header vs ?lang= 参数')
+
+  // 辅助：取第一条内容的 title，传入不同语言配置
+  async function fetchTitle(opts: { header?: string; query?: string }): Promise<string> {
+    const qs = opts.query ? `?lang=${opts.query}` : ''
+    const headers: Record<string, string> = { 'Content-Type': 'application/json' }
+    if (opts.header) headers['Accept-Language'] = opts.header
+    const url = `${BASE_URL}/ai-api/contents/processed/news_001${qs}`
+    const res = await fetch(url, { headers })
+    const data = await res.json()
+    return data.data?.title ?? '(no title)'
+  }
+
+  // 1. 无 header 无 lang → zh-CN（中文标题）
+  const title_zh = await fetchTitle({})
+  console.log(`  无 header 无 lang (expect zh-CN): "${title_zh}"`)
+
+  // 2. ?lang=en-US → 英文标题
+  const title_en_query = await fetchTitle({ query: 'en-US' })
+  console.log(`  ?lang=en-US (expect en-US):        "${title_en_query}"`)
+
+  // 3. Accept-Language: en → 英文标题
+  const title_en_header = await fetchTitle({ header: 'en' })
+  console.log(`  Accept-Language: en (expect en-US): "${title_en_header}"`)
+
+  // 4. Accept-Language: zh-cn（小写）→ 中文标题
+  const title_zh_lower = await fetchTitle({ header: 'zh-cn' })
+  console.log(`  Accept-Language: zh-cn (expect zh-CN): "${title_zh_lower}"`)
+
+  // 5. Accept-Language: zh-tw → 映射到 zh-CN
+  const title_zh_tw = await fetchTitle({ header: 'zh-tw' })
+  console.log(`  Accept-Language: zh-tw (expect zh-CN): "${title_zh_tw}"`)
+
+  // 6. Accept-Language: ko → 韩文标题
+  const title_ko = await fetchTitle({ header: 'ko' })
+  console.log(`  Accept-Language: ko (expect ko-KR):    "${title_ko}"`)
+
+  // 7. Accept-Language: ja → 日文标题
+  const title_ja = await fetchTitle({ header: 'ja' })
+  console.log(`  Accept-Language: ja (expect ja-JP):    "${title_ja}"`)
+
+  // 8. header + query 同时存在 → header 优先（用 curl 验证，Node fetch 会注入系统 Accept-Language）
+  const { execSync } = await import('child_process')
+  const curl_out = execSync(
+    `curl -s "${BASE_URL}/ai-api/contents/processed/news_001?lang=ko-KR" -H "Accept-Language: en"`
+  ).toString()
+  const curl_title = JSON.parse(curl_out).data?.title ?? ''
+  const same_as_en = curl_title === title_en_header
+  console.log(`  header=en & ?lang=ko-KR → header 优先 (en-US): ${same_as_en ? '✅' : '❌'} "${curl_title}"`)
+
+  // 9. Accept-Language 带 q 权重（浏览器标准格式）→ 取第一个
+  const title_browser = await fetchTitle({ header: 'zh-CN,zh;q=0.9,en-US;q=0.8' })
+  console.log(`  Accept-Language: zh-CN,zh;q=0.9,en... (expect zh-CN): "${title_browser}"`)
+}
+
 async function testGetContentById() {
   printSection('获取单条内容详情')
   const result = await request('/ai-api/contents/processed/news_001')
@@ -189,6 +245,9 @@ async function runTests() {
 
     // 2. 内容 API 测试
     await testGetProcessedContents()
+    await delay(500)
+
+    await testLangResolution()
     await delay(500)
 
     await testGetContentById()

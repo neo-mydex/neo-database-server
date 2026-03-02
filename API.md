@@ -156,7 +156,7 @@
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无 header 时生效，无对应翻译时 fallback 到中文 |
 | category | string | 否 | 分类筛选：educational/tradable/macro |
 | risk_level | string | 否 | 风险等级筛选：low/medium/high |
 | content_type | string | 否 | 内容类型筛选：news/edu/social |
@@ -334,7 +334,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无 header 时生效，无对应翻译时 fallback 到中文 |
 
 **请求示例**:
 ```http
@@ -368,7 +368,7 @@ GET /ai-api/contents/processed/news_001?lang=en-US
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无 header 时生效，无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 
@@ -403,7 +403,7 @@ GET /ai-api/contents/category/tradable?lang=en-US&page=1&pageSize=20
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无对应翻译时 fallback 到中文 |
+| lang | string | 否 | 显示语言：zh-CN（默认）/en-US/ja-JP/ko-KR。**优先级低于 `Accept-Language` header**，无 header 时生效，无对应翻译时 fallback 到中文 |
 | page | number | 否 | 页码，从 1 开始，默认 1 |
 | pageSize | number | 否 | 每页数量，默认 20，最大 100 |
 
@@ -777,31 +777,23 @@ Authorization: Bearer <privy_jwt_token>
 
 **认证**: 需要 JWT（user_id 从 token 取，body 不需要传）
 
-**请求参数**:
+**请求参数**（body 所有字段均可选，不传则使用默认值）:
 
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| risk_appetite | number | 是 | 风险偏好 1-10 |
-| patience | number | 是 | 耐心程度 1-10 |
-| info_sensitivity | number | 是 | 信息敏感度 1-10 |
-| decision_speed | number | 是 | 决策速度 1-10 |
-| cat_type | string | 是 | 用户分类标签 |
-| cat_desc | string | 是 | 用户分类描述 |
+| 参数名 | 类型 | 必填 | 默认值 | 说明 |
+|--------|------|------|--------|------|
+| risk_appetite | number | 否 | 5 | 风险偏好 1-10 |
+| patience | number | 否 | 5 | 耐心程度 1-10 |
+| info_sensitivity | number | 否 | 5 | 信息敏感度 1-10 |
+| decision_speed | number | 否 | 5 | 决策速度 1-10 |
+| cat_type | string | 否 | "均衡的全能喵" | 用户分类标签 |
+| cat_desc | string | 否 | "各项指标均衡" | 用户分类描述 |
 
-**请求示例**:
+> user_id 从 JWT token 自动解析，body 无需传入。
+
+**请求示例（空 body，全部使用默认值）**:
 ```http
 POST /ai-api/users
 Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
-```
-```json
-{
-  "risk_appetite": 5,
-  "patience": 5,
-  "info_sensitivity": 5,
-  "decision_speed": 5,
-  "cat_type": "均衡的全能喵",
-  "cat_desc": "各项指标均衡"
-}
 ```
 
 **响应示例** (HTTP 201):

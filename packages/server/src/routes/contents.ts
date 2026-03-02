@@ -20,23 +20,23 @@ const ACCEPT_LANG_MAP: Record<string, SupportedLang> = {
 }
 
 /**
- * 解析语言：优先 ?lang= 参数，其次 Accept-Language header，最后 fallback zh-CN
+ * 解析语言：优先 Accept-Language header，其次 ?lang= 参数，最后 fallback zh-CN
  * 兼容大小写（zh-CN / zh-cn 均可）
  */
 function parseLang(lang: unknown, req?: Request): SupportedLang {
-  // 1. ?lang= 参数优先（兼容大小写）
-  if (lang) {
-    const normalized = (lang as string).toLowerCase()
-    if (ACCEPT_LANG_MAP[normalized]) return ACCEPT_LANG_MAP[normalized]
-    const upper = lang as SupportedLang
-    if (VALID_LANGS.includes(upper)) return upper
-  }
-  // 2. Accept-Language header
+  // 1. Accept-Language header 优先
   if (req) {
     const header = req.headers['accept-language'] ?? ''
     // 取第一个语言标签（如 "zh-CN,zh;q=0.9,en;q=0.8" → "zh-CN"）
     const first = header.split(',')[0].trim().split(';')[0].trim().toLowerCase()
     if (first && ACCEPT_LANG_MAP[first]) return ACCEPT_LANG_MAP[first]
+  }
+  // 2. ?lang= 参数兜底（兼容大小写）
+  if (lang) {
+    const normalized = (lang as string).toLowerCase()
+    if (ACCEPT_LANG_MAP[normalized]) return ACCEPT_LANG_MAP[normalized]
+    const upper = lang as SupportedLang
+    if (VALID_LANGS.includes(upper)) return upper
   }
   // 3. fallback
   return 'zh-CN'
