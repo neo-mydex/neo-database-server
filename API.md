@@ -1077,14 +1077,14 @@ Authorization: Bearer <privy_jwt_token>
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| id | number | 消息 ID（自增整数） |
+| id | string | 消息 UUID（如 `"39c5f97e-8286-4008-9da7-0e876ea3fa63"`） |
 | user_id | string | 用户 Privy ID（如 `did:privy:xxx`） |
 | session_id | string | 会话 ID（前端生成的 UUID） |
-| question | string | 用户提问（纯文字，向后兼容） |
-| answer | string | AI 回复（纯文字，向后兼容） |
-| question_verbose | object | 结构化问题，含 message 和 context（如当前页面路径、钱包地址等）；无 tool 场景时 context 只含 pathname |
-| answer_verbose | array | 完整 SSE 事件数组，供前端历史回放；纯文字场景为 `[]` |
-| tools | string[] | 本次对话触发的 tool 名列表（如 `["create_trade_intent"]`）；无 tool 调用时为 `[]` |
+| question | string | 用户提问（纯文字） |
+| answer | string | AI 回复（纯文字，stream 结束后服务端自动拼接） |
+| question_verbose | object | 结构化问题：`{ "message": "...", "context": { "source": "/trade" } }` |
+| answer_verbose | array | 完整 SSE 事件数组，供历史回放（stream 自动落库时为 `[]`，可通过 PATCH 补充） |
+| tools | string[] | 本次对话触发的 tool 名列表（如 `["create_trade_intent"]`）；无调用时为 `[]` |
 | client_actions | string[] | 本次对话触发的 client action type 列表（如 `["OPEN_TRADE_WINDOW"]`）；无 action 时为 `[]` |
 | created_at | number | 创建时间（Unix 毫秒时间戳） |
 | updated_at | number | 更新时间（Unix 毫秒时间戳） |
@@ -1365,10 +1365,16 @@ data: <JSON string>\n\n
 > 触发场景：所有场景，对话的最后一个事件
 
 ```json
-{}
+{
+  "message_id": "39c5f97e-8286-4008-9da7-0e876ea3fa63"
+}
 ```
 
-收到此事件后，前端应关闭连接，并调用 `POST /messages` 将本次对话落库。
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| `message_id` | string | 本轮对话在数据库中的 UUID，**服务端已自动落库**，前端存下此 id 以备后续 PATCH |
+
+> **无需前端手动落库**：收到 `session_end` 时，服务端已完成 `question` + `answer` 写入和 `chat_count +1`。前端只需保存 `message_id`，供用户修改 client_action 参数后调用 `PATCH /messages/:id` 更新。
 
 ---
 
@@ -1487,8 +1493,8 @@ while (true) {
         break
 
       case 'session_end':
-        // 对话结束，调用 POST /messages 落库
-        await saveMessage({ sessionId, question: userInput, answer: fullAnswer })
+        // 服务端已自动落库，前端只需保存 message_id 供后续 PATCH 使用
+        const messageId = data.message_id
         break
     }
   }
@@ -1539,37 +1545,26 @@ Authorization: Bearer <token>
   "message": "success",
   "data": [
     {
-      "id": 1,
-      "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
+      "id": "39c5f97e-8286-4008-9da7-0e876ea3fa63",
+      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
       "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
       "question": "现在 BTC 值得买吗？",
-      "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓。",
-      "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
-      "answer_verbose": [
-        { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260200000 },
-        { "type": "llm_token", "data": { "content": "从当前" }, "ts": 1772260200030 },
-        { "type": "llm_token", "data": { "content": "链上数据" }, "ts": 1772260200060 },
-        { "type": "session_end", "data": {}, "ts": 1772260200400 }
-      ],
+      "answer": "我已经收到你的信息啦，请问还有什么可以帮你？",
+      "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "source": "/home" } },
+      "answer_verbose": [],
       "tools": [],
       "client_actions": [],
       "created_at": 1772260200000,
       "updated_at": 1772260200000
     },
     {
-      "id": 3,
-      "user_id": "did:privy:0x1234567890abcdef1234567890abcdef12345678",
-      "session_id": "a1b2c3d4-0003-0003-0003-000000000003",
-      "question": "我想用 100 USDC 换 ETH",
+      "id": "f7a3c1d2-9e4b-4a1f-b3c8-2d5e6f7a8b9c",
+      "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
+      "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
+      "question": "我想 swap 一些 ETH",
       "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
-      "question_verbose": { "message": "我想用 100 USDC 换 ETH", "context": { "pathname": "/trade", "network": "eth" } },
-      "answer_verbose": [
-        { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260494135 },
-        { "type": "llm_token", "data": { "content": "好的，" }, "ts": 1772260494165 },
-        { "type": "tool_call_start", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } }, "ts": 1772260494310 },
-        { "type": "tool_call_complete", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "client_action": { "type": "OPEN_TRADE_WINDOW", "params": { "symbol": "ETH", "side": "BUY", "tradeType": "SPOT", "network": "eth", "amountUsd": "100" } } } } }, "ts": 1772260494710 },
-        { "type": "session_end", "data": {}, "ts": 1772260494900 }
-      ],
+      "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "source": "/trade" } },
+      "answer_verbose": [],
       "tools": ["create_trade_intent"],
       "client_actions": ["OPEN_TRADE_WINDOW"],
       "created_at": 1772260400000,
@@ -1597,7 +1592,11 @@ Authorization: Bearer <token>
 
 **认证**: 需要 JWT（`user_id` 由服务端从 Token 注入，body 不需要也不能传 `user_id`）
 
-**说明**: AI 流式对话结束后，前端将完整的问答落库。建议同时传入 verbose 字段和 tools/client_actions，供历史回放和行为分析使用。
+**说明**:
+
+> **Stream 场景无需调用此接口**——SSE 流结束时服务端已自动落库，`session_end` 事件会携带 `message_id`。
+>
+> 此接口仅用于**非流式场景**（如批量导入历史对话、离线写入等）。
 
 **请求参数**:
 
@@ -1605,13 +1604,13 @@ Authorization: Bearer <token>
 |--------|------|------|------|
 | session_id | string | 是 | 会话 ID（与 stream 接口一致） |
 | question | string | 是 | 用户的提问（纯文字） |
-| answer | string | 是 | AI 完整回复（流式结束后拼接的纯文字） |
-| question_verbose | object | 否 | 结构化问题，含 context（如 `{"message":"...","context":{"pathname":"/trade"}}`） |
-| answer_verbose | array | 否 | 完整 SSE 事件数组（前端按收到顺序收集所有 event 对象） |
-| tools | string[] | 否 | 触发的 tool 名列表（从 `tool_call_complete` 事件中收集 `data.tool`） |
-| client_actions | string[] | 否 | 触发的 client action type 列表（从 `tool_call_complete.result.data.client_action.type` 收集） |
+| answer | string | 是 | AI 完整回复（纯文字） |
+| question_verbose | object | 否 | 结构化问题，如 `{"message":"...","context":{"source":"/trade"}}` |
+| answer_verbose | array | 否 | 完整 SSE 事件数组 |
+| tools | string[] | 否 | 触发的 tool 名列表 |
+| client_actions | string[] | 否 | 触发的 client action type 列表 |
 
-**请求示例（纯文字场景）**:
+**请求示例**:
 ```http
 POST /ai-api/chats/messages
 Authorization: Bearer <token>
@@ -1625,40 +1624,18 @@ Content-Type: application/json
 }
 ```
 
-**请求示例（swap 场景，带 verbose 字段）**:
-```json
-{
-  "session_id": "a1b2c3d4-0003-0003-0003-000000000003",
-  "question": "我想用 100 USDC 换 ETH",
-  "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
-  "question_verbose": {
-    "message": "我想用 100 USDC 换 ETH",
-    "context": { "pathname": "/trade", "network": "eth" }
-  },
-  "answer_verbose": [
-    { "type": "session_start", "data": { "model": "mock" }, "ts": 1772260494135 },
-    { "type": "llm_token", "data": { "content": "好的，" }, "ts": 1772260494165 },
-    { "type": "tool_call_start", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "args": {} }, "ts": 1772260494310 },
-    { "type": "tool_call_complete", "data": { "tool": "create_trade_intent", "callId": "call_xxx", "duration": 400, "result": { "status": "success", "data": { "client_action": { "type": "OPEN_TRADE_WINDOW", "params": {} } } } }, "ts": 1772260494410 },
-    { "type": "session_end", "data": {}, "ts": 1772260494590 }
-  ],
-  "tools": ["create_trade_intent"],
-  "client_actions": ["OPEN_TRADE_WINDOW"]
-}
-```
-
 **响应示例** (HTTP 201):
 ```json
 {
   "code": 200,
   "message": "success",
   "data": {
-    "id": 1,
+    "id": "39c5f97e-8286-4008-9da7-0e876ea3fa63",
     "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
     "question": "现在 BTC 值得买吗？",
     "answer": "从当前链上数据和市场情绪来看，BTC 短期波动较大，建议分批建仓而非一次性重仓。",
-    "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+    "question_verbose": {},
     "answer_verbose": [],
     "tools": [],
     "client_actions": [],
@@ -1680,28 +1657,32 @@ Content-Type: application/json
 
 **接口地址**: `PATCH /ai-api/chats/messages/:id`
 
+**`:id`**: 消息的 UUID（从 `session_end` 事件的 `message_id` 获取）
+
 **认证**: 需要 JWT，且该消息必须属于当前用户
+
+**典型使用场景**：用户在 `OPEN_TRADE_WINDOW` / `SHOW_DEPOSIT_PROMPT` 组件上修改了参数并确认交易后，前端调此接口将实际执行的 `client_actions` 写回数据库。
 
 **请求参数**（至少传一个）:
 
 | 参数名 | 类型 | 必填 | 说明 |
 |--------|------|------|------|
-| question | string | 否 | 更新后的提问（纯文字） |
-| answer | string | 否 | 更新后的回复（纯文字） |
+| question | string | 否 | 更新后的提问 |
+| answer | string | 否 | 更新后的回复 |
 | question_verbose | object | 否 | 更新结构化问题 |
 | answer_verbose | array | 否 | 更新完整 SSE 事件数组 |
 | tools | string[] | 否 | 更新触发的 tool 名列表 |
-| client_actions | string[] | 否 | 更新触发的 client action type 列表 |
+| client_actions | string[] | 否 | 更新触发的 client action type 列表（用户实际执行的动作） |
 
-**请求示例**:
+**请求示例**（用户确认交易后更新 client_actions）:
 ```http
-PATCH /ai-api/chats/messages/1
+PATCH /ai-api/chats/messages/39c5f97e-8286-4008-9da7-0e876ea3fa63
 Authorization: Bearer <token>
 Content-Type: application/json
 ```
 ```json
 {
-  "answer": "更新后的回复内容"
+  "client_actions": ["OPEN_TRADE_WINDOW"]
 }
 ```
 
@@ -1711,15 +1692,15 @@ Content-Type: application/json
   "code": 200,
   "message": "success",
   "data": {
-    "id": 1,
+    "id": "39c5f97e-8286-4008-9da7-0e876ea3fa63",
     "user_id": "did:privy:cmm0d4w0t00jd0cju28qvovul",
     "session_id": "a1b2c3d4-0001-0001-0001-000000000001",
-    "question": "现在 BTC 值得买吗？",
-    "answer": "更新后的回复内容",
-    "question_verbose": { "message": "现在 BTC 值得买吗？", "context": { "pathname": "/home" } },
+    "question": "我想 swap 一些 ETH",
+    "answer": "好的，我来帮你创建兑换请求，稍等一下。交易窗口已为你打开，请确认参数后提交。",
+    "question_verbose": { "message": "我想 swap 一些 ETH", "context": { "source": "/trade" } },
     "answer_verbose": [],
-    "tools": [],
-    "client_actions": [],
+    "tools": ["create_trade_intent"],
+    "client_actions": ["OPEN_TRADE_WINDOW"],
     "created_at": 1772260200000,
     "updated_at": 1772260800000
   }
@@ -1738,11 +1719,13 @@ Content-Type: application/json
 
 **接口地址**: `DELETE /ai-api/chats/messages/:id`
 
+**`:id`**: 消息的 UUID
+
 **认证**: 需要 JWT，且该消息必须属于当前用户
 
 **请求示例**:
 ```http
-DELETE /ai-api/chats/messages/1
+DELETE /ai-api/chats/messages/39c5f97e-8286-4008-9da7-0e876ea3fa63
 Authorization: Bearer <token>
 ```
 
