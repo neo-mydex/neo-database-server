@@ -808,7 +808,7 @@ Authorization: Bearer <privy_jwt_token>
 
 **认证**: 需要 JWT（user_id 从 token 取，body 不需要传）
 
-**说明**: upsert 语义。用户不存在时创建并返回 201，已存在时更新传入的字段并返回 200。前端登录时调用此接口即可，无需关心用户是否已注册。
+**说明**: upsert + 自动打卡。用户不存在时创建并返回 201，已存在时更新传入的字段并返回 200。同时触发当日打卡（幂等，同一天多次调用只算一次），返回值包含 `already_checked_in` 字段。前端登录时调用此接口即可，无需再单独调用 checkin。
 
 **请求参数**（body 所有字段均可选）:
 
@@ -845,8 +845,9 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "trade_count": 0,
     "chat_count": 0,
     "analyse_count": 0,
-    "companion_days": 0,
-    "last_active_date": null
+    "companion_days": 1,
+    "last_active_date": 1772114400000,
+    "already_checked_in": false
   }
 }
 ```
@@ -863,13 +864,14 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
     "info_sensitivity": "5.0",
     "decision_speed": "5.0",
     "cat_type": "均衡的全能喵",
-    "cat_desc": "各项指标均衡",
+    "cat_desc": "哪都行，哪都不突出",
     "registered_at": 1772114400000,
     "trade_count": 3,
     "chat_count": 10,
     "analyse_count": 2,
     "companion_days": 5,
-    "last_active_date": 1772114400000
+    "last_active_date": 1772114400000,
+    "already_checked_in": true
   }
 }
 ```

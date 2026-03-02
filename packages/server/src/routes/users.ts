@@ -48,7 +48,14 @@ router.post(
       decision_speed,
     })
 
-    res.status(created ? 201 : 200).json(successResponse(user))
+    // 登录即打卡：幂等，同一天多次调用只算一次
+    const { already_checked_in } = await userRepo.checkin(userId)
+    const updatedUser = await userRepo.findById(userId)
+
+    res.status(created ? 201 : 200).json(successResponse({
+      ...updatedUser!,
+      already_checked_in,
+    }))
   })
 )
 
