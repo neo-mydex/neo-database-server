@@ -54,6 +54,74 @@ function assertTranslationLang(lang: unknown): SupportedLang {
 
 const router: Router = Router()
 
+// ─── Binance 价格聚合 ────────────────────────────────────────────────────────
+
+interface TokenMarketData {
+  usdPrice: number | null
+  change1hPct: number | null
+  change24hPct: number | null
+  logo: string
+}
+
+/**
+ * 从 Binance 查询单个 token 的实时价格和涨跌幅，logo 来自 CoinCap。
+ * 查不到（小币未上 Binance）时价格字段返回 null，logo 仍然返回。
+ */
+async function fetchTokenMarketData(symbol: string): Promise<TokenMarketData> {
+  const pair = `${symbol.toUpperCase()}USDT`
+  const logo = `https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`
+
+  try {
+    const [res24h, res1h] = await Promise.all([
+      fetch(`https://api.binance.com/api/v3/ticker/24hr?symbol=${pair}`),
+      fetch(`https://api.binance.com/api/v3/ticker?symbol=${pair}&windowSize=1h`),
+    ])
+
+    if (!res24h.ok || !res1h.ok) {
+      return { usdPrice: null, change1hPct: null, change24hPct: null, logo }
+    }
+
+    const [data24h, data1h] = await Promise.all([
+      res24h.json() as Promise<any>,
+      res1h.json() as Promise<any>,
+    ])
+
+    return {
+      usdPrice: parseFloat(data24h.lastPrice),
+      change24hPct: parseFloat(data24h.priceChangePercent),
+      change1hPct: parseFloat(data1h.priceChangePercent),
+      logo,
+    }
+  } catch {
+    return { usdPrice: null, change1hPct: null, change24hPct: null, logo }
+  }
+}
+
+/**
+ * 对一条内容的 suggested_tokens 并行补充市场数据。
+ * 原地修改并返回，无 suggested_tokens 时直接返回原对象。
+ */
+async function enrichTokens<T extends { suggested_tokens?: unknown }>(content: T): Promise<T> {
+  const tokens = content.suggested_tokens
+  if (!Array.isArray(tokens) || tokens.length === 0) return content
+
+  const enriched = await Promise.all(
+    tokens.map(async (token: any) => {
+      const market = await fetchTokenMarketData(token.symbol)
+      return { ...token, ...market }
+    })
+  )
+
+  return { ...content, suggested_tokens: enriched }
+}
+
+/**
+ * 批量对多条内容的 suggested_tokens 并行补充市场数据。
+ */
+async function enrichContents<T extends { suggested_tokens?: unknown }>(contents: T[]): Promise<T[]> {
+  return Promise.all(contents.map(enrichTokens))
+}
+
 /**
  * GET /raw
  * 批量获取原始内容列表（支持过滤和排序）
@@ -343,7 +411,7 @@ router.get(
       throw new ApiError(404, 'Content not found')
     }
 
-    res.json(successResponse(content))
+    res.json(successResponse(await enrichTokens(content)))
   })
 )
 
@@ -398,7 +466,8 @@ router.get(
       lang,
     }, sort as any)
 
-    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
+    const enriched = await enrichContents(contents)
+    res.json(successResponse(enriched, { count: enriched.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
@@ -536,7 +605,8 @@ router.get(
       lang,
     }, sort as any)
 
-    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum, userId: req.userId }))
+    const enriched = await enrichContents(contents)
+    res.json(successResponse(enriched, { count: enriched.length, page: pageNum, pageSize: pageSizeNum, userId: req.userId }))
   })
 )
 

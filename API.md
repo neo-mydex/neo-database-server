@@ -137,7 +137,7 @@
 | 猜你想问 | `suggested_questions[]` | 全部列出，点击后按 `action` 类型处理 |
 | 相关代币 | `suggested_tokens[]` | 见下方说明 |
 
-> **相关代币注意事项**：`suggested_tokens` 只提供 `symbol`（代币符号）和 `addr`（合约地址），**价格需前端自行请求行情接口获取**。`addr` 可能为 null，最差情况下只有 `symbol` 可用，前端需做好兜底处理。
+> **相关代币说明**：`suggested_tokens` 由后端在返回时自动调用 Binance 行情接口补充 `usdPrice`、`change1h`、`change24h`，以及 CoinCap 图标 `logo`。若代币未在 Binance 上线，价格字段返回 `null`，前端需做好兜底处理。`addr` 可能为 null。
 
 ---
 
@@ -231,9 +231,10 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
           "confidence": 0.85,
           "chain": "arb",
           "addr": "0x912CE59144191C1204E64559FE8253a0e49E6548",
-          "usdPrice":1.3, // 0302 morails 查询
-          "priceChange": 1.079210724244654, // 0302 morails 查询
-          "logo": "https:xxx.png" // 0302 morails 查询
+          "usdPrice": 0.106,
+          "change1hPct": 4.289,
+          "change24hPct": 4.743,
+          "logo": "https://assets.coincap.io/assets/icons/arb@2x.png"
         }
       ],
       "overall_sentiment": "bullish"
@@ -290,6 +291,10 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 | confidence | number | 置信度 0-1 |
 | chain | string \| null | 区块链代号：eth/sol/bsc/polygon/avax/base/op/arb/ftm/movr/glm/aurora/metis/cro |
 | addr | string \| null | 代币地址（EVM: 0x 开头，SOL: base58 编码） |
+| usdPrice | number \| null | 当前 USD 价格（Binance 实时，查不到时为 null） |
+| change1hPct | number \| null | 1小时涨跌幅百分比（如 4.29 表示 +4.29%，查不到时为 null） |
+| change24hPct | number \| null | 24小时涨跌幅百分比（查不到时为 null） |
+| logo | string | 代币图标 URL（CoinCap，格式：`https://assets.coincap.io/assets/icons/{symbol小写}@2x.png`） |
 
 **SocialMetrics 字段说明**:
 
