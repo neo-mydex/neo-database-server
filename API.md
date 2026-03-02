@@ -141,16 +141,39 @@
 
 ---
 
+### 多语言说明
+
+本节所有内容接口均支持多语言返回（`title`、`summary`、`evidence_points`、`tags`、`suggested_questions`、`content` 字段）。
+
+**语言优先级**（由高到低）：
+
+| 优先级 | 方式 | 说明 |
+|--------|------|------|
+| 1 | `Accept-Language` 请求头 | **推荐**。前端 i18n 框架自动携带，无需额外处理 |
+| 2 | `?lang=` 查询参数 | 手动指定，用于覆盖 header 不可控的场景 |
+| 3 | 默认值 | `zh-CN` |
+
+**`Accept-Language` 支持的值**：
+
+| 前端传值 | 实际语言 |
+|----------|----------|
+| `zh-CN` / `zh-cn` / `zh` | 简体中文（默认） |
+| `zh-TW` / `zh-tw` | 简体中文（暂无繁中翻译，fallback 到 zh-CN） |
+| `en-US` / `en` | 英文 |
+| `ko-KR` / `ko` | 韩文 |
+| `ja-JP` / `ja` | 日文 |
+
+> 支持浏览器标准的带权重格式，如 `zh-CN,zh;q=0.9,en-US;q=0.8`，取第一个语言标签。
+>
+> 无对应翻译时自动 fallback 到中文原文。
+
+---
+
 ### 1. 获取内容列表
 
 **接口地址**: `GET /ai-api/contents/processed`
 
-**语言说明**：服务端按以下优先级决定返回语言：
-1. `Accept-Language` 请求头（推荐，支持 `zh-CN`/`zh-cn`/`zh-tw`/`en`/`en-US`/`ko`/`ko-KR`/`ja`/`ja-JP`）
-2. `?lang=` 查询参数（兜底）
-3. 默认 `zh-CN`
-
-`zh-tw` 当前映射到 `zh-CN`（暂无繁中翻译）。
+> 语言规则见上方「多语言说明」。
 
 **请求参数**:
 
@@ -284,6 +307,8 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 
 **接口地址**: `GET /ai-api/contents/recommended`
 
+> 语言规则见上方「多语言说明」。
+
 **说明**: 需要 Privy JWT 认证。服务端通过 Token 解析出用户 ID，查询该用户在 `ai_user_profiles` 中的画像后返回内容列表。用户画像（`risk_appetite`、`decision_speed` 等）将用于后续个性化推荐逻辑（当前为预留 TODO）。
 
 **认证**:
@@ -330,6 +355,8 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 **接口地址**: `GET /ai-api/contents/processed/:id`
 
+> 语言规则见上方「多语言说明」。
+
 **请求参数**:
 
 | 参数名 | 类型 | 必填 | 说明 |
@@ -357,6 +384,8 @@ GET /ai-api/contents/processed/news_001?lang=en-US
 ### 4. 按分类获取内容
 
 **接口地址**: `GET /ai-api/contents/category/:category`
+
+> 语言规则见上方「多语言说明」。
 
 **路径参数**:
 
@@ -392,6 +421,8 @@ GET /ai-api/contents/category/tradable?lang=en-US&page=1&pageSize=20
 ### 5. 按风险等级获取内容
 
 **接口地址**: `GET /ai-api/contents/risk/:riskLevel`
+
+> 语言规则见上方「多语言说明」。
 
 **路径参数**:
 
