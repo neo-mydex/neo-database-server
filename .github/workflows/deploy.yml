@@ -23,6 +23,8 @@ jobs:
 
             cd /workspace/node/neo-database-server
 
+            git stash
+
             git pull origin main
 
             pnpm install --frozen-lockfile
@@ -31,7 +33,7 @@ jobs:
 
             pm2 delete neo-database-server 2>/dev/null || true
 
-            pm2 start "pnpm start" --name neo-database-server --update-env
+            pm2 start "pnpm start" --name neo-database-server --cwd /workspace/node/neo-database-server --update-env
 
             pm2 save
 
