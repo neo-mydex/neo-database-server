@@ -1,5 +1,5 @@
 import { Router, type Request, type Response } from 'express'
-import { chatbotSessionRepo } from '@mydex/database'
+import { chatbotSessionRepo, userRepo } from '@mydex/database'
 import { ApiError, asyncHandler, successResponse } from '../middleware/error'
 import { authMiddleware } from '../middleware/auth'
 
@@ -17,12 +17,14 @@ async function streamTokens(
   res: Response,
   text: string,
   delayMs: number,
-  aborted: () => boolean
+  aborted: () => boolean,
+  collector?: string[]
 ): Promise<void> {
   const tokens = text.match(/[\u4e00-\u9fa5]{1,3}|[^\u4e00-\u9fa5\s]+|\s+/g) ?? []
   for (const token of tokens) {
     if (aborted()) return
     sendEvent(res, { type: 'llm_token', data: { content: token }, ts: Date.now() })
+    collector?.push(token)
     await new Promise(resolve => setTimeout(resolve, delayMs))
   }
 }
@@ -142,11 +144,17 @@ router.post(
     const scene = detectScene(message)
     const callId = genCallId()
 
+    // 收集 answer tokens、触发的 tools 和 client_actions
+    const answerTokens: string[] = []
+    const tools: string[] = []
+    const clientActions: string[] = []
+
     sendEvent(res, { type: 'session_start', data: { model: 'mock' }, ts: Date.now() })
 
     if (scene === 'swap') {
-      await streamTokens(res, '好的，我来帮你创建兑换请求，稍等一下。', 40, () => isAborted)
+      await streamTokens(res, '好的，我来帮你创建兑换请求，稍等一下。', 40, () => isAborted, answerTokens)
       if (isAborted) return
+      tools.push('create_trade_intent')
       sendEvent(res, {
         type: 'tool_call_start',
         data: {
@@ -164,6 +172,7 @@ router.post(
       })
       await sleep(400)
       if (isAborted) return
+      clientActions.push('OPEN_TRADE_WINDOW')
       sendEvent(res, {
         type: 'tool_call_complete',
         data: {
@@ -189,11 +198,12 @@ router.post(
         },
         ts: Date.now(),
       })
-      await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted)
+      await streamTokens(res, '交易窗口已为你打开，请确认参数后提交。', 40, () => isAborted, answerTokens)
 
     } else if (scene === 'deposit') {
-      await streamTokens(res, '检测到余额可能不足，为你显示充值引导。', 40, () => isAborted)
+      await streamTokens(res, '检测到余额可能不足，为你显示充值引导。', 40, () => isAborted, answerTokens)
       if (isAborted) return
+      tools.push('show_deposit_prompt')
       sendEvent(res, {
         type: 'tool_call_start',
         data: {
@@ -208,6 +218,7 @@ router.post(
       })
       await sleep(400)
       if (isAborted) return
+      clientActions.push('SHOW_DEPOSIT_PROMPT')
       sendEvent(res, {
         type: 'tool_call_complete',
         data: {
@@ -232,14 +243,30 @@ router.post(
         },
         ts: Date.now(),
       })
-      await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted)
+      await streamTokens(res, '充值完成后即可继续操作。', 40, () => isAborted, answerTokens)
 
     } else {
-      await streamTokens(res, '我已经收到你的信息啦，请问还有什么可以帮你？', 40, () => isAborted)
+      await streamTokens(res, '我已经收到你的信息啦，请问还有什么可以帮你？', 40, () => isAborted, answerTokens)
     }
 
     if (!isAborted) {
-      sendEvent(res, { type: 'session_end', data: {}, ts: Date.now() })
+      // 落库：保存本轮问答
+      const saved = await chatbotSessionRepo.createMessage({
+        user_id: req.userId!,
+        session_id: req.params.sessionId,
+        question: message,
+        answer: answerTokens.join(''),
+        question_verbose: { message, context },
+        tools,
+        client_actions: clientActions,
+      })
+
+      // 对话计数 +1（用户不存在时静默跳过，不影响流）
+      try {
+        await userRepo.incrementChatCount(req.userId!)
+      } catch {}
+
+      sendEvent(res, { type: 'session_end', data: { message_id: saved.id }, ts: Date.now() })
       res.end()
     }
   }
@@ -313,7 +340,7 @@ router.patch(
   '/messages/:id',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id as string)
+    const id = req.params.id as string
     const { question, answer, question_verbose, answer_verbose, tools, client_actions } = req.body
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
@@ -341,7 +368,7 @@ router.delete(
   '/messages/:id',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const id = parseInt(req.params.id as string)
+    const id = req.params.id as string
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
     if (!belongs) {

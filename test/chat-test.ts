@@ -178,7 +178,7 @@ async function testGetMessagesMissingParam(token: string) {
   assert(r.status === 400, 'HTTP 400')
 }
 
-async function testCreateMessage(token: string): Promise<number | null> {
+async function testCreateMessage(token: string): Promise<string | null> {
   const newSessionId = `test-session-${Date.now()}`
   section(`POST /messages — JWT 鉴权，创建消息（session: ${newSessionId}）`)
 
@@ -194,7 +194,7 @@ async function testCreateMessage(token: string): Promise<number | null> {
 
   console.log(`  HTTP ${r.status}`)
   assert(r.status === 201, 'HTTP 201')
-  assert(typeof r.data?.data?.id === 'number', `返回 id（得到: ${r.data?.data?.id}）`)
+  assert(typeof r.data?.data?.id === 'string', `返回 id（得到: ${r.data?.data?.id}）`)
   assert(r.data?.data?.user_id === JWT_USER_ID, `user_id 从 JWT 注入（得到: ${r.data?.data?.user_id}）`)
   assert(r.data?.data?.session_id === newSessionId, 'session_id 正确')
   assert(typeof r.data?.data?.created_at === 'number', 'created_at 是毫秒时间戳')
@@ -213,7 +213,7 @@ async function testCreateMessageValidation(token: string) {
   assert(r.status === 400, 'HTTP 400')
 }
 
-async function testUpdateMessage(token: string, msgId: number) {
+async function testUpdateMessage(token: string, msgId: string) {
   section(`PATCH /messages/${msgId} — JWT 鉴权，更新消息`)
   const r = await req(`/ai-api/chats/messages/${msgId}`, {
     method: 'PATCH',
@@ -227,8 +227,8 @@ async function testUpdateMessage(token: string, msgId: number) {
 }
 
 async function testUpdateMessageNotFound(token: string) {
-  section('PATCH /messages/9999999 — 不存在/不属于我的消息，应返回 404')
-  const r = await req('/ai-api/chats/messages/9999999', {
+  section('PATCH /messages/<nonexistent-uuid> — 不存在/不属于我的消息，应返回 404')
+  const r = await req('/ai-api/chats/messages/00000000-0000-0000-0000-000000000000', {
     method: 'PATCH',
     token,
     body: JSON.stringify({ answer: '不存在' }),
@@ -296,6 +296,10 @@ async function testStream(token: string) {
       const text = tokens.map(e => e.data.content).join('')
       console.log(`  重组文本: "${text}"`)
       assert(events.every(e => typeof e.ts === 'number'), '所有事件有 ts 字段')
+
+      const sessionEnd = events.find(e => e.type === 'session_end')
+      assert(typeof sessionEnd?.data?.message_id === 'string', `session_end 携带 message_id（得到: ${sessionEnd?.data?.message_id}）`)
+      console.log(`  落库 message_id: ${sessionEnd?.data?.message_id}`)
 
       resolve()
     }).catch(err => {
@@ -407,7 +411,7 @@ async function testStreamDeposit(token: string) {
   })
 }
 
-async function testDeleteMessage(token: string, msgId: number) {
+async function testDeleteMessage(token: string, msgId: string) {
   section(`DELETE /messages/${msgId} — JWT 鉴权，删除单条消息`)
   const r = await req(`/ai-api/chats/messages/${msgId}`, { method: 'DELETE', token })
   console.log(`  HTTP ${r.status}`)

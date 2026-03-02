@@ -35,8 +35,8 @@ export class ChatbotSessionRepository {
     const now = new Date()
     const result = await client.query(
       `INSERT INTO ai_chatbot_sessions
-         (user_id, session_id, question, answer, question_verbose, answer_verbose, tools, client_actions, created_at, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         (id, user_id, session_id, question, answer, question_verbose, answer_verbose, tools, client_actions, created_at, updated_at)
+       VALUES (gen_random_uuid(), $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
        RETURNING *`,
       [
         input.user_id,
@@ -56,7 +56,7 @@ export class ChatbotSessionRepository {
 
   // ── READ ─────────────────────────────────────────────────────────
 
-  async findMessageById(id: number): Promise<ChatbotMessage | null> {
+  async findMessageById(id: string): Promise<ChatbotMessage | null> {
     const result = await client.query(
       `SELECT * FROM ai_chatbot_sessions WHERE id = $1`,
       [id]
@@ -121,7 +121,7 @@ export class ChatbotSessionRepository {
   }
 
   /** 校验消息是否属于指定用户 */
-  async messageBelongsToUser(id: number, userId: string): Promise<boolean> {
+  async messageBelongsToUser(id: string, userId: string): Promise<boolean> {
     const result = await client.query(
       `SELECT 1 FROM ai_chatbot_sessions WHERE id = $1 AND user_id = $2 LIMIT 1`,
       [id, userId]
@@ -131,7 +131,7 @@ export class ChatbotSessionRepository {
 
   // ── UPDATE ────────────────────────────────────────────────────────
 
-  async updateMessage(id: number, input: UpdateChatbotMessageInput): Promise<ChatbotMessage | null> {
+  async updateMessage(id: string, input: UpdateChatbotMessageInput): Promise<ChatbotMessage | null> {
     const updates: string[] = []
     const values: any[] = []
     let idx = 1
@@ -158,7 +158,7 @@ export class ChatbotSessionRepository {
 
   // ── DELETE ────────────────────────────────────────────────────────
 
-  async deleteMessage(id: number): Promise<void> {
+  async deleteMessage(id: string): Promise<void> {
     await client.query(`DELETE FROM ai_chatbot_sessions WHERE id = $1`, [id])
   }
 

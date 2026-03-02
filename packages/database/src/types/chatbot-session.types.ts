@@ -7,7 +7,7 @@
  * 单条对话记录
  */
 export interface ChatbotMessage {
-  id: number
+  id: string
   user_id: string       // Privy ID，如 did:privy:xxx
   session_id: string    // 会话 UUID，前端生成
   question: string
