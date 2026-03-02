@@ -818,9 +818,8 @@ Authorization: Bearer <privy_jwt_token>
 | patience | number | 否 | 5 | 耐心程度 1-10 |
 | info_sensitivity | number | 否 | 5 | 信息敏感度 1-10 |
 | decision_speed | number | 否 | 5 | 决策速度 1-10 |
-| cat_type | string | 否 | "均衡的全能喵" | 用户分类标签 |
-| cat_desc | string | 否 | "各项指标均衡" | 用户分类描述 |
 
+> `cat_type` / `cat_desc` **由服务端根据四维分数自动查 `ai_cat_map` 表填充**，前端无需传入。
 > user_id 从 JWT token 自动解析，body 无需传入。已存在的用户若不传某字段，该字段保持原值不变。
 
 **请求示例（登录，空 body）**:
@@ -929,45 +928,7 @@ GET /ai-api/users/did:privy:cmm0d4w0t00jd0cju28qvovul
 
 ---
 
-### 4. 更新用户维度
-
-**接口地址**: `PATCH /ai-api/users/traits`
-
-**认证**: 需要 JWT
-
-**请求参数**（至少传一个）:
-
-| 参数名 | 类型 | 必填 | 说明 |
-|--------|------|------|------|
-| risk_appetite | number | 否 | 风险偏好 1-10 |
-| patience | number | 否 | 耐心程度 1-10 |
-| info_sensitivity | number | 否 | 信息敏感度 1-10 |
-| decision_speed | number | 否 | 决策速度 1-10 |
-
-**请求示例**:
-```http
-PATCH /ai-api/users/traits
-Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4elFqanNkVVdUaGVQd2FVUlJHTnZtaGlraEl0SnNQdUFmVUEifQ.eyJzaWQiOiJjbW00ZmpyMm8wMTdyMGNqdmFobXZ6bWFsIiwiaXNzIjoicHJpdnkuaW8iLCJpYXQiOjE3NzIxNjg4MDIsImF1ZCI6ImNtbHVidWxkaTAyZ3MwYmxhbWgwcWV3aXQiLCJzdWIiOiJkaWQ6cHJpdnk6Y21tMGQ0dzB0MDBqZDBjanUyOHF2b3Z1bCIsImV4cCI6MTc3MjI1NTIwMn0.B0QeWG0BFKLHtqOZRya3fMcAn78VH7OeuCp7gBCyU9sgEaHcvHoR3HhBtfim2JYc_-HurQhaya2H314yNJhdXQ
-```
-```json
-{
-  "risk_appetite": 7,
-  "patience": 3
-}
-```
-
-**响应示例**:
-```json
-{
-  "code": 200,
-  "message": "success",
-  "data": { "message": "Updated successfully" }
-}
-```
-
----
-
-### 5. 交易次数 +1
+### 4. 交易次数 +1
 
 **接口地址**: `PATCH /ai-api/users/trade-count`
 
@@ -990,7 +951,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-### 6. AI 对话次数 +1
+### 5. AI 对话次数 +1
 
 **接口地址**: `PATCH /ai-api/users/chat-count`
 
@@ -1013,7 +974,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-### 7. AI 分析次数 +1
+### 6. AI 分析次数 +1
 
 **接口地址**: `PATCH /ai-api/users/analyse-count`
 
@@ -1036,7 +997,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-### 8. 打卡（陪伴天数 +1）
+### 7. 打卡（陪伴天数 +1）
 
 **接口地址**: `POST /ai-api/users/checkin`
 
@@ -1081,7 +1042,7 @@ Authorization: Bearer eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IjVnRG9ZY3J4el
 
 ---
 
-### 9. 删除当前用户
+### 8. 删除当前用户
 
 **接口地址**: `DELETE /ai-api/users/`
 

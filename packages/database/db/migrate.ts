@@ -13,6 +13,8 @@ async function migrate() {
     'migrations/004_create_ai_processed_content_translations.sql',
     'migrations/005_create_ai_chatbot_sessions.sql',
     'migrations/006_chatbot_sessions_uuid_id.sql',
+    'migrations/007_create_ai_cat_map.sql',
+    'migrations/008_patch_ai_cat_map_insert.sql',
   ]
 
   for (const file of files) {

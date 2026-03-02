@@ -44,3 +44,11 @@ export interface UpdateUserCatInput {
   cat_type: string
   cat_desc: string
 }
+
+/**
+ * POST /ai-api/users upsert 输入类型
+ * 排除 user_id（从 JWT 取）以及 cat_type/cat_desc（服务端自动查表）
+ */
+export type UpsertUserInput = Partial<
+  Omit<CreateUserInput, 'user_id' | 'cat_type' | 'cat_desc'>
+>

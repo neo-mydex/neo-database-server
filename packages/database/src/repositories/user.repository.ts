@@ -7,8 +7,8 @@ import { client } from '../config/database.js'
 import type {
   UserProfile,
   CreateUserInput,
-  UpdateUserTraitsInput,
   UpdateUserCatInput,
+  UpsertUserInput,
 } from '../types/user.types.js'
 
 /**
@@ -16,6 +16,26 @@ import type {
  * 实现用户相关的 CRUD 操作
  */
 export class UserRepository {
+  /** 分数 → 等级：1-3→1, 4-7→2, 8-10→3 */
+  private scoreToLevel(score: number): 1 | 2 | 3 {
+    const r = Math.round(score)
+    if (r <= 3) return 1
+    if (r <= 7) return 2
+    return 3
+  }
+
+  /** 查 ai_cat_map，找不到时兜底均衡的全能喵 */
+  private async lookupCat(
+    risk: number, speed: number, info: number, patience: number
+  ): Promise<{ cat_type: string; cat_desc: string }> {
+    const res = await client.query(
+      `SELECT cat_type, cat_desc FROM ai_cat_map
+       WHERE risk_level=$1 AND speed_level=$2 AND info_level=$3 AND patience_level=$4 LIMIT 1`,
+      [this.scoreToLevel(risk), this.scoreToLevel(speed), this.scoreToLevel(info), this.scoreToLevel(patience)]
+    )
+    return res.rows[0] ?? { cat_type: '均衡的全能喵', cat_desc: '哪都行，哪都不突出' }
+  }
+
   private mapUser(row: any): UserProfile {
     return {
       ...row,
@@ -55,27 +75,33 @@ export class UserRepository {
   /**
    * UPSERT - 创建或更新用户
    * 用户不存在时创建（用传入值或默认值），已存在时更新传入的字段
+   * cat_type/cat_desc 由服务端根据四维分数自动查 ai_cat_map 表填充，前端无需传入
    * @param userId 用户 ID
-   * @param input 可选的用户字段
+   * @param input 可选的维度字段（不含 cat_type/cat_desc）
    * @returns 用户档案 + 是否新创建
    */
-  async upsert(userId: string, input: Partial<Omit<CreateUserInput, 'user_id'>>): Promise<{ user: UserProfile; created: boolean }> {
+  async upsert(userId: string, input: UpsertUserInput): Promise<{ user: UserProfile; created: boolean }> {
     const existing = await this.findById(userId)
 
     if (!existing) {
+      const risk = input.risk_appetite ?? 5
+      const speed = input.decision_speed ?? 5
+      const info = input.info_sensitivity ?? 5
+      const patience = input.patience ?? 5
+      const cat = await this.lookupCat(risk, speed, info, patience)
       const user = await this.create(userId, {
         user_id: userId,
-        risk_appetite: input.risk_appetite ?? 5,
-        patience: input.patience ?? 5,
-        info_sensitivity: input.info_sensitivity ?? 5,
-        decision_speed: input.decision_speed ?? 5,
-        cat_type: input.cat_type ?? '均衡的全能喵',
-        cat_desc: input.cat_desc ?? '各项指标均衡',
+        risk_appetite: risk,
+        patience,
+        info_sensitivity: info,
+        decision_speed: speed,
+        cat_type: cat.cat_type,
+        cat_desc: cat.cat_desc,
       })
       return { user, created: true }
     }
 
-    // 已存在：只更新传入的字段
+    // 已存在：只更新传入的字段，若有任意维度传入则同步重算 cat
     const updates: string[] = []
     const values: any[] = []
     let i = 1
@@ -84,8 +110,21 @@ export class UserRepository {
     if (input.patience !== undefined) { updates.push(`patience = $${i++}`); values.push(input.patience) }
     if (input.info_sensitivity !== undefined) { updates.push(`info_sensitivity = $${i++}`); values.push(input.info_sensitivity) }
     if (input.decision_speed !== undefined) { updates.push(`decision_speed = $${i++}`); values.push(input.decision_speed) }
-    if (input.cat_type !== undefined) { updates.push(`cat_type = $${i++}`); values.push(input.cat_type) }
-    if (input.cat_desc !== undefined) { updates.push(`cat_desc = $${i++}`); values.push(input.cat_desc) }
+
+    const hasDimension = input.risk_appetite !== undefined
+      || input.patience !== undefined
+      || input.info_sensitivity !== undefined
+      || input.decision_speed !== undefined
+
+    if (hasDimension) {
+      const risk = input.risk_appetite ?? existing.risk_appetite
+      const speed = input.decision_speed ?? existing.decision_speed
+      const info = input.info_sensitivity ?? existing.info_sensitivity
+      const patience = input.patience ?? existing.patience
+      const cat = await this.lookupCat(risk, speed, info, patience)
+      updates.push(`cat_type = $${i++}`); values.push(cat.cat_type)
+      updates.push(`cat_desc = $${i++}`); values.push(cat.cat_desc)
+    }
 
     if (updates.length > 0) {
       values.push(userId)
@@ -126,43 +165,6 @@ export class UserRepository {
     return result.rows.map((row: any) => this.mapUser(row))
   }
 
-  /**
-   * UPDATE - 更新用户维度值
-   * @param userId 用户 ID
-   * @param input 要更新的维度值
-   */
-  async updateTraits(userId: string, input: UpdateUserTraitsInput): Promise<void> {
-    const updates: string[] = []
-    const values: any[] = []
-    let paramIndex = 1
-
-    if (input.risk_appetite !== undefined) {
-      updates.push(`risk_appetite = $${paramIndex++}`)
-      values.push(input.risk_appetite)
-    }
-    if (input.patience !== undefined) {
-      updates.push(`patience = $${paramIndex++}`)
-      values.push(input.patience)
-    }
-    if (input.info_sensitivity !== undefined) {
-      updates.push(`info_sensitivity = $${paramIndex++}`)
-      values.push(input.info_sensitivity)
-    }
-    if (input.decision_speed !== undefined) {
-      updates.push(`decision_speed = $${paramIndex++}`)
-      values.push(input.decision_speed)
-    }
-
-    if (updates.length === 0) {
-      return // 没有需要更新的字段
-    }
-
-    values.push(userId)
-    await client.query(
-      `UPDATE ai_user_profiles SET ${updates.join(', ')} WHERE user_id = $${paramIndex}`,
-      values
-    )
-  }
 
   /**
    * UPDATE - 更新用户分类

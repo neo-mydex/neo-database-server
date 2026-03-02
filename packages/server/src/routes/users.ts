@@ -32,7 +32,7 @@ router.post(
   '/',
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
-    const { risk_appetite, patience, info_sensitivity, decision_speed, cat_type, cat_desc } = req.body
+    const { risk_appetite, patience, info_sensitivity, decision_speed } = req.body
     const userId = req.userId!
 
     // 验证数值范围（仅当前端传了值时才校验）
@@ -46,47 +46,12 @@ router.post(
       patience,
       info_sensitivity,
       decision_speed,
-      cat_type,
-      cat_desc,
     })
 
     res.status(created ? 201 : 200).json(successResponse(user))
   })
 )
 
-/**
- * PATCH /ai-api/users/traits
- * 更新当前用户维度（JWT 认证）
- */
-router.patch(
-  '/traits',
-  authMiddleware,
-  asyncHandler(async (req: Request, res: Response) => {
-    const userId = req.userId!
-    const { risk_appetite, patience, info_sensitivity, decision_speed } = req.body
-
-    // 验证数值范围
-    const values = [risk_appetite, patience, info_sensitivity, decision_speed].filter((v) => v !== undefined)
-    if (values.some((v) => v < 1 || v > 10)) {
-      throw new ApiError(400, 'Trait values must be between 1 and 10')
-    }
-
-    // 检查用户是否存在
-    const exists = await userRepo.exists(userId)
-    if (!exists) {
-      throw new ApiError(404, 'User not found')
-    }
-
-    await userRepo.updateTraits(userId, {
-      risk_appetite,
-      patience,
-      info_sensitivity,
-      decision_speed,
-    })
-
-    res.json(successResponse({ message: 'Updated successfully' }))
-  })
-)
 
 /**
  * PATCH /ai-api/users/trade-count
