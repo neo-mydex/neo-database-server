@@ -139,10 +139,15 @@ router.post(
     let context: Record<string, any> = {}
     try { context = JSON.parse(req.body.context ?? '{}') } catch {}
     let isAborted = false
-    req.on('close', () => { isAborted = true })
+    req.on('close', () => {
+      isAborted = true
+      console.log(`🔴 STREAM ${req.params.sessionId} 连接中断`)
+    })
 
     const scene = detectScene(message)
     const callId = genCallId()
+
+    console.log(`🟢 STREAM ${req.params.sessionId} ← "${message}" [scene: ${scene}]`)
 
     // 收集 answer tokens、触发的 tools 和 client_actions
     const answerTokens: string[] = []
@@ -253,7 +258,7 @@ router.post(
       // 落库：保存本轮问答
       const saved = await chatbotSessionRepo.createMessage({
         user_id: req.userId!,
-        session_id: req.params.sessionId,
+        session_id: req.params.sessionId as string,
         question: message,
         answer: answerTokens.join(''),
         question_verbose: { message, context },
@@ -266,6 +271,7 @@ router.post(
         await userRepo.incrementChatCount(req.userId!)
       } catch {}
 
+      console.log(`✅ STREAM ${req.params.sessionId} 落库完成 message_id=${saved.id} tools=${JSON.stringify(tools)}`)
       sendEvent(res, { type: 'session_end', data: { message_id: saved.id }, ts: Date.now() })
       res.end()
     }
