@@ -29,6 +29,10 @@ jobs:
 
             pnpm build
 
-            pm2 restart neo-database-server --update-env
+            pm2 delete neo-database-server 2>/dev/null || true
+
+            pm2 start "pnpm start" --name neo-database-server --update-env
+
+            pm2 save
 
             pm2 status
