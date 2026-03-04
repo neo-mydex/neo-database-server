@@ -137,7 +137,7 @@
 | 猜你想问 | `suggested_questions[]` | 全部列出，点击后按 `action` 类型处理 |
 | 相关代币 | `suggested_tokens[]` | 见下方说明 |
 
-> **相关代币说明**：`suggested_tokens` 由后端在返回时自动调用 Binance 行情接口补充 `usdPrice`、`change1h`、`change24h`，以及 CoinCap 图标 `logo`。若代币未在 Binance 上线，价格字段返回 `null`，前端需做好兜底处理。`addr` 可能为 null。
+> **相关代币说明**：`suggested_tokens` 由后端在返回时自动调用 OKX 行情接口补充 `usdPrice`、`change24hPct`，以及 CoinCap 图标 `logo`。若代币未在 OKX 上线，价格字段返回 `null`，前端需做好兜底处理。`addr` 可能为 null。
 
 ---
 
@@ -290,9 +290,9 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 | confidence | number | 置信度 0-1 |
 | chain | string \| null | 区块链代号：eth/sol/bsc/polygon/avax/base/op/arb/ftm/movr/glm/aurora/metis/cro |
 | addr | string \| null | 代币地址（EVM: 0x 开头，SOL: base58 编码） |
-| usdPrice | number \| null | 当前 USD 价格（OKX 实时，查不到时为 null） |
-| change24hPct | number \| null | 24小时涨跌幅百分比（如 4.29 表示 +4.29%，查不到时为 null） |
-| logo | string | 代币图标 URL（CoinCap，格式：`https://assets.coincap.io/assets/icons/{symbol小写}@2x.png`） |
+| usdPrice | number \| null | 当前 USD 价格（OKX 实时行情接口，查不到时为 null） |
+| change24hPct | number \| null | 24小时涨跌幅百分比（如 4.29 表示 +4.29%，OKX 实时行情接口，查不到时为 null） |
+| logo | string | 代币图标 URL（CoinCap，格式：`https://assets.coincap.io/assets/icons/{symbol小写}@2x.png`，始终返回） |
 
 **SocialMetrics 字段说明**:
 
@@ -422,6 +422,8 @@ GET /ai-api/contents/category/tradable?lang=en-US&page=1&pageSize=20
 }
 ```
 
+> `data` 字段结构与「1. 获取内容列表」完全相同，`suggested_tokens` 包含 OKX 实时价格和 CoinCap 图标。
+
 ---
 
 ### 5. 按风险等级获取内容
@@ -458,6 +460,8 @@ GET /ai-api/contents/risk/medium?lang=en-US&page=1&pageSize=20
   "meta": { "count": 20, "page": 1, "pageSize": 20 }
 }
 ```
+
+> `data` 字段结构与「1. 获取内容列表」完全相同，`suggested_tokens` 包含 OKX 实时价格和 CoinCap 图标。
 
 ---
 

@@ -510,7 +510,8 @@ router.get(
       lang
     )
 
-    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
+    const enriched = await enrichContents(contents)
+    res.json(successResponse(enriched, { count: enriched.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
@@ -552,7 +553,8 @@ router.get(
       lang
     )
 
-    res.json(successResponse(contents, { count: contents.length, page: pageNum, pageSize: pageSizeNum }))
+    const enriched = await enrichContents(contents)
+    res.json(successResponse(enriched, { count: enriched.length, page: pageNum, pageSize: pageSizeNum }))
   })
 )
 
