@@ -54,64 +54,121 @@ function assertTranslationLang(lang: unknown): SupportedLang {
 
 const router: Router = Router()
 
-// ─── Binance 价格聚合 ────────────────────────────────────────────────────────
+// ─── CoinGecko 价格聚合 ────────────────────────────────────────────────────────
+
+const COINGECKO_API_KEY = process.env.COINGECKO_API_KEY ?? ''
+const COINGECKO_BASE = 'https://api.coingecko.com/api/v3'
 
 interface TokenMarketData {
   usdPrice: number | null
   change24hPct: number | null
-  logo: string
+  logo: string | null
 }
 
 /**
- * 从 OKX 查询单个 token 的实时价格和 24h 涨跌幅，logo 来自 CoinCap。
- * 查不到（小币未上 OKX）时价格字段返回 null，logo 仍然返回。
+ * 通过 /search 查单个 symbol，返回 market_cap_rank 最小且 symbol 精确匹配的 coin id 和 logo。
+ * 查不到时返回 null。
  */
-async function fetchTokenMarketData(symbol: string): Promise<TokenMarketData> {
-  const instId = `${symbol.toUpperCase()}-USDT`
-  const logo = `https://assets.coincap.io/assets/icons/${symbol.toLowerCase()}@2x.png`
-
+async function searchCoinBySymbol(symbol: string): Promise<{ id: string; logo: string } | null> {
   try {
-    const res = await fetch(`https://www.okx.com/api/v5/market/ticker?instId=${instId}`)
-
-    if (!res.ok) {
-      return { usdPrice: null, change24hPct: null, logo }
-    }
-
-    const json = await res.json() as any
-    const ticker = json?.data?.[0]
-
-    if (!ticker) {
-      return { usdPrice: null, change24hPct: null, logo }
-    }
-
-    const last = parseFloat(ticker.last)
-    const open24h = parseFloat(ticker.open24h)
-    const change24hPct = ((last - open24h) / open24h) * 100
-
-    return {
-      usdPrice: last,
-      change24hPct: parseFloat(change24hPct.toFixed(4)),
-      logo,
-    }
+    const res = await fetch(`${COINGECKO_BASE}/search?query=${encodeURIComponent(symbol)}`, {
+      headers: { 'x-cg-demo-api-key': COINGECKO_API_KEY },
+    })
+    if (!res.ok) return null
+    const json = await res.json() as { coins: Array<{ id: string; symbol: string; market_cap_rank: number | null; large: string }> }
+    // 精确匹配 symbol（大小写不敏感），取 market_cap_rank 最小的
+    const matches = json.coins
+      .filter(c => c.symbol.toLowerCase() === symbol.toLowerCase())
+      .sort((a, b) => (a.market_cap_rank ?? Infinity) - (b.market_cap_rank ?? Infinity))
+    if (matches.length === 0) return null
+    return { id: matches[0].id, logo: matches[0].large }
   } catch {
-    return { usdPrice: null, change24hPct: null, logo }
+    return null
   }
 }
 
 /**
- * 对一条内容的 suggested_tokens 并行补充市场数据。
- * 原地修改并返回，无 suggested_tokens 时直接返回原对象。
+ * 批量从 CoinGecko 查询多个 token 的实时价格、24h 涨跌幅和 logo。
+ * 流程：并行 /search 拿各 symbol 的 coin_id 和 logo → /coins/markets 批量查价格。
+ * 返回以 symbol 小写为 key 的 map，查不到时各字段为 null。
+ */
+async function fetchBatchMarketData(symbols: string[]): Promise<Record<string, TokenMarketData>> {
+  const result: Record<string, TokenMarketData> = {}
+  for (const s of symbols) {
+    result[s.toLowerCase()] = { usdPrice: null, change24hPct: null, logo: null }
+  }
+
+  try {
+    // 并行 search 拿所有 coin id 和 logo
+    const searchResults = await Promise.all(symbols.map(sym => searchCoinBySymbol(sym)))
+
+    const idToSymbol: Record<string, string> = {}
+    const idToLogo: Record<string, string> = {}
+    const ids: string[] = []
+
+    symbols.forEach((sym, i) => {
+      const found = searchResults[i]
+      if (found) {
+        ids.push(found.id)
+        idToSymbol[found.id] = sym.toLowerCase()
+        idToLogo[found.id] = found.logo
+      }
+    })
+
+    if (ids.length === 0) return result
+
+    // 批量查价格和涨跌幅
+    const params = new URLSearchParams({
+      vs_currency: 'usd',
+      ids: ids.join(','),
+      price_change_percentage: '24h',
+    })
+    const res = await fetch(`${COINGECKO_BASE}/coins/markets?${params}`, {
+      headers: { 'x-cg-demo-api-key': COINGECKO_API_KEY },
+    })
+
+    if (!res.ok) return result
+
+    const markets = await res.json() as Array<{
+      id: string
+      current_price: number
+      price_change_percentage_24h: number
+    }>
+
+    for (const market of markets) {
+      const sym = idToSymbol[market.id]
+      if (!sym) continue
+      result[sym] = {
+        usdPrice: market.current_price ?? null,
+        change24hPct: market.price_change_percentage_24h != null
+          ? parseFloat(market.price_change_percentage_24h.toFixed(4))
+          : null,
+        logo: idToLogo[market.id] ?? null,
+      }
+    }
+  } catch {
+    // 查询失败，返回全部 null
+  }
+
+  return result
+}
+
+/**
+ * 对一条内容的 suggested_tokens 批量补充市场数据（单次 CoinGecko 请求）。
+ * 无 suggested_tokens 时直接返回原对象。
  */
 async function enrichTokens<T extends { suggested_tokens?: unknown }>(content: T): Promise<T> {
   const tokens = content.suggested_tokens
   if (!Array.isArray(tokens) || tokens.length === 0) return content
 
-  const enriched = await Promise.all(
-    tokens.map(async (token: any) => {
-      const market = await fetchTokenMarketData(token.symbol)
-      return { ...token, ...market }
-    })
-  )
+  const symbols = tokens.map((t: any) => t.symbol as string).filter(Boolean)
+  const marketMap = await fetchBatchMarketData(symbols)
+
+  const enriched = tokens.map((token: any) => {
+    const sym = token.symbol?.toLowerCase()
+    const market = marketMap[sym] ?? { usdPrice: null, change24hPct: null, logo: null }
+    return { ...token, ...market }
+  })
 
   return { ...content, suggested_tokens: enriched }
 }
