@@ -251,7 +251,7 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 |------|------|------|
 | id | string | 内容 ID |
 | title | string | 标题 |
-| content_type | string | 内容类型：news/edu/social |
+| content_type | string | 内容类型：`news` / `edu` / `social`。**决定 tags 的展示颜色**，见下方说明 |
 | content | string | 完整正文 |
 | source | string | 数据来源 |
 | publishedAt | number | 发布时间（Unix 毫秒时间戳） |
@@ -267,17 +267,33 @@ GET /ai-api/contents/processed?page=1&pageSize=20&category=tradable&lang=en-US
 | detected_language | string | 检测到的语言：zh-CN/en-US/other |
 | category | string | 分类：educational/tradable/macro |
 | risk_level | string | 风险等级：low/medium/high |
-| tags | string[] | 标签列表 |
+| tags | string[] | 标签列表，展示颜色由 `content_type` 决定（见下方说明） |
 | suggested_tokens | SuggestedToken[] \| null | 推荐代币 |
 | overall_sentiment | string \| null | 整体情感：bullish/bearish/neutral |
+
+**content_type 与 tags 颜色对应关系**:
+
+| content_type | tags 颜色 |
+|--------------|-----------|
+| `edu` | 🟠 橙色 |
+| `news` | 🟣 紫色 |
+| `social` | 🔵 蓝色 |
 
 **SuggestedQuestion 字段说明**:
 
 | 字段 | 类型 | 说明 |
 |------|------|------|
-| label | string | 按钮显示文本 |
-| action | string | 操作类型：chat/component |
-| payload | string | JSON 字符串，前端自行 `JSON.parse()` 解析。action=chat 时内容为 `{"message":"..."}`；action=component 时内容为 `{"type":"trade_card","params":{...}}` |
+| label | string | 按钮展示文字，直接渲染给用户看 |
+| action | string | 当前阶段固定为 `chat` |
+| payload | string | JSON 字符串，需前端 `JSON.parse()` 解析，内容为 `{"message":"..."}` |
+
+**前端交互逻辑**：用户点击按钮后，取 `JSON.parse(payload).message` 的值，作为用户消息发送给 Chatbot，效果等同于用户手动输入并发送了这条文字。
+
+```js
+// 示例
+const { message } = JSON.parse(question.payload)
+sendToChatbot(message)
+```
 
 **SuggestedToken 字段说明**:
 
