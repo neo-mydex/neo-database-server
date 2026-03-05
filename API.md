@@ -157,12 +157,14 @@
 
 | 前端传值 | 实际语言 |
 |----------|----------|
-| `zh-CN` / `zh-cn` / `zh` | 简体中文（默认） |
-| `zh-TW` / `zh-tw` | 简体中文（暂无繁中翻译，fallback 到 zh-CN） |
-| `en-US` / `en` | 英文 |
-| `ko-KR` / `ko` | 韩文 |
-| `ja-JP` / `ja` | 日文 |
+| `zh-CN` / `zh_CN` / `zh-cn` / `zh_cn` / `zh` | 简体中文（默认） |
+| `zh-TW` / `zh_TW` / `zh-tw` / `zh_tw` | 简体中文（暂无繁中翻译，fallback 到 zh-CN） |
+| `en-US` / `en_US` / `en-us` / `en_us` / `en` | 英文 |
+| `ko-KR` / `ko_KR` / `ko-kr` / `ko_kr` / `ko` | 韩文 |
+| `ja-JP` / `ja_JP` / `ja-jp` / `ja_jp` / `ja` | 日文 |
 
+> 连字符（`zh-CN`）和下划线（`zh_CN`）格式均支持，大小写不敏感。
+>
 > 支持浏览器标准的带权重格式，如 `zh-CN,zh;q=0.9,en-US;q=0.8`，取第一个语言标签。
 >
 > 无对应翻译时自动 fallback 到中文原文。

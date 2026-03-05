@@ -10,13 +10,18 @@ const VALID_LANGS: SupportedLang[] = ['zh-CN', 'en-US', 'ja-JP', 'ko-KR']
 const ACCEPT_LANG_MAP: Record<string, SupportedLang> = {
   'en': 'en-US',
   'en-us': 'en-US',
+  'en_us': 'en-US',
   'zh': 'zh-CN',
   'zh-cn': 'zh-CN',
+  'zh_cn': 'zh-CN',
   'zh-tw': 'zh-CN',
+  'zh_tw': 'zh-CN',
   'ko': 'ko-KR',
   'ko-kr': 'ko-KR',
+  'ko_kr': 'ko-KR',
   'ja': 'ja-JP',
   'ja-jp': 'ja-JP',
+  'ja_jp': 'ja-JP',
 }
 
 /**
