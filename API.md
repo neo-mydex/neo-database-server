@@ -1792,10 +1792,11 @@ Content-Type: application/json
 | answer | string | 否 | 更新后的回复 |
 | question_verbose | object | 否 | 更新结构化问题 |
 | answer_verbose | array | 否 | 更新完整 SSE 事件数组 |
+| answer_verbose_append | object | 否 | 追加一个事件到 answer_verbose 数组末尾，结构：`{ type: string, data: any, ts: number }` |
 | tools | string[] | 否 | 更新触发的 tool 名列表 |
 | client_actions | string[] | 否 | 更新触发的 client action type 列表（用户实际执行的动作） |
 
-**请求示例**（用户确认交易后更新 client_actions）:
+**请求示例 1**（用户确认交易后更新 client_actions）:
 ```http
 PATCH /ai-api/chats/messages/39c5f97e-8286-4008-9da7-0e876ea3fa63
 Authorization: Bearer <token>
@@ -1804,6 +1805,28 @@ Content-Type: application/json
 ```json
 {
   "client_actions": ["OPEN_TRADE_WINDOW"]
+}
+```
+
+**请求示例 2**（交易完成后追加 tx_complete 事件）:
+```http
+PATCH /ai-api/chats/messages/39c5f97e-8286-4008-9da7-0e876ea3fa63
+Authorization: Bearer <token>
+Content-Type: application/json
+```
+```json
+{
+  "answer_verbose_append": {
+    "type": "tx_complete",
+    "data": {
+      "txHash": "0x123abc...",
+      "status": "success",
+      "symbol": "ETH",
+      "side": "BUY",
+      "amountUsd": "100"
+    },
+    "ts": 1772260410000
+  }
 }
 ```
 
