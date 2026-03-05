@@ -42,6 +42,7 @@ export interface UpdateChatbotMessageInput {
   answer?: string
   question_verbose?: Record<string, any>
   answer_verbose?: any[]
+  answer_verbose_append?: { type: string; data: any; ts: number }  // 追加到 answer_verbose 数组末尾
   tools?: string[]
   client_actions?: string[]
 }

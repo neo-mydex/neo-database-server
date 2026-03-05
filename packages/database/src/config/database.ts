@@ -14,8 +14,12 @@ export const client = new Client({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false },
+  ssl: process.env.DB_HOST?.includes('rds.amazonaws.com')
+    ? { rejectUnauthorized: false }
+    : false,
   connectionTimeoutMillis: 10000,
+  keepAlive: true,
+  keepAliveInitialDelayMillis: 10000,
 })
 
 /**

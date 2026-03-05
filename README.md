@@ -29,12 +29,50 @@ packages/
 
 ## 快速开始
 
+**1. 安装依赖**
+
 ```bash
 pnpm install
-pnpm dev          # 启动开发服务器，监听 :3000
 ```
 
-> **注意**：修改 `packages/database/` 下的代码后，需要先 `pnpm build` 重新编译，再重启 dev server，改动才会生效（database 包以编译产物 `dist/` 被 server 引用）。
+**2. 配置环境变量**
+
+在根目录创建 `.env` 文件：
+
+```env
+# 服务器
+NODE_ENV=development
+PORT=3000
+DEV_MODE=true   # 本地开发：跳过 JWT 签名和过期验证，生产环境必须删除或设为 false
+
+# Privy 鉴权
+PRIVY_APP_ID=<your-privy-app-id>
+
+# 数据库（AWS RDS PostgreSQL）
+DB_HOST=<your-db-host>
+DB_PORT=5432
+DB_USER=<your-db-user>
+DB_PASSWORD=<your-db-password>
+DB_NAME=<your-db-name>
+```
+
+**3. 编译 database 包**
+
+`server` 依赖 `database` 包的编译产物（`dist/`），首次启动前必须先 build：
+
+```bash
+pnpm --filter @mydex/database build
+# 或直接编译所有包
+pnpm build
+```
+
+**4. 启动开发服务器**
+
+```bash
+pnpm dev          # 监听 :3000
+```
+
+> **注意**：修改 `packages/database/` 下的代码后，需要先重新 build database 包，再重启 dev server，改动才会生效。
 
 ---
 

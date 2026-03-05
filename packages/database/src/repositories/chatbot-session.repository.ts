@@ -136,6 +136,16 @@ export class ChatbotSessionRepository {
     const values: any[] = []
     let idx = 1
 
+    // 如果传了 answer_verbose_append，需要先查出现有的 answer_verbose，再 append
+    if (input.answer_verbose_append !== undefined) {
+      const existing = await this.findMessageById(id)
+      if (!existing) return null
+      const currentVerbose = existing.answer_verbose ?? []
+      const newVerbose = [...currentVerbose, input.answer_verbose_append]
+      updates.push(`answer_verbose = $${idx++}`)
+      values.push(JSON.stringify(newVerbose))
+    }
+
     if (input.question          !== undefined) { updates.push(`question = $${idx++}`);          values.push(input.question) }
     if (input.answer            !== undefined) { updates.push(`answer = $${idx++}`);            values.push(input.answer) }
     if (input.question_verbose  !== undefined) { updates.push(`question_verbose = $${idx++}`); values.push(input.question_verbose) }

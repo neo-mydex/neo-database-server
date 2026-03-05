@@ -365,7 +365,7 @@ router.patch(
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string
-    const { question, answer, question_verbose, answer_verbose, tools, client_actions } = req.body
+    const { question, answer, question_verbose, answer_verbose, answer_verbose_append, tools, client_actions } = req.body
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
     if (!belongs) {
@@ -377,6 +377,7 @@ router.patch(
       answer,
       question_verbose,
       answer_verbose,
+      answer_verbose_append,
       tools,
       client_actions,
     })
