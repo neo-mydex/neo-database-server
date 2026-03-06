@@ -25,6 +25,7 @@ app.use(cors())                    // 允许跨域请求
 app.use(express.json())            // 解析 JSON 请求体
 app.use(logger)                    // HTTP 日志
 app.use(requestLogger)             // 自定义请求日志
+app.use('/static', express.static('public'))  // 静态资源（猫图等）
 
 // ========== 健康检查 ==========
 app.get('/health', (req, res) => {
@@ -54,7 +55,7 @@ async function start() {
     console.log('✅ 数据库连接成功')
 
     // 启动服务器
-    app.listen(PORT, () => {
+    app.listen(PORT as number, '0.0.0.0', () => {
       console.log(`
 ╔═══════════════════════════════════════════════════════════════╗
 ║                                                               ║
