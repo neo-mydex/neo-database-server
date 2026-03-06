@@ -193,7 +193,7 @@ router.post(
       }, answerEvents)
       await sleep(400)
       if (isAborted) return
-      clientActions.push('OPEN_TRADE_WINDOW')
+      clientActions.push('CONFIRM_SEND_TRANSACTION')
       sendAndCollect(res, {
         type: 'tool_call_complete',
         data: {
@@ -205,7 +205,7 @@ router.post(
             data: {
               message: '已准备好买入 ETH 的交易',
               client_action: {
-                type: 'OPEN_TRADE_WINDOW',
+                type: 'CONFIRM_SEND_TRANSACTION',
                 params: {
                   symbol: 'ETH',
                   side: 'BUY',
@@ -365,7 +365,7 @@ router.patch(
   authMiddleware,
   asyncHandler(async (req: Request, res: Response) => {
     const id = req.params.id as string
-    const { question, answer, question_verbose, answer_verbose, answer_verbose_append, tools, client_actions } = req.body
+    const { question, answer, question_verbose, answer_verbose, tools, client_actions } = req.body
 
     const belongs = await chatbotSessionRepo.messageBelongsToUser(id, req.userId!)
     if (!belongs) {
@@ -377,7 +377,6 @@ router.patch(
       answer,
       question_verbose,
       answer_verbose,
-      answer_verbose_append,
       tools,
       client_actions,
     })
