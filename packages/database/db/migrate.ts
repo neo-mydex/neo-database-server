@@ -16,6 +16,7 @@ async function migrate() {
     'migrations/007_create_ai_cat_map.sql',
     'migrations/008_patch_ai_cat_map_insert.sql',
     'migrations/009_add_address_to_user_profiles.sql',
+    'migrations/010_add_hotness_score_to_processed_content.sql',
   ]
 
   for (const file of files) {
